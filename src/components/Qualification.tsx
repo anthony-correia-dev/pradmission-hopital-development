@@ -653,51 +653,29 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
               </div>
             </motion.div>
 
-            <motion.div 
-              className="flex gap-3 pt-4"
-              variants={itemVariants}
-            >
+            {/* 🎯 Boutons de navigation - sans motion pour éviter conflit AnimatePresence */}
+            <div className="flex gap-3 pt-4">
               <Button
                 type="button"
                 onClick={onBack}
                 variant="outline"
                 size="lg"
-                className="h-12 px-6 transition-all"
-                asChild
+                className="h-12 px-6 transition-all hover:scale-[1.01] active:scale-[0.98]"
+                aria-label={t.back}
               >
-                <motion.button
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  aria-label={t.back}
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  {t.back}
-                </motion.button>
+                <ArrowLeft className="w-5 h-5" />
+                {t.back}
               </Button>
               <Button
                 type="submit"
                 size="lg"
-                className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-all"
-                asChild
+                className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-all hover:scale-[1.01] active:scale-[0.98]"
+                aria-label={t.continue}
               >
-                <motion.button
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  aria-label={t.continue}
-                >
-                  {t.continue}
-                  <motion.div
-                    whileHover={{ x: 2 }}
-                    transition={{ duration: 0.2 }}
-                    className="inline-block"
-                  >
-                    <ArrowRight className="w-5 h-5" />
-                  </motion.div>
-                </motion.button>
+                {t.continue}
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
               </Button>
-            </motion.div>
+            </div>
           </form>
         </div>
       </motion.div>
