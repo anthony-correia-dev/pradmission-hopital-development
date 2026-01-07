@@ -110,4 +110,14 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Cacher la bannière "This site is private" de Power Platform */
+  #privateModeText,
+  .private-mode-banner,
+  div[id="privateModeText"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
 }
