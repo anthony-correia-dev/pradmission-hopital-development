@@ -156,6 +156,13 @@ function App() {
               onConsentMarketingChange={(consentMarketing) => updateFormData({ consentMarketing })}
               onIdentityCardChange={(identityCard) => updateFormData({ identityCard })}
               onInsuranceCardChange={(insuranceCard) => updateFormData({ insuranceCard })}
+              onOCRDataExtracted={(ocrData) => updateFormData({
+                firstName: ocrData.firstName,
+                lastName: ocrData.lastName,
+                gender: ocrData.gender,
+                nationality: ocrData.nationality
+                // ⚠️ birthDate NON inclus - ignoré selon la spécification
+              })}
               onNext={nextStep}
               onBack={prevStep}
             />

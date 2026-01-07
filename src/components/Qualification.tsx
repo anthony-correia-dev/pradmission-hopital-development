@@ -17,6 +17,8 @@ import { FileUpload } from './ui/file-upload'
 import { createQualificationSchema, QualificationFormData } from '../schemas/qualificationSchema'
 import { qualificationTranslations } from '../locales/qualification'
 import { motion, type Variants, AnimatePresence } from 'framer-motion'
+import { useApi } from '../hooks/useApi'
+import { getCountryNameByCode } from '../lib/countries'
 
 // ⚡ GPU-optimized animation variants
 const easeOut: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
@@ -152,12 +154,18 @@ interface QualificationProps {
   onConsentMarketingChange: (consent: boolean) => void
   onIdentityCardChange: (file: File | null) => void
   onInsuranceCardChange: (file: File | null) => void
+  onOCRDataExtracted: (data: { firstName: string; lastName: string; gender: string; nationality: string }) => void
   onNext: () => void
   onBack: () => void
 }
 
-export function Qualification({ language, reason, insurance, hasEmployer, consentNLPD, consentMarketing, identityCard, insuranceCard, onReasonChange, onInsuranceChange, onHasEmployerChange, onConsentNLPDChange, onConsentMarketingChange, onIdentityCardChange, onInsuranceCardChange, onNext, onBack }: QualificationProps) {
+export function Qualification({ language, reason, insurance, hasEmployer, consentNLPD, consentMarketing, identityCard, insuranceCard, onReasonChange, onInsuranceChange, onHasEmployerChange, onConsentNLPDChange, onConsentMarketingChange, onIdentityCardChange, onInsuranceCardChange, onOCRDataExtracted, onNext, onBack }: QualificationProps) {
   const t = qualificationTranslations[language]
+  const { extractDocumentData } = useApi()
+
+  // 🎯 État OCR
+  const [isOCRProcessing, setIsOCRProcessing] = useState(false)
+  const [ocrError, setOcrError] = useState<string | null>(null)
 
   // 🎯 Refs pour le scroll automatique
   const reasonRef = useRef<HTMLDivElement>(null)
@@ -248,15 +256,46 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
     onInsuranceChange(newInsurance)
   }, [setValue, onInsuranceChange])
 
-  const handleFileChange = useCallback((type: 'identity' | 'insurance', file: File | null) => {
+  // 🎯 Handler pour l'upload de fichier avec OCR intégré
+  const handleFileChange = useCallback(async (type: 'identity' | 'insurance', file: File | null) => {
     if (type === 'identity') {
       setValue('identityCard', file as File, { shouldValidate: true })
       onIdentityCardChange(file)
+
+      // 🎯 Appeler l'OCR si un fichier est uploadé
+      if (file) {
+        setIsOCRProcessing(true)
+        setOcrError(null)
+        
+        try {
+          const ocrData = await extractDocumentData(file, 'id_card')
+          
+          if (ocrData) {
+            // Mapper les données OCR vers le formulaire Admin
+            // ⚠️ birthDate est ignoré selon la spécification
+            // ✅ nationality est transformé de code ISO vers nom complet
+            onOCRDataExtracted({
+              firstName: ocrData.firstName,
+              lastName: ocrData.lastName,
+              gender: ocrData.gender,
+              nationality: getCountryNameByCode(ocrData.nationality, language)
+            })
+            console.log('✅ OCR: Données pré-remplies avec succès')
+          }
+        } catch (error) {
+          console.error('❌ OCR: Erreur lors de l\'extraction', error)
+          setOcrError(language === 'fr' 
+            ? 'Erreur lors de l\'analyse du document. Veuillez saisir vos informations manuellement.'
+            : 'Error analyzing document. Please enter your information manually.')
+        } finally {
+          setIsOCRProcessing(false)
+        }
+      }
     } else {
       setValue('insuranceCard', file as File | undefined, { shouldValidate: true })
       onInsuranceCardChange(file)
     }
-  }, [setValue, onIdentityCardChange, onInsuranceCardChange])
+  }, [setValue, onIdentityCardChange, onInsuranceCardChange, extractDocumentData, onOCRDataExtracted, language])
 
   const onSubmit = useCallback(() => {
     onNext()

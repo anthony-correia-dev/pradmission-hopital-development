@@ -400,3 +400,15 @@ export function getCountries(language: 'fr' | 'en') {
   
   return [...priorityCountries, ...otherCountries]
 }
+
+/**
+ * Convertit un code ISO 2 lettres en nom de pays
+ * @param isoCode - Code ISO 2 lettres (ex: CH, FR, DE)
+ * @param language - Langue pour le nom du pays ('fr' | 'en')
+ * @returns Le nom complet du pays ou le code ISO si non trouvé
+ */
+export function getCountryNameByCode(isoCode: string, language: 'fr' | 'en'): string {
+  const countries = COUNTRIES[language]
+  const country = countries.find(c => c.code === isoCode.toUpperCase())
+  return country?.name ?? isoCode
+}

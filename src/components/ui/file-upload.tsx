@@ -21,7 +21,7 @@ export const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.heic', '.h
 const COMPRESSION_OPTIONS = {
   maxSizeMB: 1,              // Taille max finale : 1 MB
   maxWidthOrHeight: 1920,    // Résolution max : 1920px
-  useWebWorker: true,        // Utiliser Web Worker pour ne pas bloquer l'UI
+  useWebWorker: false,        // web worker désactivé pour compatibilité power platform (CSP security)
   fileType: 'image/jpeg' as const,    // Convertir en JPEG (inclut HEIC → JPEG)
   initialQuality: 0.8        // Qualité initiale à 80%
 }

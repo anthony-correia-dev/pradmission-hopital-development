@@ -341,6 +341,10 @@ adx_webfile:
   DisplayName: 8a0467d1-386d-4c48-8f0e-3a840b56a1f6
   CheckSum: 2b875222e4c3831c5216bf1065338df0e52a861e4ff2ba0302c98c31d3b814b1
   IsDeleted: false
+- RecordId: a8bb7830-6404-4470-bc4a-20dd1dcafbc6
+  DisplayName: a8bb7830-6404-4470-bc4a-20dd1dcafbc6
+  CheckSum: 229c99cdb2752b0976d982d038c2fd4574311c749a781f47a5557feb3570f092
+  IsDeleted: false
 - RecordId: ac66b921-27ae-446d-8c05-24b04527249e
   DisplayName: ac66b921-27ae-446d-8c05-24b04527249e
   CheckSum: be65c57c1c8bb9e9d27a93375e59fad166f492d12134c4738cd8a61120bc47e5
@@ -352,14 +356,14 @@ adx_webfile:
 - RecordId: e358dbef-48b7-48a4-bf4a-9ae97675b7b9
   DisplayName: e358dbef-48b7-48a4-bf4a-9ae97675b7b9
   CheckSum: e12f609a538522f608573697c5104ae2b904085667996025ee9c01d3a8cbeb7f
-  IsDeleted: false
+  IsDeleted: true
 - RecordId: e5472612-bb6a-4606-8a41-882fc2c4a696
   DisplayName: e5472612-bb6a-4606-8a41-882fc2c4a696
   CheckSum: 18a042313ee41973135435275ec42380094a8d82900d503f619fdde3c098a5e6
   IsDeleted: false
 - RecordId: ecdce528-64ae-4dbe-ae5f-c838ca967d0d
   DisplayName: ecdce528-64ae-4dbe-ae5f-c838ca967d0d
-  CheckSum: 2904826f5bfedd7ee4f82beb0072e305ce34d40b08fba3b7e94c07deb6634b55
+  CheckSum: a4d159756a9bc297fa9ba2f3b8ee39603213fd0b0d7ffea194330b7cd59cfc0a
   IsDeleted: false
 adx_weblink:
 - RecordId: 5af60379-44b4-4056-ba74-652226323c02
@@ -410,7 +414,7 @@ adx_webpage:
   IsDeleted: false
 - RecordId: b98b2ebc-9086-44f3-980e-db6b2ac32771
   DisplayName: b98b2ebc-9086-44f3-980e-db6b2ac32771
-  CheckSum: b943a3652454622aeaf4a11ae2075fd4fa85599cbd985bce7ba330d8d32d2999
+  CheckSum: 4b179352d9493f42b0bfa250cf217c3a1aed80875dcaddf90615fa3c547b0bd8
   IsDeleted: false
 - RecordId: bbafcaec-c739-4f0e-9ddd-5b574366c9ce
   DisplayName: bbafcaec-c739-4f0e-9ddd-5b574366c9ce
@@ -573,6 +577,10 @@ annotation:
   DisplayName: logo-hlt-SDnMJMTh.png
   CheckSum: 4dc9843dfdbdf9a3c3d78ac2d29b6b0238890d5b6b63078881c463091cf52270
   IsDeleted: false
+- RecordId: a8bb7830-6404-4470-bc4a-20dd1dcafbc6
+  DisplayName: index-D8ooMf63.css
+  CheckSum: a47e3db5158e111de7e58101ce8195cd0adeb3a66f60b133966445dfd4e75148
+  IsDeleted: false
 - RecordId: ac66b921-27ae-446d-8c05-24b04527249e
   DisplayName: font_preadmission_woff-BkU40QST.woff
   CheckSum: a3f961ce31d7e08371f1677cf18d1cf5119ba2999e8c95630d213f07c243d704
@@ -584,12 +592,12 @@ annotation:
 - RecordId: e358dbef-48b7-48a4-bf4a-9ae97675b7b9
   DisplayName: index-CbmmhXSV.css
   CheckSum: c2cdccc8b21e809fa30e850a6ccc0cc04fe902aa8f819db7e34ca6eec9ea7c25
-  IsDeleted: false
+  IsDeleted: true
 - RecordId: e5472612-bb6a-4606-8a41-882fc2c4a696
   DisplayName: package.json
   CheckSum: 386d309e8d89e524430f97cc8347c455ed30f517b057b73caf17adf793a19f50
   IsDeleted: false
 - RecordId: ecdce528-64ae-4dbe-ae5f-c838ca967d0d
   DisplayName: index.html
-  CheckSum: ee9bd5cae73461a95eee192afa10f75d1a5f0f8dbc82a3e9109285ada650b84d
+  CheckSum: 63a7b628cc179ddc747839badfd3dd2af0acb98ae25b66535b10e1afb3d28b67
   IsDeleted: false
