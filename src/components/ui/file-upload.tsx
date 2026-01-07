@@ -114,7 +114,17 @@ export function FileUpload({
   // 🎯 Compresse l'image et convertit HEIC en JPEG
   const compressImage = async (file: File): Promise<File> => {
     try {
+      const originalSizeMB = (file.size / 1024 / 1024).toFixed(2)
+      
       const compressedFile = await imageCompression(file, COMPRESSION_OPTIONS)
+      
+      const compressedSizeMB = (compressedFile.size / 1024 / 1024).toFixed(2)
+      const reductionPercent = ((1 - compressedFile.size / file.size) * 100).toFixed(1)
+      
+      console.log(`📸 Compression: ${file.name}`)
+      console.log(`   Taille initiale: ${originalSizeMB} MB`)
+      console.log(`   Taille compressée: ${compressedSizeMB} MB`)
+      console.log(`   Réduction: ${reductionPercent}%`)
       
       // Renommer le fichier avec l'extension .jpg si c'était un HEIC/HEIF
       const originalName = file.name.toLowerCase()
