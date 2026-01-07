@@ -10,7 +10,9 @@ import "./main.css"
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary FallbackComponent={ErrorFallback}>
     <div id="spark-app">
-      <App />
+      <div id="preadmission-app">
+        <App />
+      </div>
     </div>
   </ErrorBoundary>
 )
