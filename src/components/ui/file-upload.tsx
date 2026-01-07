@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react'
+import { Upload, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
 
 // 🎯 File validation constants
 export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -16,17 +17,40 @@ export const ALLOWED_FILE_TYPES = [
 ]
 export const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.heic', '.heif', '.webp', '.tif', '.tiff']
 
+// 🎯 Image compression options
+const COMPRESSION_OPTIONS = {
+  maxSizeMB: 1,              // Taille max finale : 1 MB
+  maxWidthOrHeight: 1920,    // Résolution max : 1920px
+  useWebWorker: true,        // Utiliser Web Worker pour ne pas bloquer l'UI
+  fileType: 'image/jpeg' as const,    // Convertir en JPEG (inclut HEIC → JPEG)
+  initialQuality: 0.8        // Qualité initiale à 80%
+}
+
+// 🎯 Types d'images compressibles
+const COMPRESSIBLE_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/heic',
+  'image/heif',
+  'image/webp',
+  'image/tiff',
+  'image/tif'
+]
+
 // 🎯 Translations for file upload errors
 const fileUploadTranslations = {
   fr: {
     fileTooLarge: 'Le fichier est trop volumineux (max 10 Mo)',
     invalidFileFormat: 'Format non supporté (PDF, JPG, PNG, HEIC, WebP, TIFF)',
-    fileTooLargeAndInvalidFormat: 'Le fichier est trop volumineux et le format n\'est pas supporté'
+    fileTooLargeAndInvalidFormat: 'Le fichier est trop volumineux et le format n\'est pas supporté',
+    compressing: 'Compression en cours...'
   },
   en: {
     fileTooLarge: 'File is too large (max 10 MB)',
     invalidFileFormat: 'Unsupported format (PDF, JPG, PNG, HEIC, WebP, TIFF)',
-    fileTooLargeAndInvalidFormat: 'File is too large and format is not supported'
+    fileTooLargeAndInvalidFormat: 'File is too large and format is not supported',
+    compressing: 'Compressing...'
   }
 } as const
 
@@ -77,7 +101,31 @@ export function FileUpload({
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [fileError, setFileError] = useState('')
+  const [isCompressing, setIsCompressing] = useState(false)
   const t = fileUploadTranslations[language]
+
+  // 🎯 Vérifie si le fichier est une image compressible
+  const isCompressibleImage = (file: File): boolean => {
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase()
+    return COMPRESSIBLE_IMAGE_TYPES.includes(file.type) || 
+           ['.heic', '.heif'].includes(fileExtension)
+  }
+
+  // 🎯 Compresse l'image et convertit HEIC en JPEG
+  const compressImage = async (file: File): Promise<File> => {
+    try {
+      const compressedFile = await imageCompression(file, COMPRESSION_OPTIONS)
+      
+      // Renommer le fichier avec l'extension .jpg si c'était un HEIC/HEIF
+      const originalName = file.name.toLowerCase()
+      const newName = originalName.replace(/\.(heic|heif|png|webp|tiff|tif)$/i, '.jpg')
+      
+      return new File([compressedFile], newName, { type: 'image/jpeg' })
+    } catch (error) {
+      console.error('Erreur lors de la compression:', error)
+      return file // Retourner l'original en cas d'erreur
+    }
+  }
 
   const validateFile = (selectedFile: File): boolean => {
     // Reset errors
@@ -109,19 +157,38 @@ export function FileUpload({
     return true
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  // 🎯 Traite le fichier (validation + compression si image)
+  const processFile = async (selectedFile: File): Promise<void> => {
+    if (!validateFile(selectedFile)) return
+
+    // Si c'est une image compressible, on la compresse
+    if (isCompressibleImage(selectedFile)) {
+      setIsCompressing(true)
+      try {
+        const compressedFile = await compressImage(selectedFile)
+        onFileChange(compressedFile)
+      } finally {
+        setIsCompressing(false)
+      }
+    } else {
+      // PDF ou autre format non compressible
+      onFileChange(selectedFile)
+    }
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     const droppedFile = e.dataTransfer.files[0]
-    if (droppedFile && validateFile(droppedFile)) {
-      onFileChange(droppedFile)
+    if (droppedFile) {
+      await processFile(droppedFile)
     }
     setIsDragging(false)
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
-    if (selectedFile && validateFile(selectedFile)) {
-      onFileChange(selectedFile)
+    if (selectedFile) {
+      await processFile(selectedFile)
     }
   }
 
@@ -156,6 +223,13 @@ export function FileUpload({
           </div>
           <p className="text-xs text-brand-success font-semibold text-center px-2 truncate max-w-full">
             {file.name}
+          </p>
+        </div>
+      ) : isCompressing ? (
+        <div className="h-36 rounded-lg border-2 border-dashed border-brand-primary bg-brand-primary/5 p-4 flex flex-col items-center justify-center">
+          <Loader2 className="w-8 h-8 text-brand-primary mb-2 animate-spin" />
+          <p className="text-xs text-brand-primary font-medium">
+            {t.compressing}
           </p>
         </div>
       ) : (
