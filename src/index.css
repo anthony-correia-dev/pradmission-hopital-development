@@ -1,0 +1,16 @@
+@font-face {
+  font-family: 'Simplon Norm';
+  src: url('./assets/documents/font_preadmission_woff2.woff2') format('woff2'),
+       url('./assets/documents/font_preadmission_woff.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  font-family: 'Simplon Norm', 'Arial', sans-serif;
+}
+
+body {
+  font-family: 'Simplon Norm', 'Arial', sans-serif;
+}

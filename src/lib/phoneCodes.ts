@@ -1,0 +1,260 @@
+export interface PhoneCode {
+  code: string
+  dialCode: string
+  format?: string
+}
+
+export const PHONE_CODES: PhoneCode[] = [
+  { code: 'CH', dialCode: '+41', format: 'XX XXX XX XX' },
+  { code: 'FR', dialCode: '+33', format: 'X XX XX XX XX' },
+  { code: 'DE', dialCode: '+49', format: 'XXX XXXXXXX' },
+  { code: 'IT', dialCode: '+39', format: 'XXX XXX XXXX' },
+  { code: 'AT', dialCode: '+43', format: 'XXX XXXXXXX' },
+  { code: 'AF', dialCode: '+93' },
+  { code: 'AL', dialCode: '+355' },
+  { code: 'DZ', dialCode: '+213' },
+  { code: 'AD', dialCode: '+376' },
+  { code: 'AO', dialCode: '+244' },
+  { code: 'AR', dialCode: '+54' },
+  { code: 'AM', dialCode: '+374' },
+  { code: 'AU', dialCode: '+61' },
+  { code: 'AZ', dialCode: '+994' },
+  { code: 'BS', dialCode: '+1242' },
+  { code: 'BH', dialCode: '+973' },
+  { code: 'BD', dialCode: '+880' },
+  { code: 'BB', dialCode: '+1246' },
+  { code: 'BY', dialCode: '+375' },
+  { code: 'BE', dialCode: '+32' },
+  { code: 'BZ', dialCode: '+501' },
+  { code: 'BJ', dialCode: '+229' },
+  { code: 'BT', dialCode: '+975' },
+  { code: 'BO', dialCode: '+591' },
+  { code: 'BA', dialCode: '+387' },
+  { code: 'BW', dialCode: '+267' },
+  { code: 'BR', dialCode: '+55' },
+  { code: 'BN', dialCode: '+673' },
+  { code: 'BG', dialCode: '+359' },
+  { code: 'BF', dialCode: '+226' },
+  { code: 'BI', dialCode: '+257' },
+  { code: 'KH', dialCode: '+855' },
+  { code: 'CM', dialCode: '+237' },
+  { code: 'CA', dialCode: '+1' },
+  { code: 'CV', dialCode: '+238' },
+  { code: 'CF', dialCode: '+236' },
+  { code: 'TD', dialCode: '+235' },
+  { code: 'CL', dialCode: '+56' },
+  { code: 'CN', dialCode: '+86' },
+  { code: 'CO', dialCode: '+57' },
+  { code: 'KM', dialCode: '+269' },
+  { code: 'CG', dialCode: '+242' },
+  { code: 'CR', dialCode: '+506' },
+  { code: 'HR', dialCode: '+385' },
+  { code: 'CU', dialCode: '+53' },
+  { code: 'CY', dialCode: '+357' },
+  { code: 'CZ', dialCode: '+420' },
+  { code: 'DK', dialCode: '+45' },
+  { code: 'DJ', dialCode: '+253' },
+  { code: 'DM', dialCode: '+1767' },
+  { code: 'DO', dialCode: '+1809' },
+  { code: 'EC', dialCode: '+593' },
+  { code: 'EG', dialCode: '+20' },
+  { code: 'SV', dialCode: '+503' },
+  { code: 'GQ', dialCode: '+240' },
+  { code: 'ER', dialCode: '+291' },
+  { code: 'EE', dialCode: '+372' },
+  { code: 'ET', dialCode: '+251' },
+  { code: 'FJ', dialCode: '+679' },
+  { code: 'FI', dialCode: '+358' },
+  { code: 'GA', dialCode: '+241' },
+  { code: 'GM', dialCode: '+220' },
+  { code: 'GE', dialCode: '+995' },
+  { code: 'GH', dialCode: '+233' },
+  { code: 'GR', dialCode: '+30' },
+  { code: 'GD', dialCode: '+1473' },
+  { code: 'GT', dialCode: '+502' },
+  { code: 'GN', dialCode: '+224' },
+  { code: 'GW', dialCode: '+245' },
+  { code: 'GY', dialCode: '+592' },
+  { code: 'HT', dialCode: '+509' },
+  { code: 'HN', dialCode: '+504' },
+  { code: 'HU', dialCode: '+36' },
+  { code: 'IS', dialCode: '+354' },
+  { code: 'IN', dialCode: '+91' },
+  { code: 'ID', dialCode: '+62' },
+  { code: 'IR', dialCode: '+98' },
+  { code: 'IQ', dialCode: '+964' },
+  { code: 'IE', dialCode: '+353' },
+  { code: 'IL', dialCode: '+972' },
+  { code: 'JM', dialCode: '+1876' },
+  { code: 'JP', dialCode: '+81' },
+  { code: 'JO', dialCode: '+962' },
+  { code: 'KZ', dialCode: '+7' },
+  { code: 'KE', dialCode: '+254' },
+  { code: 'KI', dialCode: '+686' },
+  { code: 'KW', dialCode: '+965' },
+  { code: 'KG', dialCode: '+996' },
+  { code: 'LA', dialCode: '+856' },
+  { code: 'LV', dialCode: '+371' },
+  { code: 'LB', dialCode: '+961' },
+  { code: 'LS', dialCode: '+266' },
+  { code: 'LR', dialCode: '+231' },
+  { code: 'LY', dialCode: '+218' },
+  { code: 'LI', dialCode: '+423' },
+  { code: 'LT', dialCode: '+370' },
+  { code: 'LU', dialCode: '+352' },
+  { code: 'MG', dialCode: '+261' },
+  { code: 'MW', dialCode: '+265' },
+  { code: 'MY', dialCode: '+60' },
+  { code: 'MV', dialCode: '+960' },
+  { code: 'ML', dialCode: '+223' },
+  { code: 'MT', dialCode: '+356' },
+  { code: 'MH', dialCode: '+692' },
+  { code: 'MR', dialCode: '+222' },
+  { code: 'MU', dialCode: '+230' },
+  { code: 'MX', dialCode: '+52' },
+  { code: 'FM', dialCode: '+691' },
+  { code: 'MD', dialCode: '+373' },
+  { code: 'MC', dialCode: '+377' },
+  { code: 'MN', dialCode: '+976' },
+  { code: 'ME', dialCode: '+382' },
+  { code: 'MA', dialCode: '+212' },
+  { code: 'MZ', dialCode: '+258' },
+  { code: 'MM', dialCode: '+95' },
+  { code: 'NA', dialCode: '+264' },
+  { code: 'NR', dialCode: '+674' },
+  { code: 'NP', dialCode: '+977' },
+  { code: 'NL', dialCode: '+31' },
+  { code: 'NZ', dialCode: '+64' },
+  { code: 'NI', dialCode: '+505' },
+  { code: 'NE', dialCode: '+227' },
+  { code: 'NG', dialCode: '+234' },
+  { code: 'KP', dialCode: '+850' },
+  { code: 'MK', dialCode: '+389' },
+  { code: 'NO', dialCode: '+47' },
+  { code: 'OM', dialCode: '+968' },
+  { code: 'PK', dialCode: '+92' },
+  { code: 'PW', dialCode: '+680' },
+  { code: 'PA', dialCode: '+507' },
+  { code: 'PG', dialCode: '+675' },
+  { code: 'PY', dialCode: '+595' },
+  { code: 'PE', dialCode: '+51' },
+  { code: 'PH', dialCode: '+63' },
+  { code: 'PL', dialCode: '+48' },
+  { code: 'PT', dialCode: '+351' },
+  { code: 'QA', dialCode: '+974' },
+  { code: 'RO', dialCode: '+40' },
+  { code: 'RU', dialCode: '+7' },
+  { code: 'RW', dialCode: '+250' },
+  { code: 'KN', dialCode: '+1869' },
+  { code: 'LC', dialCode: '+1758' },
+  { code: 'VC', dialCode: '+1784' },
+  { code: 'WS', dialCode: '+685' },
+  { code: 'SM', dialCode: '+378' },
+  { code: 'ST', dialCode: '+239' },
+  { code: 'SA', dialCode: '+966' },
+  { code: 'SN', dialCode: '+221' },
+  { code: 'RS', dialCode: '+381' },
+  { code: 'SC', dialCode: '+248' },
+  { code: 'SL', dialCode: '+232' },
+  { code: 'SG', dialCode: '+65' },
+  { code: 'SK', dialCode: '+421' },
+  { code: 'SI', dialCode: '+386' },
+  { code: 'SB', dialCode: '+677' },
+  { code: 'SO', dialCode: '+252' },
+  { code: 'ZA', dialCode: '+27' },
+  { code: 'KR', dialCode: '+82' },
+  { code: 'SS', dialCode: '+211' },
+  { code: 'ES', dialCode: '+34' },
+  { code: 'LK', dialCode: '+94' },
+  { code: 'SD', dialCode: '+249' },
+  { code: 'SR', dialCode: '+597' },
+  { code: 'SE', dialCode: '+46' },
+  { code: 'SY', dialCode: '+963' },
+  { code: 'TJ', dialCode: '+992' },
+  { code: 'TZ', dialCode: '+255' },
+  { code: 'TH', dialCode: '+66' },
+  { code: 'TL', dialCode: '+670' },
+  { code: 'TG', dialCode: '+228' },
+  { code: 'TO', dialCode: '+676' },
+  { code: 'TT', dialCode: '+1868' },
+  { code: 'TN', dialCode: '+216' },
+  { code: 'TR', dialCode: '+90' },
+  { code: 'TM', dialCode: '+993' },
+  { code: 'TV', dialCode: '+688' },
+  { code: 'UG', dialCode: '+256' },
+  { code: 'UA', dialCode: '+380' },
+  { code: 'AE', dialCode: '+971' },
+  { code: 'GB', dialCode: '+44' },
+  { code: 'US', dialCode: '+1' },
+  { code: 'UY', dialCode: '+598' },
+  { code: 'UZ', dialCode: '+998' },
+  { code: 'VU', dialCode: '+678' },
+  { code: 'VA', dialCode: '+39' },
+  { code: 'VE', dialCode: '+58' },
+  { code: 'VN', dialCode: '+84' },
+  { code: 'YE', dialCode: '+967' },
+  { code: 'ZM', dialCode: '+260' },
+  { code: 'ZW', dialCode: '+263' }
+]
+
+const PRIORITY_CODES = ['CH', 'FR', 'DE', 'IT', 'AT']
+
+export function getPhoneCodes() {
+  const priorityCodes = PHONE_CODES.filter(item => 
+    PRIORITY_CODES.includes(item.code)
+  )
+  
+  const otherCodes = PHONE_CODES
+    .filter(item => !PRIORITY_CODES.includes(item.code))
+    .sort((a, b) => a.dialCode.localeCompare(b.dialCode))
+  
+  return [...priorityCodes, ...otherCodes]
+}
+
+export function formatPhoneNumber(value: string, countryCode: string): string {
+  const phoneCode = PHONE_CODES.find(p => p.code === countryCode)
+  const digits = value.replace(/\D/g, '')
+  
+  if (!phoneCode?.format) {
+    return digits.replace(/(\d{3})(?=\d)/g, '$1 ').trim()
+  }
+
+  const format = phoneCode.format
+  let formatted = ''
+  let digitIndex = 0
+  
+  for (let i = 0; i < format.length && digitIndex < digits.length; i++) {
+    if (format[i] === 'X') {
+      formatted += digits[digitIndex]
+      digitIndex++
+    } else {
+      formatted += format[i]
+    }
+  }
+  
+  if (digitIndex < digits.length) {
+    formatted += ' ' + digits.slice(digitIndex)
+  }
+  
+  return formatted.trim()
+}
+
+export function isValidPhoneNumber(number: string, countryCode: string): boolean {
+  const digits = number.replace(/\D/g, '')
+  
+  if (digits.length < 6) return false
+  
+  switch (countryCode) {
+    case 'CH':
+      return digits.length >= 9 && digits.length <= 12
+    case 'FR':
+      return digits.length === 9
+    case 'DE':
+    case 'AT':
+      return digits.length >= 10 && digits.length <= 13
+    case 'IT':
+      return digits.length >= 9 && digits.length <= 11
+    default:
+      return digits.length >= 7 && digits.length <= 15
+  }
+}

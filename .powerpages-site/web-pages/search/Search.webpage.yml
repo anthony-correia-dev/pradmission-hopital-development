@@ -1,0 +1,12 @@
+enablerating: false
+enabletracking: false
+excludefromsearch: false
+hiddenfromsitemap: true
+id: cbaf3827-0218-413a-b622-a438049b5a43
+isroot: true
+name: Search
+pagetemplateid: f7d1727b-6154-4b52-a05f-9b46b4e4b245
+parentpageid: bbafcaec-c739-4f0e-9ddd-5b574366c9ce
+partialurl: search
+publishingstateid: 0d7b59ad-04df-4e16-bad3-d5975d356667
+sharedpageconfiguration: false
