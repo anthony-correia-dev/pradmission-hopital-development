@@ -50,11 +50,11 @@ const containerVariants: Variants = {
 const itemVariants: Variants = {
   hidden: { 
     opacity: 0, 
-    y: 15,
+    transform: 'translateY(15px)',
   },
   visible: { 
     opacity: 1, 
-    y: 0,
+    transform: 'translateY(0px)',
     transition: {
       duration: ANIMATION.DURATION_DEFAULT,
       ease: easeOut
@@ -65,18 +65,18 @@ const itemVariants: Variants = {
 const iconVariants: Variants = {
   hidden: { 
     opacity: 0, 
-    scale: 0.7,
+    transform: 'scale(0.7)',
   },
   visible: { 
     opacity: 1, 
-    scale: 1,
+    transform: 'scale(1)',
     transition: {
       duration: ANIMATION.DURATION_LONG,
       ease: easeOut
     }
   },
   pulse: {
-    scale: ANIMATION.SCALE_PULSE,
+    transform: ['scale(1)', 'scale(1.03)', 'scale(1)'],
     transition: {
       duration: ANIMATION.PULSE_DURATION,
       repeat: Infinity,
@@ -85,31 +85,26 @@ const iconVariants: Variants = {
   }
 }
 
-// 🌟 Animation spéciale pour la section employeur - effet de slide + highlight
+// 🌟 Animation optimisée pour la section employeur - GPU-accelerated
 const employerSectionVariants: Variants = {
   hidden: { 
     opacity: 0,
-    height: 0,
-    scale: 0.95,
+    transform: 'translateY(-10px)',
+    willChange: 'transform, opacity',
   },
   visible: { 
     opacity: 1,
-    height: 'auto',
-    scale: 1,
+    transform: 'translateY(0px)',
     transition: {
-      duration: 0.5,
-      ease: organicEase,
-      opacity: { duration: 0.3 },
-      height: { duration: 0.5 },
-      scale: { duration: 0.4, delay: 0.1 }
+      duration: 0.25,
+      ease: easeOut,
     }
   },
   exit: { 
     opacity: 0,
-    height: 0,
-    scale: 0.95,
+    transform: 'translateY(-10px)',
     transition: {
-      duration: 0.3,
+      duration: 0.15,
       ease: easeOut
     }
   }
@@ -132,11 +127,11 @@ const employerHighlightVariants: Variants = {
 
 const buttonVariants = {
   hover: { 
-    scale: 1.01,
-    transition: { duration: 0.2 }
+    transform: 'scale(1.01)',
+    transition: { duration: 0.15 }
   },
   tap: { 
-    scale: 0.98,
+    transform: 'scale(0.98)',
     transition: { duration: 0.1 }
   }
 }
