@@ -614,13 +614,13 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
                       }}
                       className="mt-0.5"
                     />
-                    <Label htmlFor="consentNLPD" className="text-sm font-medium text-brand-text cursor-pointer flex-1 leading-5">
-                      {t.consentNLPDPrefix}
+                    <Label htmlFor="consentNLPD" className="text-sm font-medium text-brand-text cursor-pointer flex-1 leading-5 inline">
+                      {t.consentNLPDPrefix}{' '}
                       <a 
                         href={t.privacyPolicyUrl} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="text-brand-primary hover:underline"
+                        className="text-brand-primary hover:underline inline"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {t.consentNLPDLink}
