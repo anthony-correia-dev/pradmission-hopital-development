@@ -20,43 +20,54 @@ Lors de l'upload d'une pièce d'identité dans l'étape **Qualification**, un Cl
 
 ```typescript
 interface OCRDocumentRequest {
-  fileType: 'id_card' | 'insurance_card'
-  fileName: string
-  base64: string  // Contenu du fichier encodé en Base64
+  doc: 'identityid' | 'insuranceid'  // Type de document
+  base64: string                      // Contenu du fichier encodé en Base64
 }
 ```
 
-**Exemple :**
-```json
-{
-  "fileType": "id_card",
-  "fileName": "scan.jpg",
-  "base64": "/9j/4AAQSkZJRg..."
-}
+**Appel via `shell.ajaxSafePost` :**
+```typescript
+(window as any).shell.ajaxSafePost({
+  type: "POST",
+  url: "/_api/cloudflow/v1.0/trigger/f729da03-646c-f011-b4cc-0022487492a4",
+  data: {
+    "eventData": JSON.stringify({
+      "doc": "identityid",
+      "base64": "/9j/4AAQSkZJRg..."
+    })
+  }
+})
+.done(function(response) { /* succès */ })
+.fail(function(error) { /* erreur */ })
 ```
+
+**Mapping fileType → doc :**
+| fileType (UI) | doc (API) |
+|---------------|-----------|
+| `id_card` | `identityid` |
+| `insurance_card` | `insuranceid` |
 
 ---
 
 ## 📥 Payload Response
 
 ```typescript
-interface OCRDocumentResponse {
-  lastName: string
-  firstName: string
-  birthDate: string   // Format: YYYY-MM-DD
+// Réponse brute du Cloud Flow (format snake_case)
+interface OCRCloudFlowResponse {
+  last_name: string      // Nom en MAJUSCULES (ex: "CORREIA")
+  first_names: string    // Prénom(s) (ex: "Anthony Alexandre")
   gender: 'male' | 'female'
-  nationality: string // Code ISO 2 lettres (ex: CH, FR, DE)
+  nationality: string    // Code ISO 2 lettres (ex: "FR", "CH")
 }
 ```
 
-**Exemple :**
+**Exemple de réponse :**
 ```json
 {
-  "lastName": "Dupont",
-  "firstName": "Jean",
-  "birthDate": "1980-01-15",
+  "last_name": "CORREIA",
+  "first_names": "Anthony Alexandre",
   "gender": "male",
-  "nationality": "CH"
+  "nationality": "FR"
 }
 ```
 
@@ -66,11 +77,58 @@ interface OCRDocumentResponse {
 
 | Réponse OCR | Champ Store (`FormData`) | Champ UI (AdminStep) | Transformation |
 |-------------|--------------------------|----------------------|----------------|
-| `lastName` | `lastName` | "Nom" | Aucune |
-| `firstName` | `firstName` | "Prénom" | Aucune |
-| `birthDate` | ❌ **NON UTILISÉ** | - | - |
+| `last_name` | `lastName` | "Nom" | **Capitalisation** (CORREIA → Correia) |
+| `first_names` | `firstName` | "Prénom" | **Premier prénom + Capitalisation** |
 | `gender` | `gender` | "Genre" (select) | Aucune (`male`/`female`) |
 | `nationality` | `nationality` | "Nationalité" (combobox) | **ISO → Nom complet** |
+
+---
+
+## 🔤 Transformation des noms (Capitalisation)
+
+### Problème
+
+L'OCR retourne les noms en **MAJUSCULES** (ex: `CORREIA`, `ANTHONY ALEXANDRE`), mais le formulaire attend une **capitalisation standard** (ex: `Correia`, `Anthony`).
+
+### Solution
+
+Fonctions de capitalisation dans `useApi.ts` :
+
+```typescript
+/**
+ * Capitalise un nom (première lettre majuscule, reste en minuscules)
+ * Gère les noms composés (ex: "JEAN-PIERRE" → "Jean-Pierre")
+ */
+const capitalizeName = (name: string): string => {
+  if (!name) return ''
+  return name
+    .toLowerCase()
+    .split(/(-|\s)/)
+    .map(part => {
+      if (part === '-' || part === ' ') return part
+      return part.charAt(0).toUpperCase() + part.slice(1)
+    })
+    .join('')
+}
+
+/**
+ * Extrait et capitalise le premier prénom d'une chaîne de prénoms
+ */
+const extractFirstName = (firstNames: string): string => {
+  if (!firstNames) return ''
+  const firstName = firstNames.split(' ')[0]
+  return capitalizeName(firstName)
+}
+```
+
+### Exemples de transformation
+
+| Entrée OCR | Sortie Application |
+|------------|-------------------|
+| `"CORREIA"` | `"Correia"` |
+| `"JEAN-PIERRE"` | `"Jean-Pierre"` |
+| `"Anthony Alexandre"` | `"Anthony"` (premier prénom uniquement) |
+| `"MARIE CLAIRE"` | `"Marie"` (premier prénom uniquement) |
 
 ---
 
@@ -127,8 +185,8 @@ export const getCountryNameByCode = (isoCode: string, language: 'fr' | 'en'): st
 // Dans Qualification.tsx - handleFileChange
 if (ocrData) {
   onOCRDataExtracted({
-    firstName: ocrData.firstName,
-    lastName: ocrData.lastName,
+    firstName: extractFirstName(ocrData.first_names),  // ✅ Transformé
+    lastName: capitalizeName(ocrData.last_name),      // ✅ Transformé
     gender: ocrData.gender,
     nationality: getCountryNameByCode(ocrData.nationality, language)  // ✅ Transformé
   })
@@ -173,17 +231,16 @@ La date de naissance est uniquement présente dans :
 ```typescript
 // Réponse OCR
 const ocrResponse = {
-  lastName: "Dupont",
-  firstName: "Jean",
-  birthDate: "1980-01-15",  // ❌ IGNORÉ
+  last_name: "Dupont",
+  first_names: "Jean",
   gender: "male",
   nationality: "CH"
 }
 
 // Mise à jour du FormData (birthDate NON inclus)
 updateFormData({
-  lastName: ocrResponse.lastName,
-  firstName: ocrResponse.firstName,
+  lastName: capitalizeName(ocrResponse.last_name),
+  firstName: extractFirstName(ocrResponse.first_names),
   gender: ocrResponse.gender,
   nationality: getCountryNameByCode(ocrResponse.nationality, language)  // ✅ Transformé
   // birthDate: NE PAS MODIFIER
@@ -272,8 +329,8 @@ window.shell.ajaxSafePost({
 
 | Champ | Description | Transformation |
 |-------|-------------|----------------|
-| `firstName` | Prénom | Aucune |
-| `lastName` | Nom de famille | Aucune |
+| `firstName` | Prénom | **Premier prénom + Capitalisation** |
+| `lastName` | Nom de famille | **Capitalisation** |
 | `gender` | Genre (male/female) | Aucune |
 | `nationality` | Nationalité | **ISO → Nom complet** |
 
@@ -313,9 +370,8 @@ En mode dev (sans Power Platform), l'API simule une réponse :
 
 ```typescript
 {
-  lastName: 'Dupont',
-  firstName: 'Jean',
-  birthDate: '1980-01-15',  // Ignoré
+  last_name: 'Dupont',
+  first_names: 'Jean',
   gender: 'male',
   nationality: 'CH'  // Transformé en "Suisse" (FR) ou "Switzerland" (EN)
 }
@@ -331,3 +387,4 @@ En mode dev (sans Power Platform), l'API simule une réponse :
 | 2025-01-07 | 1.1 | Clarification gestion `birthDate` vs `birthDatePersonal` |
 | 2025-01-07 | 1.2 | `birthDate` OCR ignoré - champ non présent dans AdminStep |
 | 2026-01-07 | 1.3 | Ajout transformation `nationality` ISO → nom complet du pays |
+| 2026-01-08 | 1.4 | Mise à jour format Request/Response |

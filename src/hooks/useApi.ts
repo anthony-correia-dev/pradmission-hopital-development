@@ -4,12 +4,20 @@ export interface OCRDocumentRequest {
   base64: string
 }
 
-export interface OCRDocumentResponse {
-  lastName: string
-  firstName: string
-  birthDate: string   // Format: YYYY-MM-DD (ignoré dans le mapping)
+// Réponse brute du Cloud Flow (format snake_case)
+interface OCRCloudFlowResponse {
+  last_name: string      // Nom en MAJUSCULES (ex: "CORREIA")
+  first_names: string    // Prénom(s) (ex: "Anthony Alexandre")
   gender: 'male' | 'female'
-  nationality: string // Code ISO (ex: CH, FR, DE)
+  nationality: string    // Code ISO 2 lettres (ex: "FR", "CH")
+}
+
+// Réponse mappée pour l'application (format camelCase)
+export interface OCRDocumentResponse {
+  lastName: string       // Nom capitalisé (ex: "Correia")
+  firstName: string      // Premier prénom capitalisé (ex: "Anthony")
+  gender: 'male' | 'female'
+  nationality: string    // Code ISO (ex: "FR", "CH")
 }
 
 // 🎯 OCR Cloud Flow Trigger ID
@@ -101,6 +109,43 @@ const fileToBase64 = (file: File): Promise<string> => {
   })
 }
 
+/**
+ * Capitalise un nom (première lettre majuscule, reste en minuscules)
+ * Gère les noms composés (ex: "JEAN-PIERRE" → "Jean-Pierre")
+ */
+const capitalizeName = (name: string): string => {
+  if (!name) return ''
+  return name
+    .toLowerCase()
+    .split(/(-|\s)/)
+    .map(part => {
+      if (part === '-' || part === ' ') return part
+      return part.charAt(0).toUpperCase() + part.slice(1)
+    })
+    .join('')
+}
+
+/**
+ * Extrait et capitalise le premier prénom d'une chaîne de prénoms
+ */
+const extractFirstName = (firstNames: string): string => {
+  if (!firstNames) return ''
+  const firstName = firstNames.split(' ')[0]
+  return capitalizeName(firstName)
+}
+
+/**
+ * Mappe la réponse brute du Cloud Flow vers le format attendu par l'application
+ */
+const mapCloudFlowResponse = (response: OCRCloudFlowResponse): OCRDocumentResponse => {
+  return {
+    lastName: capitalizeName(response.last_name),
+    firstName: extractFirstName(response.first_names),
+    gender: response.gender,
+    nationality: response.nationality
+  }
+}
+
 export const useApi = () => {
   const postData = async (triggerId: string, payload: unknown): Promise<unknown> => {
     return safeAjaxPost(triggerId, payload)
@@ -152,28 +197,43 @@ export const useApi = () => {
             }
           })
           .done(function (response: any) {
-            console.log('Cloud flow OCR appelé avec succès:', response)
+            console.log('Cloud flow OCR appelé avec succès (raw):', response)
             
             try {
-              let extractedInfo: any = {}
+              let rawResponse: any = {}
               
-              // Vérifier si la réponse contient un JSON string
+              // La réponse peut être sous plusieurs formats:
+              // 1. String JSON direct: '{"last_name": "...", ...}'
+              // 2. String JSON avec propriété json: '{"json": "{...}"}'
+              // 3. Objet avec propriété json: { json: '{"last_name": "...", ...}' }
+              // 4. Objet direct: { last_name: "...", ... }
+              
               if (typeof response === 'string') {
-                const parsedResponse = JSON.parse(response)
-                if (parsedResponse.json) {
-                  extractedInfo = JSON.parse(parsedResponse.json)
+                const parsed = JSON.parse(response)
+                // Vérifier si c'est un objet avec une propriété "json" (cas 2)
+                if (parsed.json && typeof parsed.json === 'string') {
+                  rawResponse = JSON.parse(parsed.json)
+                } else {
+                  rawResponse = parsed
                 }
-              } else if (response.json) {
-                extractedInfo = JSON.parse(response.json)
-              } else if (response.nom_de_famille || response.prenoms || response.lastName || response.firstName) {
-                extractedInfo = response
+              } else if (response.json && typeof response.json === 'string') {
+                // Cas 3: objet avec propriété json stringifiée
+                rawResponse = JSON.parse(response.json)
+              } else {
+                // Cas 4: objet direct
+                rawResponse = response
               }
               
-              console.log('📄 OCR: Données extraites:', extractedInfo)
-              resolve(extractedInfo as OCRDocumentResponse)
+              console.log('📄 OCR: Données brutes parsées:', rawResponse)
+              
+              // Mapper la réponse snake_case vers camelCase avec capitalisation
+              const mappedResponse = mapCloudFlowResponse(rawResponse as OCRCloudFlowResponse)
+              
+              console.log('📄 OCR: Données mappées:', mappedResponse)
+              resolve(mappedResponse)
             } catch (parseError) {
               console.error('Erreur parsing réponse OCR:', parseError)
-              resolve(response as OCRDocumentResponse)
+              reject(parseError)
             }
           })
           .fail(function (error: any) {
@@ -182,14 +242,13 @@ export const useApi = () => {
           })
         })
       } else {
-        // Mode développement - simulation OCR
+        // Mode développement - simulation OCR (format déjà mappé)
         console.log(`[DEV MODE] OCR Cloud Flow Call`, { docType, base64Length: base64Data.length })
         return new Promise((resolve) => {
           setTimeout(() => {
             resolve({
               lastName: 'Dupont',
               firstName: 'Jean',
-              birthDate: '1980-01-15',
               gender: 'male',
               nationality: 'CH'
             } as OCRDocumentResponse)
