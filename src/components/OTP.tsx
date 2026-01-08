@@ -87,7 +87,7 @@ export function OTP({ language, otpCode, onOTPChange, onNext, onBack }: OTPProps
               variants={itemVariants}
               style={{ willChange: 'transform, opacity' }}
             >
-              <label htmlFor="otp" className="block text-sm font-medium text-brand-text mb-3 text-center sm:text-left">
+              <label htmlFor="otp" className="block text-sm font-medium text-brand-text mb-3 text-center">
                 {t.label}
               </label>
               <InputOTP

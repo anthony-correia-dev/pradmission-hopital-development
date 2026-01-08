@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface Country {
   code: string
@@ -138,11 +139,14 @@ export function CountryCombobox({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           autoComplete="off"
-          className={`w-full h-12 px-4 pr-10 rounded-md border transition-all ${
-            error
-              ? 'border-brand-error focus:ring-2 focus:ring-brand-error focus:border-transparent'
-              : 'border-slate-300 focus:ring-2 focus:ring-brand-primary focus:border-transparent'
-          }`}
+          aria-invalid={!!error}
+          className={cn(
+            "w-full h-12 px-4 pr-10 rounded-md border bg-transparent text-base md:text-sm shadow-xs transition-[color,box-shadow] outline-none",
+            "placeholder:text-muted-foreground",
+            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+            "aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
+            "border-input"
+          )}
         />
         <ChevronDown
           className={`absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none transition-transform ${

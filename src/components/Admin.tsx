@@ -276,7 +276,8 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   >
                     <SelectTrigger 
                       id="gender"
-                      className={`w-full h-12 ${
+                      size="lg"
+                      className={`w-full ${
                         errors.gender
                           ? 'border-brand-error focus:ring-2 focus:ring-brand-error'
                           : ''
@@ -511,7 +512,6 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   label={t.referringDoctor}
                   value={formData.referringDoctor}
                   onChange={(value) => handleChange('referringDoctor', value)}
-                  placeholder={t.referringDoctor}
                   error={errors.referringDoctor?.message}
                   noResultsText={t.noResults}
                   required={false}
@@ -524,7 +524,6 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   label={t.generalPractitioner}
                   value={formData.generalPractitioner}
                   onChange={(value) => handleChange('generalPractitioner', value)}
-                  placeholder={t.generalPractitioner}
                   error={errors.generalPractitioner?.message}
                   noResultsText={t.noResults}
                   required={false}
