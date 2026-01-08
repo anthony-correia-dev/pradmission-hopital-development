@@ -82,7 +82,6 @@ const defaultTheme = {
 }
 
 export default {
-  important: true, // Remettre à true car '#preadmission-app' ne fonctionne pas en Tailwind v4
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: { ...defaultTheme, ...theme },
 };

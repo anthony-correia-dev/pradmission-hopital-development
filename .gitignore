@@ -1,5 +1,25 @@
-# Logs
-logs
+# ========================================
+# DEPENDENCIES
+# ========================================
+node_modules/
+packages/
+.pnp
+.pnp.js
+
+# ========================================
+# BUILD OUTPUT
+# ========================================
+dist/
+dist-ssr/
+*-dist/
+build/
+out/
+*.local
+
+# ========================================
+# LOGS
+# ========================================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,28 +27,140 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*-dist
-*.local
+# ========================================
+# ENVIRONMENT & SECRETS
+# ========================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.key
+*.pem
 
-# Editor directories and files
+# ========================================
+# EDITOR & IDE
+# ========================================
+# VSCode
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Visual Studio
+.vs/
 *.suo
+*.user
+*.userosscache
+*.sln.docstates
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-.env
-**/agent-eval-report*
-packages
-pids
+# ========================================
+# OPERATING SYSTEM
+# ========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ========================================
+# TESTING & COVERAGE
+# ========================================
+coverage/
+*.lcov
+.nyc_output/
+.coverage
+htmlcov/
+.pytest_cache/
+.vitest/
+
+# ========================================
+# CACHE & TEMPORARY
+# ========================================
+.cache/
+.temp/
+.tmp/
+*.tmp
+*.swp
+*.swo
+*~
+.turbo/
+.next/
+.nuxt/
+.docusaurus/
+.serverless/
+.fusebox/
+.dynamodb/
+
+# ========================================
+# POWER PLATFORM SPECIFIC
+# ========================================
+pids/
 .file-manifest
 .devcontainer/
-
 .spark-workbench-id
+**/agent-eval-report*
+
+# ========================================
+# TYPESCRIPT
+# ========================================
+*.tsbuildinfo
+.tsbuildinfo
+
+# ========================================
+# MISC
+# ========================================
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Lock files (uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Storybook
+storybook-static/
+
+# Debug
+yarn-debug.log*
+yarn-error.log*

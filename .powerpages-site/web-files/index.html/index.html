@@ -6,57 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Préadmission - Hôpital La Tour</title>
     
-    <!-- PATCH JQUERY : Supprimer les erreurs createDocumentFragment -->
-    <script>
-      // SOLUTION RADICALE: Supprimer silencieusement TOUTES les erreurs jQuery
-      window.onerror = function(msg, url, line, col, error) {
-        if (msg && msg.indexOf('createDocumentFragment') > -1) {
-          console.warn('[jQuery Patch] Erreur createDocumentFragment supprimée');
-          return true; // Supprime l'erreur
-        }
-        if (msg && msg.indexOf('Cannot read properties of undefined') > -1 && 
-            url && url.indexOf('jquery') > -1) {
-          console.warn('[jQuery Patch] Erreur jQuery supprimée:', msg);
-          return true; // Supprime l'erreur
-        }
-        return false;
-      };
-      
-      // Intercepter aussi les rejections de promesses
-      window.addEventListener('unhandledrejection', function(event) {
-        var msg = event.reason && event.reason.message ? event.reason.message : String(event.reason);
-        if (msg.indexOf('createDocumentFragment') > -1 || 
-            msg.indexOf('Cannot read properties of undefined') > -1) {
-          console.warn('[jQuery Patch] Promise rejection supprimée:', msg);
-          event.preventDefault();
-        }
-      });
-    </script>
-    
-    <!-- jQuery (si pas déjà présent dans Power Pages) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <!-- Script pour retirer Bootstrap et les CSS Power Pages -->
-    <script type="text/javascript">
-      $(document).ready(function(){
-        // Retirer Bootstrap 5
-        $("link[href*='BootstrapV5']").remove();
-        $("script[src*='BootstrapV5']").remove();
-        
-        // Retirer les thèmes CSS du portail
-        $("link[href='/portalbasictheme.css']").remove();
-        $("link[href='/theme.css']").remove();
-        
-        // Retirer aussi les anciens Bootstrap si présents
-        $("link[href*='bootstrap']").remove();
-        $("script[src*='bootstrap']").remove();
-        
-        console.log('✓ Bootstrap and Power Pages CSS removed - Tailwind styles active');
-      });
-    </script>
-  <script type="module" crossorigin src="/assets/index-Bc9G_I60.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-D8ooMf63.css">
-</head>
+
+
+<script type="module" crossorigin src="/assets/js/index-DB1zRA8U.js"></script>
+<link rel="modulepreload" crossorigin href="/assets/js/react-vendor-DZmUMktw.js">
+<link rel="modulepreload" crossorigin href="/assets/js/radix-base-riwJUpjy.js">
+<link rel="modulepreload" crossorigin href="/assets/js/radix-forms-dlv1GwIW.js">
+<link rel="modulepreload" crossorigin href="/assets/js/icons-DmlRafRS.js">
+<link rel="modulepreload" crossorigin href="/assets/js/utils-Bmy4sVOj.js">
+<link rel="modulepreload" crossorigin href="/assets/js/animations-BLN6i6oB.js">
+<link rel="modulepreload" crossorigin href="/assets/js/forms-BkrVchX5.js">
+<link rel="modulepreload" crossorigin href="/assets/js/date-utils-CYFyD_X6.js">
+<link rel="modulepreload" crossorigin href="/assets/js/radix-overlays-BJEzZ58K.js">
+<link rel="modulepreload" crossorigin href="/assets/js/heavy-libs-CBOVKqtv.js">
+<link rel="stylesheet" crossorigin href="/assets/css/index-DtB9O75H.css">
 
 <body>
     <div id="root"></div>

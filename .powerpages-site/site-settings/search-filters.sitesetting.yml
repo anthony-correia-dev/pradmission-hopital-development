@@ -3,5 +3,5 @@ description: >-
 
 
   This value should be in the form of name/value pairs, with name and value separated by a colon, and pairs separated by a semicolon. For example: "Forums:adx_communityforum,adx_communityforumthread,adx_communityforumpost;Blogs:adx_blog,adx_blogpost,adx_blogpostcomment".
-id: 70873940-8535-45a1-a206-69f2fcc82965
+id: 8bde0d1c-56f9-49d2-bf7d-4e1d6b834d69
 name: search/filters

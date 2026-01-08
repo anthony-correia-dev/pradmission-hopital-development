@@ -1,16 +1,121 @@
-@font-face {
-  font-family: 'Simplon Norm';
-  src: url('./assets/documents/font_preadmission_woff2.woff2') format('woff2'),
-       url('./assets/documents/font_preadmission_woff.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* ========================================
+   RESET CSS POUR ISOLATION POWER PLATFORM
+   ======================================== */
 
-* {
-  font-family: 'Simplon Norm', 'Arial', sans-serif;
-}
-
-body {
-  font-family: 'Simplon Norm', 'Arial', sans-serif;
-}
+   #preadmission-app {
+    font-family: 'Simplon Norm', 'Arial', sans-serif !important;
+    line-height: 1.5 !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+  }
+  
+  #preadmission-app *,
+  #preadmission-app *::before,
+  #preadmission-app *::after {
+    box-sizing: border-box !important;
+  }
+  
+  /* Reset des éléments typographiques */
+  #preadmission-app h1,
+  #preadmission-app h2,
+  #preadmission-app h3,
+  #preadmission-app h4,
+  #preadmission-app h5,
+  #preadmission-app h6 {
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    margin: 0 !important;
+  }
+  
+  #preadmission-app p,
+  #preadmission-app span {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Reset des liens */
+  #preadmission-app a {
+    color: inherit !important;
+    text-decoration: inherit !important;
+  }
+  
+  /* Reset des formulaires */
+  #preadmission-app button,
+  #preadmission-app input,
+  #preadmission-app optgroup,
+  #preadmission-app select,
+  #preadmission-app textarea {
+    font-family: inherit !important;
+    font-size: 100% !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    color: inherit !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  #preadmission-app button,
+  #preadmission-app [type='button'],
+  #preadmission-app [type='reset'],
+  #preadmission-app [type='submit'] {
+    -webkit-appearance: button !important;
+    appearance: button !important;
+    background-color: transparent !important;
+    background-image: none !important;
+  }
+  
+  /* Reset des listes */
+  #preadmission-app ol,
+  #preadmission-app ul,
+  #preadmission-app menu {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Reset des images */
+  #preadmission-app img,
+  #preadmission-app svg,
+  #preadmission-app video,
+  #preadmission-app canvas,
+  #preadmission-app audio,
+  #preadmission-app iframe,
+  #preadmission-app embed,
+  #preadmission-app object {
+    display: block !important;
+  }
+  
+  #preadmission-app img,
+  #preadmission-app video {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Reset des tableaux */
+  #preadmission-app table {
+    text-indent: 0 !important;
+    border-color: inherit !important;
+    border-collapse: collapse !important;
+  }
+  
+  /* ========================================
+     FIN RESET - STYLES PERSONNALISÉS
+     ======================================== */
+  
+  @font-face {
+    font-family: 'Simplon Norm';
+    src: url('./assets/documents/font_preadmission_woff2.woff2') format('woff2'),
+         url('./assets/documents/font_preadmission_woff.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  * {
+    font-family: 'Simplon Norm', 'Arial', sans-serif !important;
+  }
+  
+  body {
+    font-family: 'Simplon Norm', 'Arial', sans-serif !important;
+  }

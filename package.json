@@ -1,5 +1,5 @@
 {
-    "name": "spark-template",
+    "name": "pradmission-hopital",
     "private": true,
     "version": "0.0.0",
     "type": "module",
@@ -9,14 +9,12 @@
         "build": "tsc -b --noCheck && vite build",
         "lint": "eslint .",
         "optimize": "vite optimize",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "analyze": "vite build --mode analyze"
     },
     "dependencies": {
-        "@github/spark": ">=0.43.1 <1",
         "@heroicons/react": "^2.2.0",
         "@hookform/resolvers": "^4.1.3",
-        "@octokit/core": "^6.1.4",
-        "@phosphor-icons/react": "^2.1.7",
         "@radix-ui/colors": "^3.0.0",
         "@radix-ui/react-accordion": "^1.2.3",
         "@radix-ui/react-alert-dialog": "^1.1.6",
@@ -59,7 +57,6 @@
         "lucide-react": "^0.484.0",
         "marked": "^15.0.7",
         "next-themes": "^0.4.6",
-        "octokit": "^4.1.2",
         "react": "^19.0.0",
         "react-day-picker": "^9.6.7",
         "react-dom": "^19.0.0",
@@ -85,14 +82,10 @@
         "eslint-plugin-react-hooks": "^5.2.0",
         "eslint-plugin-react-refresh": "^0.4.19",
         "globals": "^16.0.0",
+        "rollup-plugin-visualizer": "^5.12.0",
         "tailwindcss": "^4.1.11",
         "typescript": "~5.7.2",
         "typescript-eslint": "^8.38.0",
         "vite": "^7.2.6"
-    },
-    "workspaces": {
-        "packages": [
-            "packages/*"
-        ]
     }
 }
