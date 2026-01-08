@@ -40,9 +40,9 @@
     text-decoration: inherit !important;
   }
   
-  /* Reset des formulaires */
+  /* Reset des formulaires - EXCLURE input-otp */
   #preadmission-app button,
-  #preadmission-app input,
+  #preadmission-app input:not([data-input-otp="true"]),
   #preadmission-app optgroup,
   #preadmission-app select,
   #preadmission-app textarea {
