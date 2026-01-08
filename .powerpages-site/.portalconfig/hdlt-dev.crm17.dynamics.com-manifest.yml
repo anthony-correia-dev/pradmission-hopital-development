@@ -328,7 +328,7 @@ adx_webfile:
 - RecordId: 4737774f-7c24-438c-b4b2-f375d648b7eb
   DisplayName: 4737774f-7c24-438c-b4b2-f375d648b7eb
   CheckSum: 04aefb671baaa61ebc28d66778d019a18c934b17b80e68dd8be80349052ae523
-  IsDeleted: false
+  IsDeleted: true
 - RecordId: 48eb5a16-ce2e-4ea7-9fcb-ad327f0c0342
   DisplayName: 48eb5a16-ce2e-4ea7-9fcb-ad327f0c0342
   CheckSum: 9094209d939975c52789fa8ad8dd006d4077e7c13bf82f723baaf1327721655f
@@ -419,7 +419,7 @@ adx_webfile:
   IsDeleted: false
 - RecordId: de1040a5-9efd-42bb-83cf-3d3c174403c2
   DisplayName: de1040a5-9efd-42bb-83cf-3d3c174403c2
-  CheckSum: 13fa579339cd9e5f629c8c811f60c0db59d71d1cd60d133a65eabcc477f60338
+  CheckSum: 048dc2d81afb7c9bcdf5ed3fc5b685b055f8ccba2ce06243db2bd4b437870708
   IsDeleted: false
 - RecordId: e3c7f42f-7144-47d5-871f-64f5127c9449
   DisplayName: e3c7f42f-7144-47d5-871f-64f5127c9449
@@ -494,7 +494,7 @@ adx_webpage:
   IsDeleted: false
 - RecordId: 6c6dee7f-52cd-426f-85cd-5406d2246d76
   DisplayName: 6c6dee7f-52cd-426f-85cd-5406d2246d76
-  CheckSum: 190c4fcab06d254f7792177331801b5ca1c6551919c1cbf61bc65af3bf98eb5b
+  CheckSum: 9ce25951774ce7ec1eb18b8152ef61f5b640ad314093469da4f16f68ad5d44c4
   IsDeleted: false
 - RecordId: 6e8255e7-3c04-42db-a066-382e4ecc9e9b
   DisplayName: 6e8255e7-3c04-42db-a066-382e4ecc9e9b
@@ -676,7 +676,7 @@ annotation:
 - RecordId: 4737774f-7c24-438c-b4b2-f375d648b7eb
   DisplayName: index-DWQKrGAs.css
   CheckSum: 70aba1df0505e96cee7e5f4f1eacd0238c31af835bb6c7a70fc9f7fb4a7f7729
-  IsDeleted: false
+  IsDeleted: true
 - RecordId: 48eb5a16-ce2e-4ea7-9fcb-ad327f0c0342
   DisplayName: animations-R-Q1PWZl.js
   CheckSum: b40a97668479836bfb8efc5a27312102a05e3d3edfeae26f0e3f8240b21176fa
@@ -767,7 +767,7 @@ annotation:
   IsDeleted: false
 - RecordId: de1040a5-9efd-42bb-83cf-3d3c174403c2
   DisplayName: index.html
-  CheckSum: 1c864b5a15de372d9d5458321d5320eb84875e7a0a9c254ad352334fb8339e0e
+  CheckSum: b228247b588944d63faca743d2276fcd5e715505ab5060b5a4e9d896d9063ffe
   IsDeleted: false
 - RecordId: e3c7f42f-7144-47d5-871f-64f5127c9449
   DisplayName: icons-qDylGd9m.js
