@@ -109,9 +109,12 @@ export const useWizard = () => {
   const [language, setLanguage] = useState<'fr' | 'en'>(getBrowserLanguage())
   const [formData, setFormData] = useState<FormData>(loadFromSessionStorage())
 
-  useEffect(() => {
-    saveToSessionStorage(formData)
-  }, [formData])
+  // ⚠️ Commit 1: désactivation de la persistance wizard -> sessionStorage.
+  // Le writer unique de `wizard-form-data` est désormais l'autosave RHF (App.tsx).
+  // useWizard conserve la lecture initiale (loadFromSessionStorage) + resetWizard() qui efface la clé.
+  // useEffect(() => {
+  //   saveToSessionStorage(formData)
+  // }, [formData])
 
   const updateFormData = (updates: Partial<FormData>) => {
     if ('language' in updates && updates.language) {

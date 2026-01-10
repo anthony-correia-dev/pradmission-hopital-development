@@ -1,51 +1,47 @@
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useFormContext } from 'react-hook-form'
 import { Shield, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
-import { createOTPSchema, OTPFormData } from '../schemas/otpSchema'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { motion } from 'framer-motion'
 import { otpTranslations } from '@/locales'
-import { 
-  containerVariants, 
-  itemVariants, 
-  iconVariants, 
-  buttonVariants 
+import {
+  containerVariants,
+  itemVariants,
+  iconVariants,
+  buttonVariants
 } from '@/lib/animations'
+import type { FormData } from '@/hooks/useWizard'
 
 interface OTPProps {
   language: 'fr' | 'en'
-  otpCode: string
   phoneNumber?: string
-  onOTPChange: (code: string) => void
   onNext: () => void
   onBack: () => void
 }
 
-export function OTP({ language, otpCode, onOTPChange, onNext, onBack }: OTPProps) {
+export function OTP({ language, onNext, onBack }: OTPProps) {
   const t = otpTranslations[language]
 
-  const schema = createOTPSchema({
-    required: t.required,
-    invalid: t.invalid
-  })
+  const {
+    setValue,
+    getValues,
+    trigger,
+    watch,
+    formState: { errors }
+  } = useFormContext<FormData>()
 
-  const { register, handleSubmit: handleFormSubmit, formState: { errors }, setValue, trigger } = useForm<OTPFormData>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      otpCode: otpCode
-    }
-  })
+  const otpCode = watch('otpCode')
 
   const handleChange = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 6)
-    setValue('otpCode', cleaned)
-    onOTPChange(cleaned)
+    setValue('otpCode', cleaned, { shouldDirty: true, shouldValidate: false })
     trigger('otpCode')
   }
 
-  const onSubmit = async (data: OTPFormData) => {
+  const onSubmit = async () => {
+    const ok = await trigger('otpCode')
+    if (!ok) return
     onNext()
   }
 
@@ -82,7 +78,7 @@ export function OTP({ language, otpCode, onOTPChange, onNext, onBack }: OTPProps
           </CardHeader>
 
           <CardContent className="px-6 sm:px-8 pb-6 sm:pb-8">
-          <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={(e) => { e.preventDefault(); void onSubmit() }} className="space-y-6">
             <motion.div
               variants={itemVariants}
               style={{ willChange: 'transform, opacity' }}
@@ -96,7 +92,7 @@ export function OTP({ language, otpCode, onOTPChange, onNext, onBack }: OTPProps
                 value={otpCode}
                 onChange={handleChange}
                 containerClassName="justify-center"
-                aria-invalid={!!errors.otpCode}
+                aria-invalid={!!(errors as any).otpCode}
               >
                 <InputOTPGroup className="gap-1.5 sm:gap-2">
                   <InputOTPSlot index={0} className="h-12 w-11 sm:h-14 sm:w-14 text-xl sm:text-2xl font-semibold border-slate-300 data-[active=true]:border-brand-primary data-[active=true]:ring-brand-primary/50 aria-invalid:border-brand-error aria-invalid:data-[active=true]:border-brand-error aria-invalid:data-[active=true]:ring-brand-error/50" />
@@ -107,7 +103,7 @@ export function OTP({ language, otpCode, onOTPChange, onNext, onBack }: OTPProps
                   <InputOTPSlot index={5} className="h-12 w-11 sm:h-14 sm:w-14 text-xl sm:text-2xl font-semibold border-slate-300 data-[active=true]:border-brand-primary data-[active=true]:ring-brand-primary/50 aria-invalid:border-brand-error aria-invalid:data-[active=true]:border-brand-error aria-invalid:data-[active=true]:ring-brand-error/50" />
                 </InputOTPGroup>
               </InputOTP>
-              {errors.otpCode && (
+              {(errors as any).otpCode && (
                 <motion.div 
                   className="flex items-center gap-2 mt-2 text-brand-error text-sm"
                   initial={{ opacity: 0, y: -5 }}
@@ -115,7 +111,7 @@ export function OTP({ language, otpCode, onOTPChange, onNext, onBack }: OTPProps
                   transition={{ duration: 0.2 }}
                 >
                   <AlertCircle className="w-4 h-4" />
-                  <span>{errors.otpCode.message}</span>
+                  <span>{(errors as any).otpCode.message}</span>
                 </motion.div>
               )}
             </motion.div>

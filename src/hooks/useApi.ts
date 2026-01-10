@@ -15,7 +15,16 @@ interface OCRCloudFlowResponse {
 // Réponse mappée pour l'application (format camelCase)
 export interface OCRDocumentResponse {
   lastName: string       // Nom capitalisé (ex: "Correia")
-  firstName: string      // Premier prénom capitalisé (ex: "Anthony")
+  /**
+   * Prénom(s) complet(s) (ex: "Anthony Alexandre")
+   * IMPORTANT: on conserve tous les prénoms (pas uniquement le 1er).
+   */
+  firstNames: string
+  /**
+   * Compat (legacy): ancien champ utilisé par l'app.
+   * Reste égal à firstNames.
+   */
+  firstName: string
   gender: 'male' | 'female'
   nationality: string    // Code ISO (ex: "FR", "CH")
 }
@@ -126,6 +135,23 @@ const capitalizeName = (name: string): string => {
 }
 
 /**
+ * Capitalise une chaîne de prénoms (garde espaces / tirets)
+ */
+const capitalizeFirstNames = (firstNames: string): string => {
+  if (!firstNames) return ''
+  // On split en conservant les séparateurs (espaces/tirets)
+  return firstNames
+    .trim()
+    .toLowerCase()
+    .split(/(\s+|-)/)
+    .map(part => {
+      if (part.trim() === '' || part === '-' || /^\s+$/.test(part)) return part
+      return part.charAt(0).toUpperCase() + part.slice(1)
+    })
+    .join('')
+}
+
+/**
  * Extrait et capitalise le premier prénom d'une chaîne de prénoms
  */
 const extractFirstName = (firstNames: string): string => {
@@ -138,9 +164,13 @@ const extractFirstName = (firstNames: string): string => {
  * Mappe la réponse brute du Cloud Flow vers le format attendu par l'application
  */
 const mapCloudFlowResponse = (response: OCRCloudFlowResponse): OCRDocumentResponse => {
+  const firstNames = capitalizeFirstNames(response.first_names)
+
   return {
     lastName: capitalizeName(response.last_name),
-    firstName: extractFirstName(response.first_names),
+    firstNames,
+    // backward compat: on ne casse pas les composants existants
+    firstName: firstNames,
     gender: response.gender,
     nationality: response.nationality
   }
@@ -248,7 +278,8 @@ export const useApi = () => {
           setTimeout(() => {
             resolve({
               lastName: 'Dupont',
-              firstName: 'Jean',
+              firstNames: 'Jean Pierre',
+              firstName: 'Jean Pierre',
               gender: 'male',
               nationality: 'CH'
             } as OCRDocumentResponse)

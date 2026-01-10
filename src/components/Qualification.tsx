@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useFormContext } from 'react-hook-form'
 import { ClipboardList, ArrowRight, ArrowLeft, AlertCircle, CheckCircle, Briefcase } from 'lucide-react'
 import {
   Dialog,
@@ -14,11 +13,11 @@ import { Button } from './ui/button'
 import { Checkbox } from './ui/checkbox'
 import { Label } from './ui/label'
 import { FileUpload } from './ui/file-upload'
-import { createQualificationSchema, QualificationFormData } from '../schemas/qualificationSchema'
 import { qualificationTranslations } from '../locales/qualification'
 import { motion, type Variants, AnimatePresence } from 'framer-motion'
 import { useApi } from '../hooks/useApi'
 import { getCountryNameByCode } from '../lib/countries'
+import type { FormData } from '@/hooks/useWizard'
 
 // ⚡ GPU-optimized animation variants
 const easeOut: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
@@ -140,28 +139,33 @@ const buttonVariants = {
 
 interface QualificationProps {
   language: 'fr' | 'en'
-  reason: 'illness' | 'accident' | ''
-  insurance: 'swiss' | 'international' | 'auto' | ''
-  hasEmployer: boolean
-  consentNLPD: boolean
-  consentMarketing: boolean
-  identityCard: File | null
-  insuranceCard: File | null
-  onReasonChange: (reason: 'illness' | 'accident') => void
-  onInsuranceChange: (insurance: 'swiss' | 'international' | 'auto') => void
-  onHasEmployerChange: (hasEmployer: boolean) => void
-  onConsentNLPDChange: (consent: boolean) => void
-  onConsentMarketingChange: (consent: boolean) => void
-  onIdentityCardChange: (file: File | null) => void
-  onInsuranceCardChange: (file: File | null) => void
-  onOCRDataExtracted: (data: { firstName: string; lastName: string; gender: string; nationality: string }) => void
   onNext: () => void
   onBack: () => void
 }
 
-export function Qualification({ language, reason, insurance, hasEmployer, consentNLPD, consentMarketing, identityCard, insuranceCard, onReasonChange, onInsuranceChange, onHasEmployerChange, onConsentNLPDChange, onConsentMarketingChange, onIdentityCardChange, onInsuranceCardChange, onOCRDataExtracted, onNext, onBack }: QualificationProps) {
+export function Qualification({ language, onNext, onBack }: QualificationProps) {
   const t = qualificationTranslations[language]
   const { extractDocumentData } = useApi()
+
+  // --- RHF global (source de vérité) ---
+  const {
+    getValues,
+    reset,
+    setValue,
+    watch,
+    trigger,
+    handleSubmit,
+    formState: { errors }
+  } = useFormContext<FormData>()
+
+  // RHF is the single source of truth
+  const watchedReason = watch('reason')
+  const watchedInsurance = watch('insurance')
+  const watchedHasEmployer = watch('hasEmployer')
+  const watchedConsentNLPD = watch('consentNLPD')
+  const watchedConsentMarketing = watch('consentMarketing')
+  const watchedIdentityCard = watch('identityCard')
+  const watchedInsuranceCard = watch('insuranceCard')
 
   // 🎯 État OCR
   const [isOCRProcessing, setIsOCRProcessing] = useState(false)
@@ -174,57 +178,12 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
   const insuranceCardRef = useRef<HTMLDivElement>(null)
   const consentNLPDRef = useRef<HTMLDivElement>(null)
 
-  // 🎯 Valeurs initiales pour le schema (avant useForm)
-  const [schemaReason, setSchemaReason] = useState<'illness' | 'accident' | ''>(reason)
-  const [schemaInsurance, setSchemaInsurance] = useState<'swiss' | 'international' | 'auto' | ''>(insurance)
-
-  // 🎯 Schema réactif qui se met à jour avec les valeurs observées
-  const schema = useMemo(() => createQualificationSchema(schemaInsurance, schemaReason, {
-    reasonRequired: t.reasonRequired,
-    insuranceRequired: t.insuranceRequired,
-    identityCardRequired: t.identityCardRequired,
-    insuranceCardRequired: t.insuranceCardRequired,
-    consentNLPDRequired: t.consentNLPDRequired
-  }), [schemaInsurance, schemaReason, t.reasonRequired, t.insuranceRequired, t.identityCardRequired, t.insuranceCardRequired, t.consentNLPDRequired])
-
-  const { handleSubmit: handleFormSubmit, formState: { errors }, setValue, trigger, watch } = useForm<QualificationFormData>({
-    resolver: zodResolver(schema),
-    mode: 'onSubmit',
-    defaultValues: {
-      reason: reason || undefined,
-      insurance: insurance || undefined,
-      hasEmployer: hasEmployer,
-      consentNLPD: consentNLPD,
-      consentMarketing: consentMarketing,
-      identityCard: identityCard || undefined,
-      insuranceCard: insuranceCard || undefined
-    }
-  })
-
-  // 🎯 Valeurs observées (source unique de vérité) - un seul appel à watch()
-  const formValues = watch()
-  const watchedReason = formValues.reason || reason
-  const watchedInsurance = formValues.insurance || insurance
-
-  // 🎯 Condition extraite pour la carte d'assurance
+  // Condition extraite pour la carte d'assurance
   const isInsuranceCardRequired = watchedInsurance === 'swiss'
-
-  // 🎯 Synchroniser le schema quand les valeurs changènt (avec guard anti-boucle)
-  useEffect(() => {
-    if (watchedReason !== schemaReason) {
-      setSchemaReason(watchedReason)
-    }
-  }, [watchedReason, schemaReason])
-
-  useEffect(() => {
-    if (watchedInsurance !== schemaInsurance) {
-      setSchemaInsurance(watchedInsurance)
-    }
-  }, [watchedInsurance, schemaInsurance])
 
   // 🎯 Scroll automatique vers le premier champ en erreur
   useEffect(() => {
-    const errorKeys = Object.keys(errors)
+    const errorKeys = Object.keys(errors ?? {})
     if (errorKeys.length > 0) {
       const firstErrorField = errorKeys[0]
       const refMap: Record<string, React.RefObject<HTMLDivElement | null>> = {
@@ -245,61 +204,158 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
     }
   }, [errors])
 
-  // 🎯 Handlers optimisés avec useCallback
   const handleReasonChange = useCallback((newReason: 'illness' | 'accident') => {
-    setValue('reason', newReason, { shouldValidate: false })
-    onReasonChange(newReason)
-  }, [setValue, onReasonChange])
+    setValue('reason', newReason, { shouldDirty: true, shouldValidate: false })
+  }, [setValue])
 
   const handleInsuranceChange = useCallback((newInsurance: 'swiss' | 'international' | 'auto') => {
-    setValue('insurance', newInsurance, { shouldValidate: false })
-    onInsuranceChange(newInsurance)
-  }, [setValue, onInsuranceChange])
+    setValue('insurance', newInsurance, { shouldDirty: true, shouldValidate: false })
+  }, [setValue])
 
-  // 🎯 Handler pour l'upload de fichier avec OCR intégré
   const handleFileChange = useCallback(async (type: 'identity' | 'insurance', file: File | null) => {
-    if (type === 'identity') {
-      setValue('identityCard', file as File, { shouldValidate: true })
-      onIdentityCardChange(file)
+    console.groupCollapsed(`[Qualification] handleFileChange(${type})`)
+    console.log('incoming file:', file ? { name: file.name, size: file.size, type: file.type } : null)
+    console.log('before values:', {
+      reason: watch('reason'),
+      insurance: watch('insurance'),
+      identityCard: watch('identityCard') ? { name: (watch('identityCard') as any)?.name } : null,
+      insuranceCard: watch('insuranceCard') ? { name: (watch('insuranceCard') as any)?.name } : null,
+      firstName: watch('firstName'),
+      lastName: watch('lastName'),
+      gender: watch('gender'),
+      nationality: watch('nationality')
+    })
 
-      // 🎯 Appeler l'OCR si un fichier est uploadé
+    if (type === 'identity') {
+      setValue('identityCard', file as any, { shouldDirty: true, shouldValidate: true })
+
+      console.log('after setValue(identityCard):', watch('identityCard') ? { name: (watch('identityCard') as any)?.name } : null)
+
       if (file) {
         setIsOCRProcessing(true)
         setOcrError(null)
-        
+
         try {
+          console.time('[Qualification] OCR extractDocumentData')
           const ocrData = await extractDocumentData(file, 'id_card')
-          
+          console.timeEnd('[Qualification] OCR extractDocumentData')
+          console.log('ocrData:', ocrData)
+
           if (ocrData) {
-            // Mapper les données OCR vers le formulaire Admin
-            // ⚠️ birthDate est ignoré selon la spécification
-            // ✅ nationality est transformé de code ISO vers nom complet
-            onOCRDataExtracted({
+            const mapped = {
               firstName: ocrData.firstName,
               lastName: ocrData.lastName,
               gender: ocrData.gender,
               nationality: getCountryNameByCode(ocrData.nationality, language)
+            }
+            console.log('mapped:', mapped)
+
+            const snapshot = getValues()
+            console.log('snapshot before reset (selected fields):', {
+              firstName: snapshot.firstName,
+              lastName: snapshot.lastName,
+              gender: snapshot.gender,
+              nationality: snapshot.nationality
             })
-            console.log('✅ OCR: Données pré-remplies avec succès')
+
+            reset({
+              ...snapshot,
+              ...mapped
+            })
+
+            const after = getValues()
+            console.log('after reset (selected fields):', {
+              firstName: after.firstName,
+              lastName: after.lastName,
+              gender: after.gender,
+              nationality: after.nationality
+            })
           }
         } catch (error) {
-          console.error('❌ OCR: Erreur lors de l\'extraction', error)
-          setOcrError(language === 'fr' 
+          console.error('[Qualification] OCR error:', error)
+          setOcrError(language === 'fr'
             ? 'Erreur lors de l\'analyse du document. Veuillez saisir vos informations manuellement.'
             : 'Error analyzing document. Please enter your information manually.')
         } finally {
           setIsOCRProcessing(false)
         }
+      } else {
+        const cleared = {
+          firstName: '',
+          lastName: '',
+          gender: '',
+          nationality: ''
+        }
+
+        const snapshot = getValues()
+        reset({
+          ...snapshot,
+          ...cleared
+        })
+
+        const after = getValues()
+        console.log('after clear reset (selected fields):', {
+          firstName: after.firstName,
+          lastName: after.lastName,
+          gender: after.gender,
+          nationality: after.nationality
+        })
+
+        setOcrError(null)
       }
     } else {
-      setValue('insuranceCard', file as File | undefined, { shouldValidate: true })
-      onInsuranceCardChange(file)
+      setValue('insuranceCard', file as any, { shouldDirty: true, shouldValidate: true })
+      console.log('after setValue(insuranceCard):', watch('insuranceCard') ? { name: (watch('insuranceCard') as any)?.name } : null)
     }
-  }, [setValue, onIdentityCardChange, onInsuranceCardChange, extractDocumentData, onOCRDataExtracted, language])
 
-  const onSubmit = useCallback(() => {
+    console.log('end values:', {
+      identityCard: getValues('identityCard') ? { name: (getValues('identityCard') as any)?.name } : null,
+      insuranceCard: getValues('insuranceCard') ? { name: (getValues('insuranceCard') as any)?.name } : null,
+      firstName: getValues('firstName'),
+      lastName: getValues('lastName'),
+      gender: getValues('gender'),
+      nationality: getValues('nationality')
+    })
+    console.groupEnd()
+  }, [setValue, extractDocumentData, language, getValues, reset, watch])
+
+  const onSubmit = useCallback(async () => {
+    console.groupCollapsed('[Qualification] Continue submit')
+    console.log('values before trigger:', {
+      reason: getValues('reason'),
+      insurance: getValues('insurance'),
+      hasEmployer: getValues('hasEmployer'),
+      consentNLPD: getValues('consentNLPD'),
+      consentMarketing: getValues('consentMarketing'),
+      identityCard: getValues('identityCard') ? { name: (getValues('identityCard') as any)?.name } : null,
+      insuranceCard: getValues('insuranceCard') ? { name: (getValues('insuranceCard') as any)?.name } : null
+    })
+
+    const fields: Array<keyof FormData> = [
+      'reason',
+      'insurance',
+      'consentNLPD',
+      'consentMarketing',
+      'identityCard'
+    ]
+
+    // Validate conditional fields only when relevant to current UI
+    if (watchedReason === 'accident') {
+      fields.push('hasEmployer')
+    }
+    if (isInsuranceCardRequired) {
+      fields.push('insuranceCard')
+    }
+
+    const ok = await trigger(fields as any)
+
+    console.log('trigger ok:', ok)
+    console.log('errors after trigger:', errors)
+    console.groupEnd()
+
+    if (!ok) return
     onNext()
-  }, [onNext])
+  }, [getValues, onNext, trigger, errors, watchedReason, isInsuranceCardRequired])
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-4">
@@ -339,7 +395,7 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
             </motion.p>
           </motion.div>
 
-          <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <motion.div 
               ref={reasonRef}
               id="reason"
@@ -449,19 +505,18 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
                         type="button"
                         onClick={() => {
                           setValue('hasEmployer', true, { shouldValidate: false })
-                          onHasEmployerChange(true)
                         }}
                         className={`h-14 px-6 rounded-md font-medium transition-all relative overflow-hidden ${
-                          hasEmployer
+                          watchedHasEmployer
                             ? 'bg-brand-primary text-white border border-brand-primary'
                             : 'border border-slate-300 text-slate-700 bg-white hover:border-brand-primary'
                         }`}
                         whileHover={{ scale: ANIMATION.SCALE_HOVER }}
                         whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                        aria-pressed={hasEmployer}
+                        aria-pressed={watchedHasEmployer}
                         aria-label={t.yes}
                       >
-                        {hasEmployer && (
+                        {watchedHasEmployer && (
                           <motion.span 
                             className="absolute top-2 right-2"
                             initial={{ scale: 0, rotate: -180 }}
@@ -477,19 +532,18 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
                         type="button"
                         onClick={() => {
                           setValue('hasEmployer', false, { shouldValidate: false })
-                          onHasEmployerChange(false)
                         }}
                         className={`h-14 px-6 rounded-md font-medium transition-all relative overflow-hidden ${
-                          !hasEmployer
+                          !watchedHasEmployer
                             ? 'bg-brand-primary text-white border border-brand-primary'
                             : 'border border-slate-300 text-slate-700 bg-white hover:border-brand-primary'
                         }`}
                         whileHover={{ scale: ANIMATION.SCALE_HOVER }}
                         whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                        aria-pressed={!hasEmployer}
+                        aria-pressed={!watchedHasEmployer}
                         aria-label={t.no}
                       >
-                        {!hasEmployer && (
+                        {!watchedHasEmployer && (
                           <motion.span 
                             className="absolute top-2 right-2"
                             initial={{ scale: 0, rotate: -180 }}
@@ -607,7 +661,7 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
                 <FileUpload
                   id="identityCard"
                   label={t.identityCard}
-                  file={identityCard}
+                  file={watchedIdentityCard}
                   onFileChange={(file) => handleFileChange('identity', file)}
                   uploadText={t.uploadText}
                   required
@@ -618,7 +672,7 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
                 <div ref={insuranceCardRef}>
                 <FileUpload
                   id="insuranceCard"
-                  file={insuranceCard}
+                  file={watchedInsuranceCard}
                   onFileChange={(file) => handleFileChange('insurance', file)}
                   label={t.insuranceCard}
                   uploadText={t.uploadText}
@@ -646,10 +700,9 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
                   }`}>
                     <Checkbox
                       id="consentNLPD"
-                      checked={consentNLPD}
+                      checked={watchedConsentNLPD}
                       onCheckedChange={(checked) => {
                         setValue('consentNLPD', checked === true, { shouldValidate: true })
-                        onConsentNLPDChange(checked === true)
                       }}
                       className="mt-0.5"
                     />
@@ -677,10 +730,9 @@ export function Qualification({ language, reason, insurance, hasEmployer, consen
                 <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg">
                   <Checkbox
                     id="consentMarketing"
-                    checked={consentMarketing}
+                    checked={watchedConsentMarketing}
                     onCheckedChange={(checked) => {
                       setValue('consentMarketing', checked === true)
-                      onConsentMarketingChange(checked === true)
                     }}
                     className="mt-0.5"
                   />

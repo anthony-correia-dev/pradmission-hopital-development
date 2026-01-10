@@ -1,27 +1,24 @@
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useFormContext } from 'react-hook-form'
 import { Calendar, ArrowRight, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
-import { createSecuritySchema, SecurityFormData } from '../schemas/securitySchema'
 import { formatDateInput, parseDisplayDate, formatDisplayDate } from '../lib/dateUtils'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
-import { motion, type Variants } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { securityTranslations } from '@/locales'
-import { 
-  containerVariants, 
-  itemVariants, 
-  iconVariants, 
+import {
+  containerVariants,
+  itemVariants,
+  iconVariants,
   buttonVariants,
-  ANIMATION 
+  ANIMATION
 } from '@/lib/animations'
+import type { FormData } from '@/hooks/useWizard'
 
 interface SecurityProps {
   language: 'fr' | 'en'
-  birthDate: string
-  onBirthDateChange: (date: string) => void
   onNext: () => void
   onBack: () => void
 }
@@ -33,30 +30,28 @@ const inputVariants = {
   }
 }
 
-export function Security({ language, birthDate, onBirthDateChange, onNext, onBack }: SecurityProps) {
+export function Security({ language, onNext, onBack }: SecurityProps) {
   const t = securityTranslations[language]
   const { verifyBirthDate } = useApi()
   const [loading, setLoading] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [apiError, setApiError] = useState('')
 
-  const schema = createSecuritySchema({
-    required: t.required,
-    invalid: t.invalid,
-    futureDate: t.futureDate
-  })
+  // Global RHF/Zod source de vérité
+  const {
+    getValues,
+    setValue,
+    trigger,
+    formState: { errors }
+  } = useFormContext<FormData>()
 
-  const { register, handleSubmit: handleFormSubmit, formState: { errors }, setValue, trigger } = useForm<SecurityFormData>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      birthDate: birthDate
-    }
-  })
-
+  // hydratation de l'input masqué depuis RHF
   useEffect(() => {
+    const birthDate = getValues('birthDate')
     if (birthDate) {
       setInputValue(formatDisplayDate(birthDate))
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleDateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,38 +59,38 @@ export function Security({ language, birthDate, onBirthDateChange, onNext, onBac
     const formatted = formatDateInput(rawValue)
     setInputValue(formatted)
     setApiError('') // Clear API errors when user types
-    
+
     if (formatted.length === 10) {
       const isoDate = parseDisplayDate(formatted, { allowFuture: false })
-      
+
       if (isoDate) {
-        setValue('birthDate', isoDate)
-        onBirthDateChange(isoDate)
+        setValue('birthDate', isoDate, { shouldDirty: true, shouldValidate: false })
         trigger('birthDate')
       } else {
-        setValue('birthDate', '')
-        onBirthDateChange('')
+        setValue('birthDate', '', { shouldDirty: true, shouldValidate: false })
         trigger('birthDate')
       }
     } else {
-      setValue('birthDate', '')
-      onBirthDateChange('')
+      // pas encore complet: on efface sans valider en boucle
+      setValue('birthDate', '', { shouldDirty: true, shouldValidate: false })
     }
   }
 
-  const onSubmit = async (data: SecurityFormData) => {
+  const onSubmit = async () => {
     setLoading(true)
     setApiError('')
     try {
-      const result = await verifyBirthDate(data.birthDate)
+      const ok = await trigger('birthDate')
+      if (!ok) return
+
+      const birthDate = getValues('birthDate')
+      const result = await verifyBirthDate(birthDate)
       if (result.success) {
         onNext()
       } else {
-        // API returned a failure message
         setApiError(result.message || t.invalid)
       }
-    } catch (err) {
-      // Network or unexpected errors
+    } catch {
       setApiError(t.invalid)
     } finally {
       setLoading(false)
@@ -135,7 +130,7 @@ export function Security({ language, birthDate, onBirthDateChange, onNext, onBac
           </CardHeader>
 
           <CardContent className="px-6 sm:px-8 pb-6 sm:pb-8">
-          <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={(e) => { e.preventDefault(); void onSubmit() }} className="space-y-6">
             <motion.div
               variants={itemVariants}
               style={{ willChange: 'transform, opacity' }}
@@ -169,7 +164,7 @@ export function Security({ language, birthDate, onBirthDateChange, onNext, onBac
                   transition={{ duration: 0.2 }}
                 >
                   <AlertCircle className="w-4 h-4" />
-                  <span>{errors.birthDate?.message || apiError}</span>
+                  <span>{(errors as any).birthDate?.message || apiError}</span>
                 </motion.div>
               )}
             </motion.div>

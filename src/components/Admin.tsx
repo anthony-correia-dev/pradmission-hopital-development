@@ -1,36 +1,45 @@
 import { useState, useEffect, useRef } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { Controller, useFormContext } from 'react-hook-form'
 import { User, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
-import { FormData } from '../hooks/useWizard'
 import { CountryCombobox } from './CountryCombobox'
 import { DoctorCombobox } from './DoctorCombobox'
 import { getCountries } from '../lib/countries'
-import { createAdminSchema, AdminFormData } from '../schemas/adminSchema'
 import { formatDateInput, parseDisplayDate } from '../lib/dateUtils'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { adminTranslations } from '@/locales'
+import type { FormData as WizardFormData } from '../hooks/useWizard'
 
 interface AdminProps {
   language: 'fr' | 'en'
-  formData: FormData
-  reason: 'illness' | 'accident' | ''
-  insurance: 'swiss' | 'international' | 'auto' | ''
-  hasEmployer: boolean
-  onFormDataChange: (data: Partial<FormData>) => void
   onNext: () => void
   onBack: () => void
 }
 
-export function Admin({ language, formData, reason, insurance, hasEmployer, onFormDataChange, onNext, onBack }: AdminProps) {
+export function Admin({ language, onNext, onBack }: AdminProps) {
   const t = adminTranslations[language]
   const [accidentDateInput, setAccidentDateInput] = useState('')
   const countries = getCountries(language)
-  
-  // 🎯 Refs pour le scroll automatique
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    setValue,
+    trigger,
+    watch,
+    formState: { errors }
+  } = useFormContext<WizardFormData>()
+
+  const reason = watch('reason')
+  const insurance = watch('insurance')
+  const hasEmployer = watch('hasEmployer')
+
+  const firstNameValue = (watch('firstName') ?? '') as string
+  const lastNameValue = (watch('lastName') ?? '') as string
+
   const firstNameRef = useRef<HTMLDivElement>(null)
   const lastNameRef = useRef<HTMLDivElement>(null)
   const genderRef = useRef<HTMLDivElement>(null)
@@ -54,44 +63,6 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
   const policyNumberRef = useRef<HTMLDivElement>(null)
   const complementaryInsuranceRef = useRef<HTMLDivElement>(null)
 
-  const schema = createAdminSchema(reason, insurance, hasEmployer, {
-    required: t.required,
-    invalidEmail: t.invalidEmail,
-    invalidNpa: t.invalidNpa,
-    invalidDate: t.invalidDate,
-    invalidCardNumber: t.invalidCardNumber,
-    invalidAvsNumber: t.invalidAvsNumber
-  })
-
-  const { register, handleSubmit: handleFormSubmit, formState: { errors }, setValue, watch, trigger } = useForm<AdminFormData>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      gender: formData.gender,
-      nationality: formData.nationality,
-      street: formData.street,
-      npa: formData.npa,
-      city: formData.city,
-      country: formData.country,
-      email: formData.email,
-      profession: formData.profession,
-      employerName: formData.employerName,
-      employerAddress: formData.employerAddress,
-      referringDoctor: formData.referringDoctor,
-      generalPractitioner: formData.generalPractitioner,
-      accidentDate: formData.accidentDate,
-      accidentInsurance: formData.accidentInsurance,
-      claimNumber: formData.claimNumber,
-      avsNumber: formData.avsNumber,
-      basicInsurance: formData.basicInsurance,
-      cardNumber: formData.cardNumber,
-      policyNumber: formData.policyNumber,
-      complementaryInsurance: formData.complementaryInsurance
-    }
-  })
-
-  // 🎯 Scroll automatique vers le premier champ en erreur
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
       const firstErrorField = Object.keys(errors)[0]
@@ -131,41 +102,41 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
   }, [errors])
 
   useEffect(() => {
-    if (formData.accidentDate) {
-      const [year, month, day] = formData.accidentDate.split('-')
+    const current = (watch('accidentDate') ?? '') as string
+    if (current) {
+      const [year, month, day] = current.split('-')
       if (year && month && day) {
         setAccidentDateInput(`${day}.${month}.${year}`)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleAccidentDateInput = (value: string) => {
     const formatted = formatDateInput(value)
     setAccidentDateInput(formatted)
-    
+
     if (formatted.length === 10) {
       const isoDate = parseDisplayDate(formatted, { allowFuture: true })
-      
       if (isoDate) {
-        setValue('accidentDate', isoDate)
-        onFormDataChange({ accidentDate: isoDate })
+        setValue('accidentDate', isoDate, { shouldDirty: true, shouldValidate: true })
         trigger('accidentDate')
       } else {
-        setValue('accidentDate', '')
-        onFormDataChange({ accidentDate: '' })
+        setValue('accidentDate', '', { shouldDirty: true, shouldValidate: true })
         trigger('accidentDate')
       }
     } else {
-      setValue('accidentDate', '')
-      onFormDataChange({ accidentDate: '' })
+      setValue('accidentDate', '', { shouldDirty: true, shouldValidate: reason === 'accident' })
       if (reason === 'accident') {
         trigger('accidentDate')
       }
     }
   }
 
-  const onSubmit = (data: AdminFormData) => {
-    onFormDataChange(data)
+  const onSubmit = async () => {
+    const ok = await trigger()
+    if (!ok) return
+
     onNext()
   }
 
@@ -197,12 +168,6 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
     return formatted
   }
 
-  const handleChange = (field: keyof AdminFormData, value: string) => {
-    setValue(field, value)
-    onFormDataChange({ [field]: value })
-    trigger(field)
-  }
-
   return (
     <div className="min-h-screen py-4 px-4">
       <div className="w-full max-w-2xl mx-auto">
@@ -216,7 +181,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
           </CardHeader>
 
           <CardContent className="px-6 sm:px-8 pb-6 sm:pb-8">
-          <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
               <div className="p-4 bg-slate-50 rounded-lg">
                 <span className="font-semibold text-brand-text">{t.identity}</span>
@@ -229,8 +194,8 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   <Input
                     id="firstName"
                     type="text"
-                    {...register('firstName')}
-                    onChange={(e) => handleChange('firstName', e.target.value)}
+                    value={firstNameValue}
+                    onChange={(e) => setValue('firstName', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     aria-invalid={!!errors.firstName}
                     className={`w-full h-12 px-4 ${
                       errors.firstName ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -239,7 +204,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   {errors.firstName && (
                     <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
                       <AlertCircle className="w-4 h-4" />
-                      <span>{errors.firstName.message}</span>
+                      <span>{String(errors.firstName.message ?? '')}</span>
                     </div>
                   )}
                 </div>
@@ -251,8 +216,8 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   <Input
                     id="lastName"
                     type="text"
-                    {...register('lastName')}
-                    onChange={(e) => handleChange('lastName', e.target.value)}
+                    value={lastNameValue}
+                    onChange={(e) => setValue('lastName', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     aria-invalid={!!errors.lastName}
                     className={`w-full h-12 px-4 ${
                       errors.lastName ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -261,7 +226,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   {errors.lastName && (
                     <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
                       <AlertCircle className="w-4 h-4" />
-                      <span>{errors.lastName.message}</span>
+                      <span>{String(errors.lastName.message ?? '')}</span>
                     </div>
                   )}
                 </div>
@@ -270,47 +235,54 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   <label htmlFor="gender" className="block text-sm font-medium text-brand-text mb-2">
                     {t.gender} <span className="text-brand-error">*</span>
                   </label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value) => handleChange('gender', value)}
-                  >
-                    <SelectTrigger 
-                      id="gender"
-                      size="lg"
-                      className={`w-full ${
-                        errors.gender
-                          ? 'border-brand-error focus:ring-2 focus:ring-brand-error'
-                          : ''
-                      } ${!formData.gender ? 'text-slate-400' : ''}`}
-                    >
-                      <SelectValue placeholder={t.genderPlaceholder} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">{t.male}</SelectItem>
-                      <SelectItem value="female">{t.female}</SelectItem>
-                      <SelectItem value="other">{t.other}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    control={control}
+                    name="gender"
+                    render={({ field }) => (
+                      <Select value={field.value ?? ''} onValueChange={(v) => field.onChange(v)}>
+                        <SelectTrigger
+                          id="gender"
+                          size="lg"
+                          className={`w-full ${
+                            errors.gender ? 'border-brand-error focus:ring-2 focus:ring-brand-error' : ''
+                          } ${!field.value ? 'text-slate-400' : ''}`}
+                        >
+                          <SelectValue placeholder={t.genderPlaceholder} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">{t.male}</SelectItem>
+                          <SelectItem value="female">{t.female}</SelectItem>
+                          <SelectItem value="other">{t.other}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                   {errors.gender && (
                     <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
                       <AlertCircle className="w-4 h-4" />
-                      <span>{errors.gender.message}</span>
+                      <span>{String(errors.gender.message ?? '')}</span>
                     </div>
                   )}
                 </div>
 
                 <div ref={nationalityRef}>
-                <CountryCombobox
-                  id="nationality"
-                  label={t.nationality}
-                  value={formData.nationality}
-                  onChange={(value) => handleChange('nationality', value)}
-                  countries={countries}
-                  placeholder={t.nationalityPlaceholder}
-                  error={errors.nationality?.message}
-                  noResultsText={t.noResults}
-                  required
-                />
+                  <Controller
+                    control={control}
+                    name="nationality"
+                    render={({ field }) => (
+                      <CountryCombobox
+                        id="nationality"
+                        label={t.nationality}
+                        value={field.value ?? ''}
+                        onChange={(value) => field.onChange(value)}
+                        countries={countries}
+                        placeholder={t.nationalityPlaceholder}
+                        error={errors.nationality?.message as any}
+                        noResultsText={t.noResults}
+                        required
+                      />
+                    )}
+                  />
                 </div>
               </div>
             </div>
@@ -327,8 +299,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   <Input
                     id="street"
                     type="text"
-                    value={formData.street}
-                    onChange={(e) => handleChange('street', e.target.value)}
+                    {...register('street')}
                     aria-invalid={!!errors.street}
                     className={`w-full h-12 px-4 ${
                       errors.street ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -351,10 +322,10 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                       id="npa"
                       type="text"
                       inputMode="numeric"
-                      value={formData.npa}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '')
-                        handleChange('npa', value)
+                        setValue('npa', value, { shouldDirty: true, shouldValidate: true })
+                        trigger('npa')
                       }}
                       aria-invalid={!!errors.npa}
                       className={`w-full h-12 px-4 ${
@@ -376,8 +347,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                     <Input
                       id="city"
                       type="text"
-                      value={formData.city}
-                      onChange={(e) => handleChange('city', e.target.value)}
+                      {...register('city')}
                       aria-invalid={!!errors.city}
                       className={`w-full h-12 px-4 ${
                         errors.city ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -393,17 +363,23 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                 </div>
 
                 <div ref={countryRef}>
-                <CountryCombobox
-                  id="country"
-                  label={t.country}
-                  value={formData.country}
-                  onChange={(value) => handleChange('country', value)}
-                  countries={countries}
-                  placeholder={t.countryPlaceholder}
-                  error={errors.country?.message}
-                  noResultsText={t.noResults}
-                  required
-                />
+                  <Controller
+                    control={control}
+                    name="country"
+                    render={({ field }) => (
+                      <CountryCombobox
+                        id="country"
+                        label={t.country}
+                        value={field.value ?? ''}
+                        onChange={(value) => field.onChange(value)}
+                        countries={countries}
+                        placeholder={t.countryPlaceholder}
+                        error={errors.country?.message as any}
+                        noResultsText={t.noResults}
+                        required
+                      />
+                    )}
+                  />
                 </div>
 
                 <div ref={emailRef}>
@@ -413,8 +389,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   <Input
                     id="email"
                     type="email"
-                    value={formData.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
+                    {...register('email')}
                     aria-invalid={!!errors.email}
                     className={`w-full h-12 px-4 ${
                       errors.email ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -442,8 +417,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   <Input
                     id="profession"
                     type="text"
-                    value={formData.profession}
-                    onChange={(e) => handleChange('profession', e.target.value)}
+                    {...register('profession')}
                     aria-invalid={!!errors.profession}
                     className={`w-full h-12 px-4 ${
                       errors.profession ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -463,8 +437,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   <Input
                     id="employerName"
                     type="text"
-                    value={formData.employerName}
-                    onChange={(e) => handleChange('employerName', e.target.value)}
+                    {...register('employerName')}
                     aria-invalid={!!errors.employerName}
                     className={`w-full h-12 px-4 ${
                       errors.employerName ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -484,8 +457,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   <Input
                     id="employerAddress"
                     type="text"
-                    value={formData.employerAddress}
-                    onChange={(e) => handleChange('employerAddress', e.target.value)}
+                    {...register('employerAddress')}
                     aria-invalid={!!errors.employerAddress}
                     className={`w-full h-12 px-4 ${
                       errors.employerAddress ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -507,28 +479,40 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
               </div>
               <div className="space-y-4">
                 <div ref={referringDoctorRef}>
-                <DoctorCombobox
-                  id="referringDoctor"
-                  label={t.referringDoctor}
-                  value={formData.referringDoctor}
-                  onChange={(value) => handleChange('referringDoctor', value)}
-                  error={errors.referringDoctor?.message}
-                  noResultsText={t.noResults}
-                  required={false}
-                  optionalText={t.optional}
-                />
+                  <Controller
+                    control={control}
+                    name="referringDoctor"
+                    render={({ field }) => (
+                      <DoctorCombobox
+                        id="referringDoctor"
+                        label={t.referringDoctor}
+                        value={field.value ?? ''}
+                        onChange={(value) => field.onChange(value)}
+                        error={errors.referringDoctor?.message as any}
+                        noResultsText={t.noResults}
+                        required={false}
+                        optionalText={t.optional}
+                      />
+                    )}
+                  />
                 </div>
                 <div ref={generalPractitionerRef}>
-                <DoctorCombobox
-                  id="generalPractitioner"
-                  label={t.generalPractitioner}
-                  value={formData.generalPractitioner}
-                  onChange={(value) => handleChange('generalPractitioner', value)}
-                  error={errors.generalPractitioner?.message}
-                  noResultsText={t.noResults}
-                  required={false}
-                  optionalText={t.optional}
-                />
+                  <Controller
+                    control={control}
+                    name="generalPractitioner"
+                    render={({ field }) => (
+                      <DoctorCombobox
+                        id="generalPractitioner"
+                        label={t.generalPractitioner}
+                        value={field.value ?? ''}
+                        onChange={(value) => field.onChange(value)}
+                        error={errors.generalPractitioner?.message as any}
+                        noResultsText={t.noResults}
+                        required={false}
+                        optionalText={t.optional}
+                      />
+                    )}
+                  />
                 </div>
               </div>
             </div>
@@ -571,8 +555,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                     <Input
                       id="accidentInsurance"
                       type="text"
-                      value={formData.accidentInsurance}
-                      onChange={(e) => handleChange('accidentInsurance', e.target.value)}
+                      onChange={(e) => setValue('accidentInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       className="w-full h-12 px-4"
                     />
                   </div>
@@ -584,8 +567,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                     <Input
                       id="claimNumber"
                       type="text"
-                      value={formData.claimNumber}
-                      onChange={(e) => handleChange('claimNumber', e.target.value)}
+                      onChange={(e) => setValue('claimNumber', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       className="w-full h-12 px-4"
                     />
                   </div>
@@ -609,10 +591,11 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                       inputMode="numeric"
                       maxLength={16}
                       placeholder="756.1234.5678.97"
-                      value={formatAvsNumber(formData.avsNumber)}
+                      value={formatAvsNumber(watch('avsNumber') ?? '')}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '')
-                        handleChange('avsNumber', value)
+                        setValue('avsNumber', value, { shouldDirty: true, shouldValidate: true })
+                        trigger('avsNumber')
                       }}
                       aria-invalid={!!errors.avsNumber}
                       className={`w-full h-12 px-4 font-mono tracking-wider ${
@@ -639,10 +622,11 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                       inputMode="numeric"
                       maxLength={16}
                       placeholder="756.1234.5678.97"
-                      value={formatAvsNumber(formData.avsNumber)}
+                      value={formatAvsNumber(watch('avsNumber') ?? '')}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '')
-                        handleChange('avsNumber', value)
+                        setValue('avsNumber', value, { shouldDirty: true, shouldValidate: true })
+                        trigger('avsNumber')
                       }}
                       className="w-full h-12 px-4 font-mono tracking-wider"
                     />
@@ -657,8 +641,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                     <Input
                       id="basicInsurance"
                       type="text"
-                      value={formData.basicInsurance}
-                      onChange={(e) => handleChange('basicInsurance', e.target.value)}
+                      onChange={(e) => setValue('basicInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       aria-invalid={!!errors.basicInsurance}
                       className={`w-full h-12 px-4 ${
                         errors.basicInsurance ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -681,8 +664,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                     <Input
                       id="basicInsurance"
                       type="text"
-                      value={formData.basicInsurance}
-                      onChange={(e) => handleChange('basicInsurance', e.target.value)}
+                      onChange={(e) => setValue('basicInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       className="w-full h-12 px-4"
                     />
                   </div>
@@ -696,8 +678,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                     <Input
                       id="basicInsurance"
                       type="text"
-                      value={formData.basicInsurance}
-                      onChange={(e) => handleChange('basicInsurance', e.target.value)}
+                      onChange={(e) => setValue('basicInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       aria-invalid={!!errors.basicInsurance}
                       className={`w-full h-12 px-4 ${
                         errors.basicInsurance ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -723,10 +704,11 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                       inputMode="numeric"
                       maxLength={25}
                       placeholder="80756.123.456.789.012.345"
-                      value={formatCardNumber(formData.cardNumber)}
+                      value={formatCardNumber(watch('cardNumber') ?? '')}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '')
-                        handleChange('cardNumber', value)
+                        setValue('cardNumber', value, { shouldDirty: true, shouldValidate: true })
+                        trigger('cardNumber')
                       }}
                       aria-invalid={!!errors.cardNumber}
                       className={`w-full h-12 px-4 font-mono tracking-wider ${
@@ -753,10 +735,10 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                       inputMode="numeric"
                       maxLength={25}
                       placeholder="80756.123.456.789.012.345"
-                      value={formatCardNumber(formData.cardNumber)}
+                      value={formatCardNumber(watch('cardNumber') ?? '')}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '')
-                        handleChange('cardNumber', value)
+                        setValue('cardNumber', value, { shouldDirty: true, shouldValidate: true })
                       }}
                       className="w-full h-12 px-4 font-mono tracking-wider"
                     />
@@ -774,10 +756,11 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                       inputMode="numeric"
                       maxLength={25}
                       placeholder="80756.123.456.789.012.345"
-                      value={formatCardNumber(formData.cardNumber)}
+                      value={formatCardNumber(watch('cardNumber') ?? '')}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '')
-                        handleChange('cardNumber', value)
+                        setValue('cardNumber', value, { shouldDirty: true, shouldValidate: true })
+                        trigger('cardNumber')
                       }}
                       aria-invalid={!!errors.cardNumber}
                       className={`w-full h-12 px-4 font-mono tracking-wider ${
@@ -801,8 +784,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                     <Input
                       id="policyNumber"
                       type="text"
-                      value={formData.policyNumber}
-                      onChange={(e) => handleChange('policyNumber', e.target.value)}
+                      onChange={(e) => setValue('policyNumber', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       aria-invalid={!!errors.policyNumber}
                       className={`w-full h-12 px-4 ${
                         errors.policyNumber ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -824,8 +806,7 @@ export function Admin({ language, formData, reason, insurance, hasEmployer, onFo
                   <Input
                     id="complementaryInsurance"
                     type="text"
-                    value={formData.complementaryInsurance}
-                    onChange={(e) => handleChange('complementaryInsurance', e.target.value)}
+                    onChange={(e) => setValue('complementaryInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     className="w-full h-12 px-4"
                   />
                 </div>
