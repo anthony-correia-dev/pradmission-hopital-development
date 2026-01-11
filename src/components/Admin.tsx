@@ -169,22 +169,22 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
   }
 
   return (
-    <div className="min-h-screen py-4 px-4">
-      <div className="w-full max-w-2xl mx-auto">
-        <Card className="bg-white rounded-xl shadow-sm border border-slate-100 p-0 relative z-10">
-          <CardHeader className="px-6 sm:px-8 pt-6 sm:pt-8 pb-4">
-            <div className="w-16 h-16 bg-brand-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+    <div className="step-page">
+      <div className="step-container-lg">
+        <Card className="step-card-compact">
+          <CardHeader className="step-card-header">
+            <div className="step-icon">
               <User className="w-8 h-8 text-brand-primary" />
             </div>
-            <CardTitle className="text-2xl font-bold text-brand-text text-center mb-2">{t.title}</CardTitle>
-            <CardDescription className="text-sm text-slate-600 text-center">{t.subtitle}</CardDescription>
+            <CardTitle className="step-title">{t.title}</CardTitle>
+            <CardDescription className="step-subtitle">{t.subtitle}</CardDescription>
           </CardHeader>
 
-          <CardContent className="px-6 sm:px-8 pb-6 sm:pb-8">
+          <CardContent className="step-card-content">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <span className="font-semibold text-brand-text">{t.identity}</span>
+              <div className="form-section-header">
+                <span className="form-section-title">{t.identity}</span>
               </div>
               <div className="space-y-4">
                 <div ref={firstNameRef}>
@@ -197,13 +197,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     value={firstNameValue}
                     onChange={(e) => setValue('firstName', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     aria-invalid={!!errors.firstName}
-                    className={`w-full h-12 px-4 ${
+                    className={`form-input ${
                       errors.firstName ? 'border-brand-error focus-visible:ring-brand-error' : ''
                     }`}
                   />
                   {errors.firstName && (
-                    <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                      <AlertCircle className="w-4 h-4" />
+                    <div className="form-error-inline-tight">
+                      <AlertCircle className="form-error-icon" />
                       <span>{String(errors.firstName.message ?? '')}</span>
                     </div>
                   )}
@@ -219,13 +219,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     value={lastNameValue}
                     onChange={(e) => setValue('lastName', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     aria-invalid={!!errors.lastName}
-                    className={`w-full h-12 px-4 ${
+                    className={`form-input ${
                       errors.lastName ? 'border-brand-error focus-visible:ring-brand-error' : ''
                     }`}
                   />
                   {errors.lastName && (
-                    <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                      <AlertCircle className="w-4 h-4" />
+                    <div className="form-error-inline-tight">
+                      <AlertCircle className="form-error-icon" />
                       <span>{String(errors.lastName.message ?? '')}</span>
                     </div>
                   )}
@@ -258,8 +258,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     )}
                   />
                   {errors.gender && (
-                    <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                      <AlertCircle className="w-4 h-4" />
+                    <div className="form-error-inline-tight">
+                      <AlertCircle className="form-error-icon" />
                       <span>{String(errors.gender.message ?? '')}</span>
                     </div>
                   )}
@@ -288,8 +288,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <span className="font-semibold text-brand-text">{t.contact}</span>
+              <div className="form-section-header">
+                <span className="form-section-title">{t.contact}</span>
               </div>
               <div className="space-y-4">
                 <div ref={streetRef}>
@@ -301,13 +301,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     type="text"
                     {...register('street')}
                     aria-invalid={!!errors.street}
-                    className={`w-full h-12 px-4 ${
+                    className={`form-input ${
                       errors.street ? 'border-brand-error focus-visible:ring-brand-error' : ''
                     }`}
                   />
                   {errors.street && (
-                    <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                      <AlertCircle className="w-4 h-4" />
+                    <div className="form-error-inline-tight">
+                      <AlertCircle className="form-error-icon" />
                       <span>{errors.street.message}</span>
                     </div>
                   )}
@@ -328,13 +328,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                         trigger('npa')
                       }}
                       aria-invalid={!!errors.npa}
-                      className={`w-full h-12 px-4 ${
+                      className={`form-input ${
                         errors.npa ? 'border-brand-error focus-visible:ring-brand-error' : ''
                       }`}
                     />
                     {errors.npa && (
-                      <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                        <AlertCircle className="w-4 h-4" />
+                      <div className="form-error-inline-tight">
+                        <AlertCircle className="form-error-icon" />
                         <span>{errors.npa.message}</span>
                       </div>
                     )}
@@ -349,13 +349,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                       type="text"
                       {...register('city')}
                       aria-invalid={!!errors.city}
-                      className={`w-full h-12 px-4 ${
+                      className={`form-input ${
                         errors.city ? 'border-brand-error focus-visible:ring-brand-error' : ''
                       }`}
                     />
                     {errors.city && (
-                      <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                        <AlertCircle className="w-4 h-4" />
+                      <div className="form-error-inline-tight">
+                        <AlertCircle className="form-error-icon" />
                         <span>{errors.city.message}</span>
                       </div>
                     )}
@@ -391,13 +391,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     type="email"
                     {...register('email')}
                     aria-invalid={!!errors.email}
-                    className={`w-full h-12 px-4 ${
+                    className={`form-input ${
                       errors.email ? 'border-brand-error focus-visible:ring-brand-error' : ''
                     }`}
                   />
                   {errors.email && (
-                    <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                      <AlertCircle className="w-4 h-4" />
+                    <div className="form-error-inline-tight">
+                      <AlertCircle className="form-error-icon" />
                       <span>{errors.email.message}</span>
                     </div>
                   )}
@@ -406,8 +406,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <span className="font-semibold text-brand-text">{t.employer}</span>
+              <div className="form-section-header">
+                <span className="form-section-title">{t.employer}</span>
               </div>
               <div className="space-y-4">
                 <div ref={professionRef}>
@@ -419,13 +419,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     type="text"
                     {...register('profession')}
                     aria-invalid={!!errors.profession}
-                    className={`w-full h-12 px-4 ${
+                    className={`form-input ${
                       errors.profession ? 'border-brand-error focus-visible:ring-brand-error' : ''
                     }`}
                   />
                   {errors.profession && (
-                    <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                      <AlertCircle className="w-4 h-4" />
+                    <div className="form-error-inline-tight">
+                      <AlertCircle className="form-error-icon" />
                       <span>{errors.profession.message}</span>
                     </div>
                   )}
@@ -439,13 +439,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     type="text"
                     {...register('employerName')}
                     aria-invalid={!!errors.employerName}
-                    className={`w-full h-12 px-4 ${
+                    className={`form-input ${
                       errors.employerName ? 'border-brand-error focus-visible:ring-brand-error' : ''
                     }`}
                   />
                   {errors.employerName && (
-                    <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                      <AlertCircle className="w-4 h-4" />
+                    <div className="form-error-inline-tight">
+                      <AlertCircle className="form-error-icon" />
                       <span>{errors.employerName.message}</span>
                     </div>
                   )}
@@ -459,13 +459,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     type="text"
                     {...register('employerAddress')}
                     aria-invalid={!!errors.employerAddress}
-                    className={`w-full h-12 px-4 ${
+                    className={`form-input ${
                       errors.employerAddress ? 'border-brand-error focus-visible:ring-brand-error' : ''
                     }`}
                   />
                   {errors.employerAddress && (
-                    <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                      <AlertCircle className="w-4 h-4" />
+                    <div className="form-error-inline-tight">
+                      <AlertCircle className="form-error-icon" />
                       <span>{errors.employerAddress.message}</span>
                     </div>
                   )}
@@ -474,8 +474,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <span className="font-semibold text-brand-text">{t.doctors}</span>
+              <div className="form-section-header">
+                <span className="form-section-title">{t.doctors}</span>
               </div>
               <div className="space-y-4">
                 <div ref={referringDoctorRef}>
@@ -519,8 +519,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
 
             {reason === 'accident' && (
               <div className="space-y-4">
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <span className="font-semibold text-brand-text">{t.accidentData}</span>
+                <div className="form-section-header">
+                  <span className="form-section-title">{t.accidentData}</span>
                 </div>
                 <div className="space-y-4">
                   <div ref={accidentDateRef}>
@@ -536,13 +536,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                       placeholder={t.accidentDatePlaceholder}
                       maxLength={10}
                       aria-invalid={!!errors.accidentDate}
-                      className={`w-full h-12 px-4 font-mono tracking-wider ${
+                      className={`form-input form-input-mono ${
                         errors.accidentDate ? 'border-brand-error focus-visible:ring-brand-error' : ''
                       }`}
                     />
                     {errors.accidentDate && (
-                      <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                        <AlertCircle className="w-4 h-4" />
+                      <div className="form-error-inline-tight">
+                        <AlertCircle className="form-error-icon" />
                         <span>{errors.accidentDate.message}</span>
                       </div>
                     )}
@@ -556,7 +556,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                       id="accidentInsurance"
                       type="text"
                       onChange={(e) => setValue('accidentInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
-                      className="w-full h-12 px-4"
+                      className="form-input"
                     />
                   </div>
 
@@ -568,7 +568,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                       id="claimNumber"
                       type="text"
                       onChange={(e) => setValue('claimNumber', e.target.value, { shouldDirty: true, shouldValidate: true })}
-                      className="w-full h-12 px-4"
+                      className="form-input"
                     />
                   </div>
                 </div>
@@ -576,8 +576,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
             )}
 
             <div className="space-y-4">
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <span className="font-semibold text-brand-text">{t.insuranceData}</span>
+              <div className="form-section-header">
+                <span className="form-section-title">{t.insuranceData}</span>
               </div>
               <div className="space-y-4">
                 {insurance === 'swiss' && (
@@ -598,13 +598,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                         trigger('avsNumber')
                       }}
                       aria-invalid={!!errors.avsNumber}
-                      className={`w-full h-12 px-4 font-mono tracking-wider ${
+                      className={`form-input form-input-mono ${
                         errors.avsNumber ? 'border-brand-error focus-visible:ring-brand-error' : ''
                       }`}
                     />
                     {errors.avsNumber && (
-                      <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                        <AlertCircle className="w-4 h-4" />
+                      <div className="form-error-inline-tight">
+                        <AlertCircle className="form-error-icon" />
                         <span>{errors.avsNumber.message}</span>
                       </div>
                     )}
@@ -628,7 +628,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                         setValue('avsNumber', value, { shouldDirty: true, shouldValidate: true })
                         trigger('avsNumber')
                       }}
-                      className="w-full h-12 px-4 font-mono tracking-wider"
+                      className="form-input form-input-mono"
                     />
                   </div>
                 )}
@@ -643,13 +643,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                       type="text"
                       onChange={(e) => setValue('basicInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       aria-invalid={!!errors.basicInsurance}
-                      className={`w-full h-12 px-4 ${
+                      className={`form-input ${
                         errors.basicInsurance ? 'border-brand-error focus-visible:ring-brand-error' : ''
                       }`}
                     />
                     {errors.basicInsurance && (
-                      <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                        <AlertCircle className="w-4 h-4" />
+                      <div className="form-error-inline-tight">
+                        <AlertCircle className="form-error-icon" />
                         <span>{errors.basicInsurance.message}</span>
                       </div>
                     )}
@@ -665,7 +665,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                       id="basicInsurance"
                       type="text"
                       onChange={(e) => setValue('basicInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
-                      className="w-full h-12 px-4"
+                      className="form-input"
                     />
                   </div>
                 )}
@@ -680,13 +680,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                       type="text"
                       onChange={(e) => setValue('basicInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       aria-invalid={!!errors.basicInsurance}
-                      className={`w-full h-12 px-4 ${
+                      className={`form-input ${
                         errors.basicInsurance ? 'border-brand-error focus-visible:ring-brand-error' : ''
                       }`}
                     />
                     {errors.basicInsurance && (
-                      <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                        <AlertCircle className="w-4 h-4" />
+                      <div className="form-error-inline-tight">
+                        <AlertCircle className="form-error-icon" />
                         <span>{errors.basicInsurance.message}</span>
                       </div>
                     )}
@@ -711,13 +711,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                         trigger('cardNumber')
                       }}
                       aria-invalid={!!errors.cardNumber}
-                      className={`w-full h-12 px-4 font-mono tracking-wider ${
+                      className={`form-input form-input-mono ${
                         errors.cardNumber ? 'border-brand-error focus-visible:ring-brand-error' : ''
                       }`}
                     />
                     {errors.cardNumber && (
-                      <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                        <AlertCircle className="w-4 h-4" />
+                      <div className="form-error-inline-tight">
+                        <AlertCircle className="form-error-icon" />
                         <span>{errors.cardNumber.message}</span>
                       </div>
                     )}
@@ -740,7 +740,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                         const value = e.target.value.replace(/\D/g, '')
                         setValue('cardNumber', value, { shouldDirty: true, shouldValidate: true })
                       }}
-                      className="w-full h-12 px-4 font-mono tracking-wider"
+                      className="form-input form-input-mono"
                     />
                   </div>
                 )}
@@ -763,13 +763,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                         trigger('cardNumber')
                       }}
                       aria-invalid={!!errors.cardNumber}
-                      className={`w-full h-12 px-4 font-mono tracking-wider ${
+                      className={`form-input form-input-mono ${
                         errors.cardNumber ? 'border-brand-error focus-visible:ring-brand-error' : ''
                       }`}
                     />
                     {errors.cardNumber && (
-                      <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                        <AlertCircle className="w-4 h-4" />
+                      <div className="form-error-inline-tight">
+                        <AlertCircle className="form-error-icon" />
                         <span>{errors.cardNumber.message}</span>
                       </div>
                     )}
@@ -786,13 +786,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                       type="text"
                       onChange={(e) => setValue('policyNumber', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       aria-invalid={!!errors.policyNumber}
-                      className={`w-full h-12 px-4 ${
+                      className={`form-input ${
                         errors.policyNumber ? 'border-brand-error focus-visible:ring-brand-error' : ''
                       }`}
                     />
                     {errors.policyNumber && (
-                      <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-                        <AlertCircle className="w-4 h-4" />
+                      <div className="form-error-inline-tight">
+                        <AlertCircle className="form-error-icon" />
                         <span>{errors.policyNumber.message}</span>
                       </div>
                     )}
@@ -807,19 +807,19 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     id="complementaryInsurance"
                     type="text"
                     onChange={(e) => setValue('complementaryInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
-                    className="w-full h-12 px-4"
+                    className="form-input"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-3 pt-4">
+            <div className="step-actions">
               <Button
                 type="button"
                 onClick={onBack}
                 variant="outline"
                 size="lg"
-                className="h-12 px-6 hover:scale-[1.02] active:scale-98 transition-all"
+                className="h-12 px-6 active-scale"
               >
                 <ArrowLeft className="w-5 h-5" />
                 {t.back}
@@ -827,7 +827,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
               <Button
                 type="submit"
                 size="lg"
-                className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white hover:scale-[1.02] active:scale-98 transition-all"
+                className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white active-scale"
               >
                 {t.continue}
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />

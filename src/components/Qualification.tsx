@@ -17,6 +17,7 @@ import { qualificationTranslations } from '../locales/qualification'
 import { motion, type Variants, AnimatePresence } from 'framer-motion'
 import { useApi } from '../hooks/useApi'
 import { getCountryNameByCode } from '../lib/countries'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import type { FormData } from '@/hooks/useWizard'
 
 // ⚡ GPU-optimized animation variants
@@ -358,417 +359,416 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
   }, [getValues, onNext, trigger, errors, watchedReason, isInsuranceCardRequired])
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-4">
-      <motion.div 
-        className="w-full max-w-2xl mx-auto"
+    <div className="step-page-centered">
+      <motion.div
+        className="step-container-lg"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 sm:p-8 backdrop-blur-sm relative z-10">
-          <motion.div 
-            className="mb-8"
-            variants={itemVariants}
-          >
-            <motion.div 
-              className="w-16 h-16 bg-gradient-to-br from-brand-primary to-brand-primary-hover rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-primary/20"
-              variants={iconVariants}
-              animate="pulse"
-            >
-              <ClipboardList className="w-8 h-8 text-white" />
-            </motion.div>
-            <motion.h1 
-              className="text-2xl font-bold text-brand-text text-center mb-2"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.3 }}
-            >
-              {t.title}
-            </motion.h1>
-            <motion.p 
-              className="text-sm text-slate-600 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.25, duration: 0.3 }}
-            >
-              {t.subtitle}
-            </motion.p>
-          </motion.div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <motion.div 
-              ref={reasonRef}
-              id="reason"
-              variants={itemVariants}
-              role="group"
-              aria-labelledby="reason-label"
-            >
-              <label id="reason-label" className="block text-sm font-semibold text-brand-text mb-3">
-                {t.reasonLabel}
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <motion.button
-                  type="button"
-                  onClick={() => handleReasonChange('illness')}
-                  className={`h-14 px-6 rounded-md font-medium transition-all relative overflow-hidden ${
-                    watchedReason === 'illness'
-                      ? 'bg-brand-primary text-white border border-brand-primary'
-                      : 'border border-slate-300 text-slate-700 bg-white hover:border-brand-primary'
-                  }`}
-                  whileHover={{ scale: ANIMATION.SCALE_HOVER }}
-                  whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                  aria-pressed={watchedReason === 'illness'}
-                  aria-label={t.illness}
-                >
-                  {watchedReason === 'illness' && (
-                    <motion.span 
-                      className="absolute top-2 right-2"
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                    </motion.span>
-                  )}
-                  {t.illness}
-                </motion.button>
-                <motion.button
-                  type="button"
-                  onClick={() => handleReasonChange('accident')}
-                  className={`h-14 px-6 rounded-md font-medium transition-all relative overflow-hidden ${
-                    watchedReason === 'accident'
-                      ? 'bg-brand-primary text-white border border-brand-primary'
-                      : 'border border-slate-300 text-slate-700 bg-white hover:border-brand-primary'
-                  }`}
-                  whileHover={{ scale: ANIMATION.SCALE_HOVER }}
-                  whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                  aria-pressed={watchedReason === 'accident'}
-                  aria-label={t.accident}
-                >
-                  {watchedReason === 'accident' && (
-                    <motion.span 
-                      className="absolute top-2 right-2"
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                    </motion.span>
-                  )}
-                  {t.accident}
-                </motion.button>
-              </div>
-              <AnimatePresence>
-              {errors.reason && (
-                <motion.div 
-                  className="flex items-center gap-2 mt-2 text-brand-error text-sm"
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span>{errors.reason?.message}</span>
-                </motion.div>
-              )}
-              </AnimatePresence>
-            </motion.div>
-
-            <AnimatePresence mode="wait">
-            {watchedReason === 'accident' && (
+        <Card className="step-card relative z-10">
+          <CardHeader className="step-card-header">
+            <motion.div className="step-header-stack--tight" variants={itemVariants}>
               <motion.div
-                key="employer-section"
-                variants={employerSectionVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                style={{ overflow: 'hidden' }}
+                className="w-16 h-16 bg-gradient-to-br from-brand-primary to-brand-primary-hover rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-primary/20"
+                variants={iconVariants}
+                animate="pulse"
               >
-                <div className="flex items-center gap-2 mb-3">
-                  <motion.div
-                    animate={{ 
-                      rotate: [0, -10, 10, -10, 0],
-                    }}
-                    transition={{ 
-                      duration: 0.5,
-                      delay: 0.3
-                    }}
-                  >
-                    <Briefcase className="w-5 h-5 text-brand-primary" />
-                  </motion.div>
-                  <label id="employer-label" className="block text-sm font-semibold text-brand-text">
-                    {t.hasEmployerLabel}
-                  </label>
-                </div>
-                <div className="grid grid-cols-2 gap-3" role="group" aria-labelledby="employer-label">
-                      <motion.button
-                        type="button"
-                        onClick={() => {
-                          setValue('hasEmployer', true, { shouldValidate: false })
-                        }}
-                        className={`h-14 px-6 rounded-md font-medium transition-all relative overflow-hidden ${
-                          watchedHasEmployer
-                            ? 'bg-brand-primary text-white border border-brand-primary'
-                            : 'border border-slate-300 text-slate-700 bg-white hover:border-brand-primary'
-                        }`}
-                        whileHover={{ scale: ANIMATION.SCALE_HOVER }}
-                        whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                        aria-pressed={watchedHasEmployer}
-                        aria-label={t.yes}
-                      >
-                        {watchedHasEmployer && (
-                          <motion.span 
-                            className="absolute top-2 right-2"
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                          >
-                            <CheckCircle className="w-5 h-5" />
-                          </motion.span>
-                        )}
-                        {t.yes}
-                      </motion.button>
-                      <motion.button
-                        type="button"
-                        onClick={() => {
-                          setValue('hasEmployer', false, { shouldValidate: false })
-                        }}
-                        className={`h-14 px-6 rounded-md font-medium transition-all relative overflow-hidden ${
-                          !watchedHasEmployer
-                            ? 'bg-brand-primary text-white border border-brand-primary'
-                            : 'border border-slate-300 text-slate-700 bg-white hover:border-brand-primary'
-                        }`}
-                        whileHover={{ scale: ANIMATION.SCALE_HOVER }}
-                        whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                        aria-pressed={!watchedHasEmployer}
-                        aria-label={t.no}
-                      >
-                        {!watchedHasEmployer && (
-                          <motion.span 
-                            className="absolute top-2 right-2"
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                          >
-                            <CheckCircle className="w-5 h-5" />
-                          </motion.span>
-                        )}
-                        {t.no}
-                      </motion.button>
-                    </div>
+                <ClipboardList className="w-8 h-8 text-white" />
               </motion.div>
-            )}
-            </AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.3 }}
+              >
+                <CardTitle className="step-title">{t.title}</CardTitle>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.25, duration: 0.3 }}
+              >
+                <CardDescription className="step-subtitle">{t.subtitle}</CardDescription>
+              </motion.div>
+            </motion.div>
+          </CardHeader>
 
-            <motion.div 
-              ref={insuranceRef}
-              id="insurance"
-              variants={itemVariants}
-              role="group"
-              aria-labelledby="insurance-label"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <label id="insurance-label" className="block text-sm font-semibold text-brand-text">
-                  {t.insuranceLabel}
+          <CardContent className="step-card-content">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+              <motion.div 
+                ref={reasonRef}
+                id="reason"
+                variants={itemVariants}
+                role="group"
+                aria-labelledby="reason-label"
+              >
+                <label id="reason-label" className="block text-sm font-semibold text-brand-text mb-3">
+                  {t.reasonLabel}
                 </label>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button
-                      type="button"
-                      className="text-brand-primary hover:text-brand-primary-hover text-sm font-medium underline transition-colors"
-                    >
-                      {t.insuranceHelp}
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl font-bold text-brand-text">{t.insuranceHelpTitle}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 text-brand-text">
-                      <div>
-                        <h4 className="font-bold text-brand-primary mb-1">{t.insuranceHelpSwiss}</h4>
-                        <p className="text-sm leading-relaxed">{t.insuranceHelpSwissDesc}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-brand-primary mb-1">{t.insuranceHelpInternational}</h4>
-                        <p className="text-sm leading-relaxed mb-2">{t.insuranceHelpInternationalDesc}</p>
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          <li>{t.insuranceHelpInternationalItem1}</li>
-                          <li>{t.insuranceHelpInternationalItem2}</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-brand-primary mb-1">{t.insuranceHelpAuto}</h4>
-                        <p className="text-sm leading-relaxed">{t.insuranceHelpAutoDesc}</p>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {INSURANCE_TYPES.map((type, idx) => (
+                <div className="grid grid-cols-2 gap-3">
                   <motion.button
-                    key={type}
                     type="button"
-                    onClick={() => handleInsuranceChange(type)}
-                    className={`h-14 px-4 rounded-md font-medium text-sm relative overflow-hidden transition-all ${
-                      watchedInsurance === type
-                        ? 'bg-brand-primary text-white border border-brand-primary'
-                        : 'border border-slate-300 text-slate-700 bg-white hover:border-brand-primary'
+                    onClick={() => handleReasonChange('illness')}
+                    className={`choice-btn ${
+                      watchedReason === 'illness'
+                        ? 'choice-btn--selected'
+                        : 'choice-btn--unselected'
                     }`}
                     whileHover={{ scale: ANIMATION.SCALE_HOVER }}
                     whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    aria-pressed={watchedInsurance === type}
-                    aria-label={t[type]}
+                    aria-pressed={watchedReason === 'illness'}
+                    aria-label={t.illness}
                   >
-                    {watchedInsurance === type && (
-                      <motion.span
+                    {watchedReason === 'illness' && (
+                      <motion.span 
+                        className="absolute top-2 right-2"
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
                       >
-                        <CheckCircle className="w-4 h-4 absolute top-2 right-2" />
+                        <CheckCircle className="w-5 h-5" />
                       </motion.span>
                     )}
-                    {t[type]}
+                    {t.illness}
                   </motion.button>
-                ))}
-              </div>
-              <AnimatePresence>
-              {errors.insurance && (
-                <motion.div 
-                  className="flex items-center gap-2 mt-2 text-brand-error text-sm"
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.2 }}
+                  <motion.button
+                    type="button"
+                    onClick={() => handleReasonChange('accident')}
+                    className={`choice-btn ${
+                      watchedReason === 'accident'
+                        ? 'choice-btn--selected'
+                        : 'choice-btn--unselected'
+                    }`}
+                    whileHover={{ scale: ANIMATION.SCALE_HOVER }}
+                    whileTap={{ scale: ANIMATION.SCALE_TAP }}
+                    aria-pressed={watchedReason === 'accident'}
+                    aria-label={t.accident}
+                  >
+                    {watchedReason === 'accident' && (
+                      <motion.span 
+                        className="absolute top-2 right-2"
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                      >
+                        <CheckCircle className="w-5 h-5" />
+                      </motion.span>
+                    )}
+                    {t.accident}
+                  </motion.button>
+                </div>
+                <AnimatePresence>
+                {errors.reason && (
+                  <motion.div 
+                    className="form-error-inline"
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <AlertCircle className="form-error-icon" />
+                    <span>{errors.reason?.message}</span>
+                  </motion.div>
+                )}
+                </AnimatePresence>
+              </motion.div>
+
+              <AnimatePresence mode="wait">
+              {watchedReason === 'accident' && (
+                <motion.div
+                  key="employer-section"
+                  variants={employerSectionVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  style={{ overflow: 'hidden' }}
                 >
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span>{errors.insurance?.message}</span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <motion.div
+                      animate={{ 
+                        rotate: [0, -10, 10, -10, 0],
+                      }}
+                      transition={{ 
+                        duration: 0.5,
+                        delay: 0.3
+                      }}
+                    >
+                      <Briefcase className="w-5 h-5 text-brand-primary" />
+                    </motion.div>
+                    <label id="employer-label" className="block text-sm font-semibold text-brand-text">
+                      {t.hasEmployerLabel}
+                    </label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3" role="group" aria-labelledby="employer-label">
+                        <motion.button
+                          type="button"
+                          onClick={() => {
+                            setValue('hasEmployer', true, { shouldValidate: false })
+                          }}
+                          className={`choice-btn ${
+                            watchedHasEmployer
+                              ? 'choice-btn--selected'
+                              : 'choice-btn--unselected'
+                          }`}
+                          whileHover={{ scale: ANIMATION.SCALE_HOVER }}
+                          whileTap={{ scale: ANIMATION.SCALE_TAP }}
+                          aria-pressed={watchedHasEmployer}
+                          aria-label={t.yes}
+                        >
+                          {watchedHasEmployer && (
+                            <motion.span 
+                              className="absolute top-2 right-2"
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                            >
+                              <CheckCircle className="w-5 h-5" />
+                            </motion.span>
+                          )}
+                          {t.yes}
+                        </motion.button>
+                        <motion.button
+                          type="button"
+                          onClick={() => {
+                            setValue('hasEmployer', false, { shouldValidate: false })
+                          }}
+                          className={`choice-btn ${
+                            !watchedHasEmployer
+                              ? 'choice-btn--selected'
+                              : 'choice-btn--unselected'
+                          }`}
+                          whileHover={{ scale: ANIMATION.SCALE_HOVER }}
+                          whileTap={{ scale: ANIMATION.SCALE_TAP }}
+                          aria-pressed={!watchedHasEmployer}
+                          aria-label={t.no}
+                        >
+                          {!watchedHasEmployer && (
+                            <motion.span 
+                              className="absolute top-2 right-2"
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                            >
+                              <CheckCircle className="w-5 h-5" />
+                            </motion.span>
+                          )}
+                          {t.no}
+                        </motion.button>
+                      </div>
                 </motion.div>
               )}
               </AnimatePresence>
-            </motion.div>
 
-            <motion.div
-              variants={itemVariants}
-            >
-              <div className="space-y-4">
-                <div ref={identityCardRef}>
-                <FileUpload
-                  id="identityCard"
-                  label={t.identityCard}
-                  file={watchedIdentityCard}
-                  onFileChange={(file) => handleFileChange('identity', file)}
-                  uploadText={t.uploadText}
-                  required
-                  language={language}
-                  error={errors.identityCard?.message}
-                />
+              <motion.div 
+                ref={insuranceRef}
+                id="insurance"
+                variants={itemVariants}
+                role="group"
+                aria-labelledby="insurance-label"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <label id="insurance-label" className="block text-sm font-semibold text-brand-text">
+                    {t.insuranceLabel}
+                  </label>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button
+                        type="button"
+                        className="text-brand-primary hover:text-brand-primary-hover text-sm font-medium underline transition-colors"
+                      >
+                        {t.insuranceHelp}
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-bold text-brand-text">{t.insuranceHelpTitle}</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 text-brand-text">
+                        <div>
+                          <h4 className="font-bold text-brand-primary mb-1">{t.insuranceHelpSwiss}</h4>
+                          <p className="text-sm leading-relaxed">{t.insuranceHelpSwissDesc}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-brand-primary mb-1">{t.insuranceHelpInternational}</h4>
+                          <p className="text-sm leading-relaxed mb-2">{t.insuranceHelpInternationalDesc}</p>
+                          <ul className="list-disc pl-5 space-y-1 text-sm">
+                            <li>{t.insuranceHelpInternationalItem1}</li>
+                            <li>{t.insuranceHelpInternationalItem2}</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-brand-primary mb-1">{t.insuranceHelpAuto}</h4>
+                          <p className="text-sm leading-relaxed">{t.insuranceHelpAutoDesc}</p>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
-                <div ref={insuranceCardRef}>
-                <FileUpload
-                  id="insuranceCard"
-                  file={watchedInsuranceCard}
-                  onFileChange={(file) => handleFileChange('insurance', file)}
-                  label={t.insuranceCard}
-                  uploadText={t.uploadText}
-                  required={isInsuranceCardRequired}
-                  optional={!isInsuranceCardRequired}
-                  optionalText={t.optional}
-                  language={language}
-                  error={errors.insuranceCard?.message}
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {INSURANCE_TYPES.map((type, idx) => (
+                    <motion.button
+                      key={type}
+                      type="button"
+                      onClick={() => handleInsuranceChange(type)}
+                      className={`choice-btn choice-btn--sm ${
+                        watchedInsurance === type
+                          ? 'choice-btn--selected'
+                          : 'choice-btn--unselected'
+                      }`}
+                      whileHover={{ scale: ANIMATION.SCALE_HOVER }}
+                      whileTap={{ scale: ANIMATION.SCALE_TAP }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      aria-pressed={watchedInsurance === type}
+                      aria-label={t[type]}
+                    >
+                      {watchedInsurance === type && (
+                        <motion.span
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                        >
+                          <CheckCircle className="w-4 h-4 absolute top-2 right-2" />
+                        </motion.span>
+                      )}
+                      {t[type]}
+                    </motion.button>
+                  ))}
                 </div>
-              </div>
-            </motion.div>
+                <AnimatePresence>
+                {errors.insurance && (
+                  <motion.div 
+                    className="form-error-inline"
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <AlertCircle className="form-error-icon" />
+                    <span>{errors.insurance?.message}</span>
+                  </motion.div>
+                )}
+                </AnimatePresence>
+              </motion.div>
 
-            <motion.div
-              ref={consentNLPDRef}
-              variants={itemVariants}
-            >
-              <label className="block text-sm font-semibold text-brand-text mb-3">
-                {t.consentsLabel}
-              </label>
-              <div className="space-y-3">
-                <div>
-                  <div className={`flex items-start gap-3 p-4 bg-slate-50 rounded-lg ${
-                    errors.consentNLPD ? 'border-2 border-brand-error' : ''
-                  }`}>
+              <motion.div
+                variants={itemVariants}
+              >
+                <div className="space-y-4">
+                  <div ref={identityCardRef}>
+                  <FileUpload
+                    id="identityCard"
+                    label={t.identityCard}
+                    file={watchedIdentityCard}
+                    onFileChange={(file) => handleFileChange('identity', file)}
+                    uploadText={t.uploadText}
+                    required
+                    language={language}
+                    error={errors.identityCard?.message}
+                  />
+                  </div>
+                  <div ref={insuranceCardRef}>
+                  <FileUpload
+                    id="insuranceCard"
+                    file={watchedInsuranceCard}
+                    onFileChange={(file) => handleFileChange('insurance', file)}
+                    label={t.insuranceCard}
+                    uploadText={t.uploadText}
+                    required={isInsuranceCardRequired}
+                    optional={!isInsuranceCardRequired}
+                    optionalText={t.optional}
+                    language={language}
+                    error={errors.insuranceCard?.message}
+                  />
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                ref={consentNLPDRef}
+                variants={itemVariants}
+              >
+                <label className="block text-sm font-semibold text-brand-text mb-3">
+                  {t.consentsLabel}
+                </label>
+                <div className="space-y-3">
+                  <div>
+                    <div className={`flex items-start gap-3 p-4 bg-slate-50 rounded-lg ${
+                      errors.consentNLPD ? 'border-2 border-brand-error' : ''
+                    }`}>
+                      <Checkbox
+                        id="consentNLPD"
+                        checked={watchedConsentNLPD}
+                        onCheckedChange={(checked) => {
+                          setValue('consentNLPD', checked === true, { shouldValidate: true })
+                        }}
+                        className="mt-0.5"
+                      />
+                      <Label htmlFor="consentNLPD" className="text-sm font-medium text-brand-text cursor-pointer flex-1 leading-5 inline">
+                        {t.consentNLPDPrefix}{' '}
+                        <a 
+                          href={t.privacyPolicyUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-brand-primary hover:underline inline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {t.consentNLPDLink}
+                        </a>
+                        <span className="text-brand-error ml-1">*</span>
+                      </Label>
+                    </div>
+                    {errors.consentNLPD && (
+                      <div className="form-error-inline">
+                        <AlertCircle className="form-error-icon" />
+                        <span>{errors.consentNLPD?.message}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg">
                     <Checkbox
-                      id="consentNLPD"
-                      checked={watchedConsentNLPD}
+                      id="consentMarketing"
+                      checked={watchedConsentMarketing}
                       onCheckedChange={(checked) => {
-                        setValue('consentNLPD', checked === true, { shouldValidate: true })
+                        setValue('consentMarketing', checked === true)
                       }}
                       className="mt-0.5"
                     />
-                    <Label htmlFor="consentNLPD" className="text-sm font-medium text-brand-text cursor-pointer flex-1 leading-5 inline">
-                      {t.consentNLPDPrefix}{' '}
-                      <a 
-                        href={t.privacyPolicyUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-brand-primary hover:underline inline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {t.consentNLPDLink}
-                      </a>
-                      <span className="text-brand-error ml-1">*</span>
+                    <Label htmlFor="consentMarketing" className="text-sm font-medium text-brand-text cursor-pointer flex-1 leading-5">
+                      {t.consentMarketing}
+                      {' '}<span className="text-slate-500 text-xs">({t.optional})</span>
                     </Label>
                   </div>
-                  {errors.consentNLPD && (
-                    <div className="flex items-center gap-2 mt-2 text-brand-error text-sm">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>{errors.consentNLPD?.message}</span>
-                    </div>
-                  )}
                 </div>
-                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg">
-                  <Checkbox
-                    id="consentMarketing"
-                    checked={watchedConsentMarketing}
-                    onCheckedChange={(checked) => {
-                      setValue('consentMarketing', checked === true)
-                    }}
-                    className="mt-0.5"
-                  />
-                  <Label htmlFor="consentMarketing" className="text-sm font-medium text-brand-text cursor-pointer flex-1 leading-5">
-                    {t.consentMarketing}
-                    {' '}<span className="text-slate-500 text-xs">({t.optional})</span>
-                  </Label>
-                </div>
-              </div>
-            </motion.div>
+              </motion.div>
 
-            {/* 🎯 Boutons de navigation - sans motion pour éviter conflit AnimatePresence */}
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                onClick={onBack}
-                variant="outline"
-                size="lg"
-                className="h-12 px-6 transition-all hover:scale-[1.01] active:scale-[0.98]"
-                aria-label={t.back}
-              >
-                <ArrowLeft className="w-5 h-5" />
-                {t.back}
-              </Button>
-              <Button
-                type="submit"
-                size="lg"
-                className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-all hover:scale-[1.01] active:scale-[0.98]"
-                aria-label={t.continue}
-              >
-                {t.continue}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-              </Button>
-            </div>
-          </form>
-        </div>
+              {/* 🎯 Boutons de navigation - sans motion pour éviter conflit AnimatePresence */}
+              <div className="step-actions">
+                <Button
+                  type="button"
+                  onClick={onBack}
+                  variant="outline"
+                  size="lg"
+                  className="h-12 px-6 transition-all hover:scale-[1.01] active:scale-[0.98]"
+                  aria-label={t.back}
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  {t.back}
+                </Button>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-all hover:scale-[1.01] active:scale-[0.98]"
+                  aria-label={t.continue}
+                >
+                  {t.continue}
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </motion.div>
     </div>
   )

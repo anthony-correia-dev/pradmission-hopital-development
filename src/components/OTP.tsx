@@ -46,46 +46,43 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
   }
 
   return (
-    <div className="min-h-screen flex justify-center px-4 py-8">
+    <div className="step-page">
       <motion.div 
-        className="w-full max-w-md mx-auto"
+        className="step-container-sm"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
         style={{ willChange: 'opacity' }}
       >
-        <Card className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-0 backdrop-blur-sm">
-          <CardHeader className="px-6 sm:px-8 pt-6 sm:pt-8 pb-4">
+        <Card className="step-card">
+          <CardHeader className="step-card-header">
             <motion.div 
               variants={itemVariants}
               style={{ willChange: 'transform, opacity' }}
             >
               <motion.div 
-                className="w-16 h-16 bg-brand-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4"
+                className="step-icon"
                 variants={iconVariants}
                 animate="pulse"
                 style={{ willChange: 'transform' }}
               >
                 <Shield className="w-8 h-8 text-brand-primary" />
               </motion.div>
-              <CardTitle className="text-2xl font-bold text-brand-text text-center mb-2">
+              <CardTitle className="step-title">
                 {t.title}
               </CardTitle>
-              <CardDescription className="text-sm text-slate-600 text-center">
+              <CardDescription className="step-subtitle">
                 {t.subtitle}
               </CardDescription>
             </motion.div>
           </CardHeader>
 
-          <CardContent className="px-6 sm:px-8 pb-6 sm:pb-8">
+          <CardContent className="step-card-content">
           <form onSubmit={(e) => { e.preventDefault(); void onSubmit() }} className="space-y-6">
             <motion.div
               variants={itemVariants}
               style={{ willChange: 'transform, opacity' }}
             >
-              <label htmlFor="otp" className="block text-sm font-medium text-brand-text mb-3 text-center">
-                {t.label}
-              </label>
               <InputOTP
                 id="otp"
                 maxLength={6}
@@ -94,18 +91,15 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
                 containerClassName="justify-center"
                 aria-invalid={!!(errors as any).otpCode}
               >
-                <InputOTPGroup className="gap-1.5 sm:gap-2">
-                  <InputOTPSlot index={0} className="h-12 w-11 sm:h-14 sm:w-14 text-xl sm:text-2xl font-semibold border-slate-300 data-[active=true]:border-brand-primary data-[active=true]:ring-brand-primary/50 aria-invalid:border-brand-error aria-invalid:data-[active=true]:border-brand-error aria-invalid:data-[active=true]:ring-brand-error/50" />
-                  <InputOTPSlot index={1} className="h-12 w-11 sm:h-14 sm:w-14 text-xl sm:text-2xl font-semibold border-slate-300 data-[active=true]:border-brand-primary data-[active=true]:ring-brand-primary/50 aria-invalid:border-brand-error aria-invalid:data-[active=true]:border-brand-error aria-invalid:data-[active=true]:ring-brand-error/50" />
-                  <InputOTPSlot index={2} className="h-12 w-11 sm:h-14 sm:w-14 text-xl sm:text-2xl font-semibold border-slate-300 data-[active=true]:border-brand-primary data-[active=true]:ring-brand-primary/50 aria-invalid:border-brand-error aria-invalid:data-[active=true]:border-brand-error aria-invalid:data-[active=true]:ring-brand-error/50" />
-                  <InputOTPSlot index={3} className="h-12 w-11 sm:h-14 sm:w-14 text-xl sm:text-2xl font-semibold border-slate-300 data-[active=true]:border-brand-primary data-[active=true]:ring-brand-primary/50 aria-invalid:border-brand-error aria-invalid:data-[active=true]:border-brand-error aria-invalid:data-[active=true]:ring-brand-error/50" />
-                  <InputOTPSlot index={4} className="h-12 w-11 sm:h-14 sm:w-14 text-xl sm:text-2xl font-semibold border-slate-300 data-[active=true]:border-brand-primary data-[active=true]:ring-brand-primary/50 aria-invalid:border-brand-error aria-invalid:data-[active=true]:border-brand-error aria-invalid:data-[active=true]:ring-brand-error/50" />
-                  <InputOTPSlot index={5} className="h-12 w-11 sm:h-14 sm:w-14 text-xl sm:text-2xl font-semibold border-slate-300 data-[active=true]:border-brand-primary data-[active=true]:ring-brand-primary/50 aria-invalid:border-brand-error aria-invalid:data-[active=true]:border-brand-error aria-invalid:data-[active=true]:ring-brand-error/50" />
+                <InputOTPGroup className="otp-group">
+                  {Array.from({ length: 6 }, (_, index) => (
+                    <InputOTPSlot key={index} index={index} className="otp-slot" />
+                  ))}
                 </InputOTPGroup>
               </InputOTP>
               {(errors as any).otpCode && (
                 <motion.div 
-                  className="flex items-center gap-2 mt-2 text-brand-error text-sm"
+                  className="form-error-inline"
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
@@ -133,7 +127,7 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
             </motion.div>
 
             <motion.div 
-              className="flex gap-3 pt-4"
+              className="step-actions"
               variants={itemVariants}
               style={{ willChange: 'transform, opacity' }}
             >
