@@ -9,14 +9,37 @@ import { Admin } from './components/Admin'
 import { Success } from './components/Success'
 import { ProgressIndicator } from './components/ProgressIndicator'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createWizardSchema } from './schemas/wizardSchema'
 import { securityTranslations, qualificationTranslations, adminTranslations, otpTranslations } from './locales'
+import { slideVariants, slideTransition } from './lib/animations'
+
+// 🎯 Step order for direction calculation (must match useWizard.ts)
+const STEP_ORDER = ['landing', 'security', 'otp', 'qualification', 'loading', 'admin', 'success'] as const
 
 function App() {
   const { currentStep, formData, updateFormData, nextStep, prevStep, resetWizard } = useWizard()
+  
+  // 🎬 Track direction for slide animations (1 = forward, -1 = backward)
+  const [direction, setDirection] = useState(1)
+
+  // 🎯 Wrapped navigation functions that set direction BEFORE step change
+  const handleNext = useCallback(() => {
+    setDirection(1)
+    nextStep()
+  }, [nextStep])
+
+  const handlePrev = useCallback(() => {
+    setDirection(-1)
+    prevStep()
+  }, [prevStep])
+
+  const handleReset = useCallback(() => {
+    setDirection(1)
+    resetWizard()
+  }, [resetWizard])
 
   // Translations -> messages schema
   const schemaMessages = useMemo(() => {
@@ -119,34 +142,12 @@ function App() {
   useEffect(() => {
     if (currentStep === 'loading') {
       const timer = setTimeout(() => {
+        setDirection(1)
         nextStep()
       }, 7000)
       return () => clearTimeout(timer)
     }
   }, [currentStep, nextStep])
-
-  // ⚡ GPU-optimized page variants - utilise transform au lieu de y
-  const pageVariants = {
-    initial: { 
-      opacity: 0, 
-      transform: 'translateY(20px)',
-      willChange: 'transform, opacity'
-    },
-    animate: { 
-      opacity: 1, 
-      transform: 'translateY(0px)'
-    },
-    exit: { 
-      opacity: 0, 
-      transform: 'translateY(-20px)'
-    }
-  }
-
-  // ⚡ Transition optimisée - durée réduite
-  const pageTransition = {
-    duration: 0.2,
-    ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number]
-  }
 
   return (
     <FormProvider {...rhfMethods}>
@@ -162,20 +163,21 @@ function App() {
           <ProgressIndicator currentStep={currentStep} language={formData.language} />
         )}
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" custom={direction}>
           {currentStep === 'landing' && (
             <motion.div
               key="landing"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
               exit="exit"
-              transition={pageTransition}
+              transition={slideTransition}
             >
               <Landing
                 language={formData.language}
                 onLanguageChange={(lang) => updateFormData({ language: lang })}
-                onStart={nextStep}
+                onStart={handleNext}
               />
             </motion.div>
           )}
@@ -183,16 +185,17 @@ function App() {
           {currentStep === 'security' && (
             <motion.div
               key="security"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
               exit="exit"
-              transition={pageTransition}
+              transition={slideTransition}
             >
               <Security
                 language={formData.language}
-                onNext={nextStep}
-                onBack={prevStep}
+                onNext={handleNext}
+                onBack={handlePrev}
               />
             </motion.div>
           )}
@@ -200,16 +203,17 @@ function App() {
           {currentStep === 'otp' && (
             <motion.div
               key="otp"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
               exit="exit"
-              transition={pageTransition}
+              transition={slideTransition}
             >
               <OTP
                 language={formData.language}
-                onNext={nextStep}
-                onBack={prevStep}
+                onNext={handleNext}
+                onBack={handlePrev}
               />
             </motion.div>
           )}
@@ -217,11 +221,12 @@ function App() {
           {currentStep === 'loading' && (
             <motion.div
               key="loading"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
               exit="exit"
-              transition={pageTransition}
+              transition={slideTransition}
             >
               <LoadingScreen language={formData.language} />
             </motion.div>
@@ -230,16 +235,17 @@ function App() {
           {currentStep === 'qualification' && (
             <motion.div
               key="qualification"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
               exit="exit"
-              transition={pageTransition}
+              transition={slideTransition}
             >
               <Qualification
                 language={formData.language}
-                onNext={nextStep}
-                onBack={prevStep}
+                onNext={handleNext}
+                onBack={handlePrev}
               />
             </motion.div>
           )}
@@ -247,16 +253,17 @@ function App() {
           {currentStep === 'admin' && (
             <motion.div
               key="admin"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
               exit="exit"
-              transition={pageTransition}
+              transition={slideTransition}
             >
               <Admin
                 language={formData.language}
-                onNext={nextStep}
-                onBack={prevStep}
+                onNext={handleNext}
+                onBack={handlePrev}
               />
             </motion.div>
           )}
@@ -264,15 +271,16 @@ function App() {
           {currentStep === 'success' && (
             <motion.div
               key="success"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
               exit="exit"
-              transition={pageTransition}
+              transition={slideTransition}
             >
               <Success
                 language={formData.language}
-                onRestart={resetWizard}
+                onRestart={handleReset}
               />
             </motion.div>
           )}

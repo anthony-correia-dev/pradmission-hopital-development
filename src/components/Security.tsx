@@ -11,9 +11,6 @@ import { securityTranslations } from '@/locales'
 import {
   containerVariants,
   itemVariants,
-  iconVariants,
-  buttonVariants,
-  ANIMATION
 } from '@/lib/animations'
 import type { FormData } from '@/hooks/useWizard'
 
@@ -23,13 +20,6 @@ interface SecurityProps {
   onBack: () => void
 }
 
-const inputVariants = {
-  focus: {
-    scale: 1.005,
-    transition: { duration: 0.2 }
-  }
-}
-
 export function Security({ language, onNext, onBack }: SecurityProps) {
   const t = securityTranslations[language]
   const { verifyBirthDate } = useApi()
@@ -37,7 +27,6 @@ export function Security({ language, onNext, onBack }: SecurityProps) {
   const [inputValue, setInputValue] = useState('')
   const [apiError, setApiError] = useState('')
 
-  // Global RHF/Zod source de vérité
   const {
     getValues,
     setValue,
@@ -45,7 +34,6 @@ export function Security({ language, onNext, onBack }: SecurityProps) {
     formState: { errors }
   } = useFormContext<FormData>()
 
-  // hydratation de l'input masqué depuis RHF
   useEffect(() => {
     const birthDate = getValues('birthDate')
     if (birthDate) {
@@ -58,7 +46,7 @@ export function Security({ language, onNext, onBack }: SecurityProps) {
     const rawValue = e.target.value
     const formatted = formatDateInput(rawValue)
     setInputValue(formatted)
-    setApiError('') // Clear API errors when user types
+    setApiError('')
 
     if (formatted.length === 10) {
       const isoDate = parseDisplayDate(formatted, { allowFuture: false })
@@ -71,7 +59,6 @@ export function Security({ language, onNext, onBack }: SecurityProps) {
         trigger('birthDate')
       }
     } else {
-      // pas encore complet: on efface sans valider en boucle
       setValue('birthDate', '', { shouldDirty: true, shouldValidate: false })
     }
   }
@@ -104,22 +91,13 @@ export function Security({ language, onNext, onBack }: SecurityProps) {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        style={{ willChange: 'opacity' }}
       >
         <Card className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-0 backdrop-blur-sm">
           <CardHeader className="px-6 sm:px-8 pt-6 sm:pt-8 pb-4">
-            <motion.div 
-              variants={itemVariants}
-              style={{ willChange: 'transform, opacity' }}
-            >
-              <motion.div 
-                className="w-16 h-16 bg-brand-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4"
-                variants={iconVariants}
-                animate="pulse"
-                style={{ willChange: 'transform' }}
-              >
+            <motion.div variants={itemVariants}>
+              <div className="w-16 h-16 bg-brand-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Calendar className="w-8 h-8 text-brand-primary" />
-              </motion.div>
+              </div>
               <CardTitle className="text-2xl font-bold text-brand-text text-center mb-2">
                 {t.title}
               </CardTitle>
@@ -131,10 +109,7 @@ export function Security({ language, onNext, onBack }: SecurityProps) {
 
           <CardContent className="px-6 sm:px-8 pb-6 sm:pb-8">
           <form onSubmit={(e) => { e.preventDefault(); void onSubmit() }} className="space-y-6">
-            <motion.div
-              variants={itemVariants}
-              style={{ willChange: 'transform, opacity' }}
-            >
+            <motion.div variants={itemVariants}>
               <label htmlFor="birthDate" className="block text-sm font-medium text-brand-text mb-2">
                 {t.label}
               </label>
@@ -157,84 +132,42 @@ export function Security({ language, onNext, onBack }: SecurityProps) {
                 />
               </div>
               {(errors.birthDate || apiError) && (
-                <motion.div 
-                  className="flex items-center gap-2 mt-2 text-brand-error text-sm"
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
+                <div className="flex items-center gap-2 mt-2 text-brand-error text-sm">
                   <AlertCircle className="w-4 h-4" />
                   <span>{(errors as any).birthDate?.message || apiError}</span>
-                </motion.div>
+                </div>
               )}
             </motion.div>
 
-            {/* Boutons avec animations */}
-            <motion.div 
-              className="flex gap-3 pt-4"
-              variants={itemVariants}
-              style={{ willChange: 'transform, opacity' }}
-            >
+            <motion.div className="flex gap-3 pt-4" variants={itemVariants}>
               <Button
                 type="button"
                 onClick={onBack}
                 disabled={loading}
                 variant="outline"
                 size="lg"
-                className="h-12 px-6 transition-all"
-                asChild
+                className="h-12 px-6 transition-transform active:scale-[0.98]"
               >
-                <motion.button
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  style={{ willChange: 'transform' }}
-                >
-                  <motion.div
-                    whileHover={{ x: -2 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                  </motion.div>
-                  {t.back}
-                </motion.button>
+                <ArrowLeft className="w-5 h-5" />
+                {t.back}
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
                 size="lg"
-                className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-all overflow-hidden relative"
-                asChild
+                className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-transform active:scale-[0.98]"
               >
-                <motion.button
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  style={{ willChange: 'transform' }}
-                >
-                  {loading ? (
-                    <motion.div
-                      className="relative z-10 flex items-center justify-center gap-2"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      {t.verifying}
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      className="relative z-10 flex items-center justify-center gap-2"
-                    >
-                      {t.continue}
-                      <motion.div
-                        whileHover={{ x: 2 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <ArrowRight className="w-5 h-5" />
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </motion.button>
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {t.verifying}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    {t.continue}
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
+                )}
               </Button>
             </motion.div>
           </form>

@@ -18,122 +18,83 @@ import { motion, type Variants, AnimatePresence } from 'framer-motion'
 import { useApi } from '../hooks/useApi'
 import { getCountryNameByCode } from '../lib/countries'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
+import { ANIMATION } from '@/lib/animations'
 import type { FormData } from '@/hooks/useWizard'
-
-// ⚡ GPU-optimized animation variants
-const easeOut: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
-const organicEase: [number, number, number, number] = [0.16, 1, 0.3, 1]
-
-// 🎯 Animation constants
-const ANIMATION = {
-  SCALE_PULSE: [1, 1.03, 1] as number[],
-  SCALE_HOVER: 1.02,
-  SCALE_TAP: 0.98,
-  DURATION_DEFAULT: 0.4,
-  DURATION_LONG: 0.5,
-  STAGGER_DELAY: 0.1,
-  PULSE_DURATION: 2,
-}
 
 // 🎯 Types d'assurance disponibles
 const INSURANCE_TYPES = ['swiss', 'international', 'auto'] as const
 
+// 🎭 Unified animations
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
       staggerChildren: ANIMATION.STAGGER_DELAY,
-      delayChildren: ANIMATION.STAGGER_DELAY
+      delayChildren: 0.03
     }
   }
 }
 
 const itemVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
-    transform: 'translateY(15px)',
-  },
+  hidden: { opacity: 0 },
   visible: { 
     opacity: 1, 
-    transform: 'translateY(0px)',
     transition: {
       duration: ANIMATION.DURATION_DEFAULT,
-      ease: easeOut
-    }
-  }
-}
-
-const iconVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
-    transform: 'scale(0.7)',
-  },
-  visible: { 
-    opacity: 1, 
-    transform: 'scale(1)',
-    transition: {
-      duration: ANIMATION.DURATION_LONG,
-      ease: easeOut
-    }
-  },
-  pulse: {
-    transform: ['scale(1)', 'scale(1.03)', 'scale(1)'],
-    transition: {
-      duration: ANIMATION.PULSE_DURATION,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
-}
-
-// 🌟 Animation optimisée pour la section employeur - GPU-accelerated
-const employerSectionVariants: Variants = {
-  hidden: { 
-    opacity: 0,
-    transform: 'translateY(-10px)',
-    willChange: 'transform, opacity',
-  },
-  visible: { 
-    opacity: 1,
-    transform: 'translateY(0px)',
-    transition: {
-      duration: 0.25,
-      ease: easeOut,
-    }
-  },
-  exit: { 
-    opacity: 0,
-    transform: 'translateY(-10px)',
-    transition: {
-      duration: 0.15,
-      ease: easeOut
-    }
-  }
-}
-
-const employerHighlightVariants: Variants = {
-  initial: {
-    opacity: 1,
-    scale: 1
-  },
-  animate: {
-    scale: [1, 1.01, 1],
-    transition: {
-      duration: 1.5,
-      repeat: 2,
       ease: 'easeOut'
     }
   }
 }
 
-const buttonVariants = {
-  hover: { 
-    transform: 'scale(1.01)',
-    transition: { duration: 0.15 }
+const iconVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1, 
+    transition: {
+      duration: ANIMATION.DURATION_LONG,
+      ease: 'easeOut'
+    }
+  }
+}
+
+// 🎭 Slide down animation for employer section
+const employerSlideVariants: Variants = {
+  hidden: { 
+    opacity: 0,
+    height: 0,
+    y: -20,
   },
-  tap: { 
-    transform: 'scale(0.98)',
+  visible: { 
+    opacity: 1,
+    height: 'auto',
+    y: 0,
+    transition: {
+      height: { type: "spring", stiffness: 100, damping: 20 },
+      opacity: { duration: 0.3 },
+      y: { type: "spring", stiffness: 100, damping: 20 },
+    }
+  },
+  exit: { 
+    opacity: 0,
+    height: 0,
+    y: -20,
+    transition: {
+      height: { duration: 0.2 },
+      opacity: { duration: 0.15 },
+      y: { duration: 0.2 },
+    }
+  }
+}
+
+const sectionVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { duration: ANIMATION.DURATION_DEFAULT }
+  },
+  exit: { 
+    opacity: 0,
     transition: { duration: 0.1 }
   }
 }
@@ -214,33 +175,15 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
   }, [setValue])
 
   const handleFileChange = useCallback(async (type: 'identity' | 'insurance', file: File | null) => {
-    console.groupCollapsed(`[Qualification] handleFileChange(${type})`)
-    console.log('incoming file:', file ? { name: file.name, size: file.size, type: file.type } : null)
-    console.log('before values:', {
-      reason: watch('reason'),
-      insurance: watch('insurance'),
-      identityCard: watch('identityCard') ? { name: (watch('identityCard') as any)?.name } : null,
-      insuranceCard: watch('insuranceCard') ? { name: (watch('insuranceCard') as any)?.name } : null,
-      firstName: watch('firstName'),
-      lastName: watch('lastName'),
-      gender: watch('gender'),
-      nationality: watch('nationality')
-    })
-
     if (type === 'identity') {
       setValue('identityCard', file as any, { shouldDirty: true, shouldValidate: true })
-
-      console.log('after setValue(identityCard):', watch('identityCard') ? { name: (watch('identityCard') as any)?.name } : null)
 
       if (file) {
         setIsOCRProcessing(true)
         setOcrError(null)
 
         try {
-          console.time('[Qualification] OCR extractDocumentData')
           const ocrData = await extractDocumentData(file, 'id_card')
-          console.timeEnd('[Qualification] OCR extractDocumentData')
-          console.log('ocrData:', ocrData)
 
           if (ocrData) {
             const mapped = {
@@ -249,27 +192,11 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
               gender: ocrData.gender,
               nationality: getCountryNameByCode(ocrData.nationality, language)
             }
-            console.log('mapped:', mapped)
 
             const snapshot = getValues()
-            console.log('snapshot before reset (selected fields):', {
-              firstName: snapshot.firstName,
-              lastName: snapshot.lastName,
-              gender: snapshot.gender,
-              nationality: snapshot.nationality
-            })
-
             reset({
               ...snapshot,
               ...mapped
-            })
-
-            const after = getValues()
-            console.log('after reset (selected fields):', {
-              firstName: after.firstName,
-              lastName: after.lastName,
-              gender: after.gender,
-              nationality: after.nationality
             })
           }
         } catch (error) {
@@ -294,44 +221,14 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
           ...cleared
         })
 
-        const after = getValues()
-        console.log('after clear reset (selected fields):', {
-          firstName: after.firstName,
-          lastName: after.lastName,
-          gender: after.gender,
-          nationality: after.nationality
-        })
-
         setOcrError(null)
       }
     } else {
       setValue('insuranceCard', file as any, { shouldDirty: true, shouldValidate: true })
-      console.log('after setValue(insuranceCard):', watch('insuranceCard') ? { name: (watch('insuranceCard') as any)?.name } : null)
     }
-
-    console.log('end values:', {
-      identityCard: getValues('identityCard') ? { name: (getValues('identityCard') as any)?.name } : null,
-      insuranceCard: getValues('insuranceCard') ? { name: (getValues('insuranceCard') as any)?.name } : null,
-      firstName: getValues('firstName'),
-      lastName: getValues('lastName'),
-      gender: getValues('gender'),
-      nationality: getValues('nationality')
-    })
-    console.groupEnd()
-  }, [setValue, extractDocumentData, language, getValues, reset, watch])
+  }, [setValue, extractDocumentData, language, getValues, reset])
 
   const onSubmit = useCallback(async () => {
-    console.groupCollapsed('[Qualification] Continue submit')
-    console.log('values before trigger:', {
-      reason: getValues('reason'),
-      insurance: getValues('insurance'),
-      hasEmployer: getValues('hasEmployer'),
-      consentNLPD: getValues('consentNLPD'),
-      consentMarketing: getValues('consentMarketing'),
-      identityCard: getValues('identityCard') ? { name: (getValues('identityCard') as any)?.name } : null,
-      insuranceCard: getValues('insuranceCard') ? { name: (getValues('insuranceCard') as any)?.name } : null
-    })
-
     const fields: Array<keyof FormData> = [
       'reason',
       'insurance',
@@ -340,7 +237,6 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
       'identityCard'
     ]
 
-    // Validate conditional fields only when relevant to current UI
     if (watchedReason === 'accident') {
       fields.push('hasEmployer')
     }
@@ -349,14 +245,9 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
     }
 
     const ok = await trigger(fields as any)
-
-    console.log('trigger ok:', ok)
-    console.log('errors after trigger:', errors)
-    console.groupEnd()
-
     if (!ok) return
     onNext()
-  }, [getValues, onNext, trigger, errors, watchedReason, isInsuranceCardRequired])
+  }, [onNext, trigger, watchedReason, isInsuranceCardRequired])
 
   return (
     <div className="step-page-centered">
@@ -372,24 +263,11 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
               <motion.div
                 className="w-16 h-16 bg-gradient-to-br from-brand-primary to-brand-primary-hover rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-primary/20"
                 variants={iconVariants}
-                animate="pulse"
               >
                 <ClipboardList className="w-8 h-8 text-white" />
               </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.3 }}
-              >
-                <CardTitle className="step-title">{t.title}</CardTitle>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.25, duration: 0.3 }}
-              >
-                <CardDescription className="step-subtitle">{t.subtitle}</CardDescription>
-              </motion.div>
+              <CardTitle className="step-title">{t.title}</CardTitle>
+              <CardDescription className="step-subtitle">{t.subtitle}</CardDescription>
             </motion.div>
           </CardHeader>
 
@@ -406,155 +284,96 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
                   {t.reasonLabel}
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  <motion.button
+                  <button
                     type="button"
                     onClick={() => handleReasonChange('illness')}
-                    className={`choice-btn ${
+                    className={`choice-btn transition-transform active:scale-[0.98] ${
                       watchedReason === 'illness'
                         ? 'choice-btn--selected'
                         : 'choice-btn--unselected'
                     }`}
-                    whileHover={{ scale: ANIMATION.SCALE_HOVER }}
-                    whileTap={{ scale: ANIMATION.SCALE_TAP }}
                     aria-pressed={watchedReason === 'illness'}
                     aria-label={t.illness}
                   >
                     {watchedReason === 'illness' && (
-                      <motion.span 
-                        className="absolute top-2 right-2"
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                      >
-                        <CheckCircle className="w-5 h-5" />
-                      </motion.span>
+                      <CheckCircle className="w-5 h-5 absolute top-2 right-2" />
                     )}
                     {t.illness}
-                  </motion.button>
-                  <motion.button
+                  </button>
+                  <button
                     type="button"
                     onClick={() => handleReasonChange('accident')}
-                    className={`choice-btn ${
+                    className={`choice-btn transition-transform active:scale-[0.98] ${
                       watchedReason === 'accident'
                         ? 'choice-btn--selected'
                         : 'choice-btn--unselected'
                     }`}
-                    whileHover={{ scale: ANIMATION.SCALE_HOVER }}
-                    whileTap={{ scale: ANIMATION.SCALE_TAP }}
                     aria-pressed={watchedReason === 'accident'}
                     aria-label={t.accident}
                   >
                     {watchedReason === 'accident' && (
-                      <motion.span 
-                        className="absolute top-2 right-2"
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                      >
-                        <CheckCircle className="w-5 h-5" />
-                      </motion.span>
+                      <CheckCircle className="w-5 h-5 absolute top-2 right-2" />
                     )}
                     {t.accident}
-                  </motion.button>
+                  </button>
                 </div>
-                <AnimatePresence>
                 {errors.reason && (
-                  <motion.div 
-                    className="form-error-inline"
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  <div className="form-error-inline">
                     <AlertCircle className="form-error-icon" />
                     <span>{errors.reason?.message}</span>
-                  </motion.div>
+                  </div>
                 )}
-                </AnimatePresence>
               </motion.div>
 
               <AnimatePresence mode="wait">
               {watchedReason === 'accident' && (
                 <motion.div
                   key="employer-section"
-                  variants={employerSectionVariants}
+                  variants={employerSlideVariants}
                   initial="hidden"
                   animate="visible"
                   exit="exit"
-                  style={{ overflow: 'hidden' }}
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <motion.div
-                      animate={{ 
-                        rotate: [0, -10, 10, -10, 0],
-                      }}
-                      transition={{ 
-                        duration: 0.5,
-                        delay: 0.3
-                      }}
-                    >
-                      <Briefcase className="w-5 h-5 text-brand-primary" />
-                    </motion.div>
+                    <Briefcase className="w-5 h-5 text-brand-primary" />
                     <label id="employer-label" className="block text-sm font-semibold text-brand-text">
                       {t.hasEmployerLabel}
                     </label>
                   </div>
                   <div className="grid grid-cols-2 gap-3" role="group" aria-labelledby="employer-label">
-                        <motion.button
-                          type="button"
-                          onClick={() => {
-                            setValue('hasEmployer', true, { shouldValidate: false })
-                          }}
-                          className={`choice-btn ${
-                            watchedHasEmployer
-                              ? 'choice-btn--selected'
-                              : 'choice-btn--unselected'
-                          }`}
-                          whileHover={{ scale: ANIMATION.SCALE_HOVER }}
-                          whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                          aria-pressed={watchedHasEmployer}
-                          aria-label={t.yes}
-                        >
-                          {watchedHasEmployer && (
-                            <motion.span 
-                              className="absolute top-2 right-2"
-                              initial={{ scale: 0, rotate: -180 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                            >
-                              <CheckCircle className="w-5 h-5" />
-                            </motion.span>
-                          )}
-                          {t.yes}
-                        </motion.button>
-                        <motion.button
-                          type="button"
-                          onClick={() => {
-                            setValue('hasEmployer', false, { shouldValidate: false })
-                          }}
-                          className={`choice-btn ${
-                            !watchedHasEmployer
-                              ? 'choice-btn--selected'
-                              : 'choice-btn--unselected'
-                          }`}
-                          whileHover={{ scale: ANIMATION.SCALE_HOVER }}
-                          whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                          aria-pressed={!watchedHasEmployer}
-                          aria-label={t.no}
-                        >
-                          {!watchedHasEmployer && (
-                            <motion.span 
-                              className="absolute top-2 right-2"
-                              initial={{ scale: 0, rotate: -180 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                            >
-                              <CheckCircle className="w-5 h-5" />
-                            </motion.span>
-                          )}
-                          {t.no}
-                        </motion.button>
-                      </div>
+                    <button
+                      type="button"
+                      onClick={() => setValue('hasEmployer', true, { shouldValidate: false })}
+                      className={`choice-btn transition-transform active:scale-[0.98] ${
+                        watchedHasEmployer
+                          ? 'choice-btn--selected'
+                          : 'choice-btn--unselected'
+                      }`}
+                      aria-pressed={watchedHasEmployer}
+                      aria-label={t.yes}
+                    >
+                      {watchedHasEmployer && (
+                        <CheckCircle className="w-5 h-5 absolute top-2 right-2" />
+                      )}
+                      {t.yes}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setValue('hasEmployer', false, { shouldValidate: false })}
+                      className={`choice-btn transition-transform active:scale-[0.98] ${
+                        !watchedHasEmployer
+                          ? 'choice-btn--selected'
+                          : 'choice-btn--unselected'
+                      }`}
+                      aria-pressed={!watchedHasEmployer}
+                      aria-label={t.no}
+                    >
+                      {!watchedHasEmployer && (
+                        <CheckCircle className="w-5 h-5 absolute top-2 right-2" />
+                      )}
+                      {t.no}
+                    </button>
+                  </div>
                 </motion.div>
               )}
               </AnimatePresence>
@@ -605,56 +424,35 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
                   </Dialog>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {INSURANCE_TYPES.map((type, idx) => (
-                    <motion.button
+                  {INSURANCE_TYPES.map((type) => (
+                    <button
                       key={type}
                       type="button"
                       onClick={() => handleInsuranceChange(type)}
-                      className={`choice-btn choice-btn--sm ${
+                      className={`choice-btn choice-btn--sm transition-transform active:scale-[0.98] ${
                         watchedInsurance === type
                           ? 'choice-btn--selected'
                           : 'choice-btn--unselected'
                       }`}
-                      whileHover={{ scale: ANIMATION.SCALE_HOVER }}
-                      whileTap={{ scale: ANIMATION.SCALE_TAP }}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
                       aria-pressed={watchedInsurance === type}
                       aria-label={t[type]}
                     >
                       {watchedInsurance === type && (
-                        <motion.span
-                          initial={{ scale: 0, rotate: -180 }}
-                          animate={{ scale: 1, rotate: 0 }}
-                          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                        >
-                          <CheckCircle className="w-4 h-4 absolute top-2 right-2" />
-                        </motion.span>
+                        <CheckCircle className="w-4 h-4 absolute top-2 right-2" />
                       )}
                       {t[type]}
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
-                <AnimatePresence>
                 {errors.insurance && (
-                  <motion.div 
-                    className="form-error-inline"
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  <div className="form-error-inline">
                     <AlertCircle className="form-error-icon" />
                     <span>{errors.insurance?.message}</span>
-                  </motion.div>
+                  </div>
                 )}
-                </AnimatePresence>
               </motion.div>
 
-              <motion.div
-                variants={itemVariants}
-              >
+              <motion.div variants={itemVariants}>
                 <div className="space-y-4">
                   <div ref={identityCardRef}>
                   <FileUpload
@@ -685,10 +483,7 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
                 </div>
               </motion.div>
 
-              <motion.div
-                ref={consentNLPDRef}
-                variants={itemVariants}
-              >
+              <motion.div ref={consentNLPDRef} variants={itemVariants}>
                 <label className="block text-sm font-semibold text-brand-text mb-3">
                   {t.consentsLabel}
                 </label>
@@ -743,14 +538,14 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
                 </div>
               </motion.div>
 
-              {/* 🎯 Boutons de navigation - sans motion pour éviter conflit AnimatePresence */}
+              {/* 🎯 Boutons de navigation - CSS transitions only */}
               <div className="step-actions">
                 <Button
                   type="button"
                   onClick={onBack}
                   variant="outline"
                   size="lg"
-                  className="h-12 px-6 transition-all hover:scale-[1.01] active:scale-[0.98]"
+                  className="h-12 px-6 transition-transform active:scale-[0.98]"
                   aria-label={t.back}
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -759,7 +554,7 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
                 <Button
                   type="submit"
                   size="lg"
-                  className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-all hover:scale-[1.01] active:scale-[0.98]"
+                  className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-transform active:scale-[0.98]"
                   aria-label={t.continue}
                 >
                   {t.continue}
