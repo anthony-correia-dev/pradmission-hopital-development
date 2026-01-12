@@ -29,8 +29,8 @@ export interface OCRDocumentResponse {
   nationality: string    // Code ISO (ex: "FR", "CH")
 }
 
-// 🎯 OCR Cloud Flow Trigger ID
-const OCR_TRIGGER_ID = 'f729da03-646c-f011-b4cc-0022487492a4'
+// 🎯 OCR Cloud Flow Trigger ID (depuis variables d'environnement)
+const OCR_TRIGGER_ID = import.meta.env.VITE_OCR_TRIGGER_ID
 
 // Interface pour les appels Cloud Flow avec jQuery
 interface CloudFlowAjaxOptions {
