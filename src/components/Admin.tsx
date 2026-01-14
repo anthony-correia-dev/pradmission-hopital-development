@@ -322,6 +322,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                       id="npa"
                       type="text"
                       inputMode="numeric"
+                      value={watch('npa') ?? ''}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '')
                         setValue('npa', value, { shouldDirty: true, shouldValidate: true })
@@ -580,7 +581,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                 <span className="form-section-title">{t.insuranceData}</span>
               </div>
               <div className="space-y-4">
-                {insurance === 'swiss' && (
+                {(insurance === 'swiss') && (
                   <div ref={avsNumberRef}>
                     <label htmlFor="avsNumber" className="block text-sm font-medium text-brand-text mb-2">
                       {t.avsNumber} <span className="text-brand-error">*</span>
@@ -641,6 +642,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     <Input
                       id="basicInsurance"
                       type="text"
+                      value={watch('basicInsurance') ?? ''}
                       onChange={(e) => setValue('basicInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       aria-invalid={!!errors.basicInsurance}
                       className={`form-input ${
@@ -664,6 +666,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     <Input
                       id="basicInsurance"
                       type="text"
+                      value={watch('basicInsurance') ?? ''}
                       onChange={(e) => setValue('basicInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       className="form-input"
                     />
@@ -678,6 +681,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     <Input
                       id="basicInsurance"
                       type="text"
+                      value={watch('basicInsurance') ?? ''}
                       onChange={(e) => setValue('basicInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       aria-invalid={!!errors.basicInsurance}
                       className={`form-input ${
@@ -693,7 +697,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                   </div>
                 )}
 
-                {insurance === 'swiss' && (
+                {(insurance === 'swiss' || insurance === 'international') && (
                   <div ref={cardNumberRef}>
                     <label htmlFor="cardNumber" className="block text-sm font-medium text-brand-text mb-2">
                       {t.cardNumber} <span className="text-brand-error">*</span>
@@ -806,6 +810,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                   <Input
                     id="complementaryInsurance"
                     type="text"
+                    value={watch('complementaryInsurance') ?? ''}
                     onChange={(e) => setValue('complementaryInsurance', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     className="form-input"
                   />

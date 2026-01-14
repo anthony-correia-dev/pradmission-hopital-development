@@ -388,3 +388,20 @@ En mode dev (sans Power Platform), l'API simule une réponse :
 | 2025-01-07 | 1.2 | `birthDate` OCR ignoré - champ non présent dans AdminStep |
 | 2026-01-07 | 1.3 | Ajout transformation `nationality` ISO → nom complet du pays |
 | 2026-01-08 | 1.4 | Mise à jour format Request/Response |
+
+### 11.2 Variables d'environnement
+
+```env
+# .env.local
+
+# 🎯 OCR Cloud Flow Trigger IDs
+# Trigger pour l'OCR des cartes d'identité
+VITE_OCR_IDENTITY_TRIGGER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# Trigger pour l'OCR des cartes d'assurance
+VITE_OCR_INSURANCE_TRIGGER_ID=yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy
+```
+
+**Important** : Les deux triggers sont différents car ils appellent des Cloud Flows distincts :
+- `VITE_OCR_IDENTITY_TRIGGER_ID` : Analyse les cartes d'identité (passeports, CNI, etc.)
+- `VITE_OCR_INSURANCE_TRIGGER_ID` : Analyse les cartes d'assurance suisses (format SASIS)

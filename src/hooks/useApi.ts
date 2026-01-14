@@ -29,8 +29,34 @@ export interface OCRDocumentResponse {
   nationality: string    // Code ISO (ex: "FR", "CH")
 }
 
-// 🎯 OCR Cloud Flow Trigger ID (depuis variables d'environnement)
-const OCR_TRIGGER_ID = import.meta.env.VITE_OCR_TRIGGER_ID
+// 🎯 OCR Insurance Cloud Flow Types
+// Réponse brute du Cloud Flow pour carte d'assurance (format snake_case)
+interface OCRInsuranceCloudFlowResponse {
+  rue: string             // Adresse ligne 1
+  ville: string           // Ville (peut être MAJUSCULES)
+  zip: string             // Code postal suisse
+  country: string         // Code pays ISO (ex: "CH") - PAS de transformation
+  avs: string             // Numéro AVS
+  kvg_carte_no: string    // Numéro carte assurance de base (LAMal)
+  kvg_insurance: string   // Nom caisse assurance de base
+  vvg_carte_no: string    // Numéro carte assurance complémentaire
+}
+
+// Réponse mappée pour l'application (format camelCase)
+export interface OCRInsuranceResponse {
+  street: string          // Rue
+  city: string            // Ville (capitalisé)
+  zipCode: string         // Code postal
+  country: string         // Code pays ISO (ex: "CH") - identique à nationality
+  avsNumber: string       // Numéro AVS
+  kvgCardNumber: string   // Numéro de carte KVG
+  kvgInsuranceName: string // Nom de la caisse KVG (capitalisé)
+  vvgCardNumber: string   // Numéro de carte VVG
+}
+
+// 🎯 OCR Cloud Flow Trigger IDs (depuis variables d'environnement)
+const OCR_IDENTITY_TRIGGER_ID = import.meta.env.VITE_OCR_IDENTITY_TRIGGER_ID
+const OCR_INSURANCE_TRIGGER_ID = import.meta.env.VITE_OCR_INSURANCE_TRIGGER_ID
 
 // Interface pour les appels Cloud Flow avec jQuery
 interface CloudFlowAjaxOptions {
@@ -176,6 +202,25 @@ const mapCloudFlowResponse = (response: OCRCloudFlowResponse): OCRDocumentRespon
   }
 }
 
+/**
+ * Mappe la réponse brute du Cloud Flow (assurance) vers le format application
+ * Le champ country est passé tel quel (comme nationality pour ID)
+ */
+const mapInsuranceCloudFlowResponse = (
+  response: OCRInsuranceCloudFlowResponse
+): OCRInsuranceResponse => {
+  return {
+    street: response.rue || '',
+    city: capitalizeName(response.ville || ''),
+    zipCode: response.zip || '',
+    country: response.country || '',  // Pas de transformation (comme nationality)
+    avsNumber: response.avs || '',
+    kvgCardNumber: response.kvg_carte_no || '',
+    kvgInsuranceName: capitalizeName(response.kvg_insurance || ''),
+    vvgCardNumber: response.vvg_carte_no || ''
+  }
+}
+
 export const useApi = () => {
   const postData = async (triggerId: string, payload: unknown): Promise<unknown> => {
     return safeAjaxPost(triggerId, payload)
@@ -198,12 +243,12 @@ export const useApi = () => {
 
   /**
    * 🎯 Extrait les données d'un document via OCR Cloud Flow
-   * Format IDENTIQUE à la fonction callCloudFlowIdentity qui fonctionne
+   * Retourne OCRDocumentResponse pour id_card, OCRInsuranceResponse pour insurance_card
    */
   const extractDocumentData = async (
     file: File,
     fileType: 'id_card' | 'insurance_card'
-  ): Promise<OCRDocumentResponse | null> => {
+  ): Promise<OCRDocumentResponse | OCRInsuranceResponse | null> => {
     try {
       console.log(`📄 OCR: Extraction des données du document ${fileType}...`)
       
@@ -218,7 +263,7 @@ export const useApi = () => {
         return new Promise((resolve, reject) => {
           (window as any).shell.ajaxSafePost({
             type: "POST",
-            url: `/_api/cloudflow/v1.0/trigger/${OCR_TRIGGER_ID}`,
+            url: `/_api/cloudflow/v1.0/trigger/${fileType === 'id_card' ? OCR_IDENTITY_TRIGGER_ID : OCR_INSURANCE_TRIGGER_ID}`,
             data: {
               "eventData": JSON.stringify({
                 "doc": docType,
@@ -232,11 +277,12 @@ export const useApi = () => {
             try {
               let rawResponse: any = {}
               
-              // La réponse peut être sous plusieurs formats:
-              // 1. String JSON direct: '{"last_name": "...", ...}'
+              // La réponse peut être sous plusieurs formats (IDENTIQUE pour les 2 types):
+              // 1. String JSON direct: '{"last_name": "...", ...}' ou '{"rue": "...", ...}'
               // 2. String JSON avec propriété json: '{"json": "{...}"}'
               // 3. Objet avec propriété json: { json: '{"last_name": "...", ...}' }
-              // 4. Objet direct: { last_name: "...", ... }
+              // 4. Objet direct: { last_name: "...", ... } ou { rue: "...", ... }
+              // 5. Tableau: [{rue: "...", ...}] (cas insurance)
               
               if (typeof response === 'string') {
                 const parsed = JSON.parse(response)
@@ -254,13 +300,24 @@ export const useApi = () => {
                 rawResponse = response
               }
               
+              // 🎯 Cas 5: Si la réponse est un tableau, extraire le premier élément
+              if (Array.isArray(rawResponse)) {
+                console.log('📄 OCR: Réponse reçue sous forme de tableau, extraction du premier élément')
+                rawResponse = rawResponse[0] || {}
+              }
+              
               console.log('📄 OCR: Données brutes parsées:', rawResponse)
               
-              // Mapper la réponse snake_case vers camelCase avec capitalisation
-              const mappedResponse = mapCloudFlowResponse(rawResponse as OCRCloudFlowResponse)
-              
-              console.log('📄 OCR: Données mappées:', mappedResponse)
-              resolve(mappedResponse)
+              // Mapper selon le type de document
+              if (fileType === 'insurance_card') {
+                const mappedResponse = mapInsuranceCloudFlowResponse(rawResponse as OCRInsuranceCloudFlowResponse)
+                console.log('📄 OCR Insurance: Données mappées:', mappedResponse)
+                resolve(mappedResponse)
+              } else {
+                const mappedResponse = mapCloudFlowResponse(rawResponse as OCRCloudFlowResponse)
+                console.log('📄 OCR Identity: Données mappées:', mappedResponse)
+                resolve(mappedResponse)
+              }
             } catch (parseError) {
               console.error('Erreur parsing réponse OCR:', parseError)
               reject(parseError)
@@ -276,13 +333,26 @@ export const useApi = () => {
         console.log(`[DEV MODE] OCR Cloud Flow Call`, { docType, base64Length: base64Data.length })
         return new Promise((resolve) => {
           setTimeout(() => {
-            resolve({
-              lastName: 'Dupont',
-              firstNames: 'Jean Pierre',
-              firstName: 'Jean Pierre',
-              gender: 'male',
-              nationality: 'CH'
-            } as OCRDocumentResponse)
+            if (fileType === 'insurance_card') {
+              resolve({
+                street: 'Rue de la Gare 15',
+                city: 'Lausanne',
+                zipCode: '1003',
+                country: 'CH',
+                avsNumber: '756.1234.5678.90',
+                kvgCardNumber: '80756012345678901234',
+                kvgInsuranceName: 'Swica',
+                vvgCardNumber: '80756012345678901234'
+              } as OCRInsuranceResponse)
+            } else {
+              resolve({
+                lastName: 'Dupont',
+                firstNames: 'Jean Pierre',
+                firstName: 'Jean Pierre',
+                gender: 'male',
+                nationality: 'CH'
+              } as OCRDocumentResponse)
+            }
           }, 1500)
         })
       }

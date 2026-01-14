@@ -15,7 +15,7 @@ import { Label } from './ui/label'
 import { FileUpload } from './ui/file-upload'
 import { qualificationTranslations } from '../locales/qualification'
 import { motion, type Variants, AnimatePresence } from 'framer-motion'
-import { useApi } from '../hooks/useApi'
+import { useApi, type OCRDocumentResponse, type OCRInsuranceResponse } from '../hooks/useApi'
 import { getCountryNameByCode } from '../lib/countries'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { ANIMATION } from '@/lib/animations'
@@ -185,7 +185,8 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
         try {
           const ocrData = await extractDocumentData(file, 'id_card')
 
-          if (ocrData) {
+          // 🎯 Type guard: vérifier que c'est bien une réponse d'identité
+          if (ocrData && 'firstName' in ocrData && 'lastName' in ocrData) {
             const mapped = {
               firstName: ocrData.firstName,
               lastName: ocrData.lastName,
@@ -200,7 +201,7 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
             })
           }
         } catch (error) {
-          console.error('[Qualification] OCR error:', error)
+          console.error('[Qualification] OCR Identity error:', error)
           setOcrError(language === 'fr'
             ? 'Erreur lors de l\'analyse du document. Veuillez saisir vos informations manuellement.'
             : 'Error analyzing document. Please enter your information manually.')
@@ -224,7 +225,72 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
         setOcrError(null)
       }
     } else {
+      // 🎯 OCR pour carte d'assurance
       setValue('insuranceCard', file as any, { shouldDirty: true, shouldValidate: true })
+
+      if (file) {
+        setIsOCRProcessing(true)
+        setOcrError(null)
+
+        try {
+          console.log('[Qualification] 📄 Début extraction OCR carte d\'assurance...')
+          const ocrData = await extractDocumentData(file, 'insurance_card')
+
+          // 🎯 Type guard: vérifier que c'est bien une réponse d'assurance
+          if (ocrData && 'kvgCardNumber' in ocrData) {
+            console.log('[Qualification] ✅ Données OCR assurance extraites:', ocrData)
+            
+            // 🎯 Mapping vers les champs FormData (useWizard.ts)
+            const mapped = {
+              street: ocrData.street,
+              npa: ocrData.zipCode,
+              city: ocrData.city,
+              country: getCountryNameByCode(ocrData.country, language),
+              avsNumber: ocrData.avsNumber,
+              basicInsurance: ocrData.kvgInsuranceName,
+              cardNumber: ocrData.kvgCardNumber,
+              complementaryInsurance: ocrData.vvgCardNumber
+            }
+
+            console.log('[Qualification] 📝 Mapping des champs:', mapped)
+
+            const snapshot = getValues()
+            reset({
+              ...snapshot,
+              ...mapped
+            })
+          } else {
+            console.warn('[Qualification] ⚠️ Données OCR assurance invalides ou incomplètes')
+          }
+        } catch (error) {
+          console.error('[Qualification] ❌ OCR Insurance error:', error)
+          setOcrError(language === 'fr'
+            ? 'Erreur lors de l\'analyse de la carte d\'assurance. Veuillez saisir vos informations manuellement.'
+            : 'Error analyzing insurance card. Please enter your information manually.')
+        } finally {
+          setIsOCRProcessing(false)
+        }
+      } else {
+        // Nettoyage des champs si fichier retiré
+        const cleared = {
+          street: '',
+          npa: '',
+          city: '',
+          country: '',
+          avsNumber: '',
+          basicInsurance: '',
+          cardNumber: '',
+          complementaryInsurance: ''
+        }
+
+        const snapshot = getValues()
+        reset({
+          ...snapshot,
+          ...cleared
+        })
+
+        setOcrError(null)
+      }
     }
   }, [setValue, extractDocumentData, language, getValues, reset])
 
