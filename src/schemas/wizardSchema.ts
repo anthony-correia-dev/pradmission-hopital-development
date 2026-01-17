@@ -29,6 +29,7 @@ export const createWizardSchema = (t: {
 }) => {
   return z.object({
     language: z.enum(['fr', 'en']).default('fr'),
+    preadmissionId: z.string().optional().default(''),
 
     // Security
     birthDate: z.string().optional().default(''),

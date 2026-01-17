@@ -4,6 +4,7 @@ export type WizardStep = 'landing' | 'security' | 'otp' | 'qualification' | 'loa
 
 export interface FormData {
   language: 'fr' | 'en'
+  preadmissionId: string  // GUID de la préadmission (depuis URL)
   birthDate: string
   otpCode: string
   reason: 'illness' | 'accident' | ''
@@ -45,6 +46,7 @@ const getBrowserLanguage = (): 'fr' | 'en' => {
 
 const getDefaultFormData = (): FormData => ({
   language: getBrowserLanguage(),
+  preadmissionId: '',
   birthDate: '',
   otpCode: '',
   reason: 'illness',

@@ -1,0 +1,82 @@
+Voici une proposition de spécification technique pour votre API de vérification de préadmission.
+
+---
+
+# Spécification Technique : API de Validation de Préadmission
+
+## 1. Vue d'ensemble
+L'objectif de cette API "Server Logic" est de sécuriser l'accès au formulaire de préadmission en front-end. Avant d'afficher le formulaire, le portail doit vérifier que le lien utilisé par l'utilisateur est toujours valide, non expiré et qu'il correspond à un dossier actif dans Microsoft Dataverse.
+
+## 2. Informations de l'API
+*   **Nom de la logique serveur :** `getpread`
+*   **Méthode HTTP :** `GET`
+*   **Format de réponse :** JSON
+*   **Source de données :** Table Dataverse `hdlt_preadmissions`
+
+## 3. Paramètres d'entrée (Query Parameters)
+L'API attend un paramètre dans l'URL :
+
+| Paramètre | Type | Obligatoire | Description |
+| :--- | :--- | :--- | :--- |
+| `preadmissionId` | GUID | Oui | L'identifiant unique de la préadmission. |
+
+**Exemple d'appel :**
+`GET /_api/server-logic/getpread?preadmissionId=cc93ece5-b8f2-f011-8407-7ced8d6006e8`
+
+## 4. Logique Métier (Filtres OData)
+Pour qu'une préadmission soit considérée comme **valide** (`isValid: true`), elle doit répondre aux trois critères cumulatifs suivants :
+
+1.  **Identifiant :** La colonne `hdlt_preadmissionid` doit être égale au paramètre fourni.
+2.  **Statut d'avancement :** La colonne `hdlt_currentstage` ne doit pas être égale à `100000007` (Code correspondant probablement à un dossier terminé ou annulé).
+3.  **Date d'expiration :** La colonne `hdlt_expirationdate` doit être strictement supérieure à la date et heure actuelle (`now` en UTC).
+
+## 5. Architecture de Traitement (Backend)
+
+L'API suit les étapes de traitement suivantes :
+1.  **Extraction :** Récupération du GUID depuis les paramètres de requête.
+2.  **Construction :** Génération d'une requête OData filtrée.
+3.  **Exécution :** Appel au connecteur `Server.Connector.Dataverse.RetrieveMultipleRecords`.
+4.  **Parsing (Critique) :** 
+    *   La réponse brute est reçue sous forme de chaîne JSON.
+    *   Le champ `Body` de cette réponse doit être désérialisé une seconde fois pour accéder au tableau `value`.
+5.  **Évaluation :** Si le tableau `value` contient au moins 1 enregistrement, `isValid` est positionné à `true`.
+
+## 6. Format des Réponses
+
+### 6.1 Succès (Dossier valide)
+```json
+{
+    "isValid": true,
+    "count": 1
+}
+```
+
+### 6.2 Succès (Dossier invalide ou introuvable)
+Retourné si le GUID n'existe pas, si la date est dépassée ou si le stage est à 100000007.
+```json
+{
+    "isValid": false,
+    "count": 0
+}
+```
+
+### 6.3 Erreur (Paramètre manquant ou erreur serveur)
+```json
+{
+    "status": "error",
+    "message": "Le paramètre 'preadmissionId' est manquant."
+}
+```
+
+## 7. Sécurité et Performance
+*   **Accès :** L'API doit être configurée pour être accessible uniquement depuis le domaine du portail Power Pages.
+*   **Optimisation :** La requête ne retourne aucune colonne spécifique (ou pourrait être optimisée avec `$select=hdlt_preadmissionid`) pour minimiser le poids de la charge utile.
+*   **Logs :** Chaque appel est tracé via `Server.Logger` pour permettre le débogage en cas de rejet de GUID valide.
+
+--- 
+
+### Résumé des colonnes Dataverse utilisées :
+*   `hdlt_preadmissions` (Table)
+*   `hdlt_preadmissionid` (Clé primaire)
+*   `hdlt_currentstage` (OptionSet / Choice)
+*   `hdlt_expirationdate` (Date/Time)

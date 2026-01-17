@@ -11,6 +11,7 @@ export { adminTranslations } from './admin'
 export { successTranslations } from './success'
 export { loadingTranslations } from './loading'
 export { progressSteps, progressTranslations } from './progress'
+export { invalidLinkTranslations } from './invalidLink'
 
 // Type utilitaire pour les langues supportées
 export type SupportedLanguage = 'fr' | 'en'

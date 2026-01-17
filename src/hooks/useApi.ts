@@ -29,6 +29,20 @@ export interface OCRDocumentResponse {
   nationality: string    // Code ISO (ex: "FR", "CH")
 }
 
+// 🎯 Server Logic Response Types
+interface ServerLogicResponse<T = unknown> {
+  requestId: string
+  success: boolean
+  data: string  // JSON stringifié de T
+  serverLogicName: string
+}
+
+// Réponse spécifique de getpread
+interface GetPreadResponse {
+  isValid: boolean
+  count: number
+}
+
 // 🎯 OCR Insurance Cloud Flow Types
 // Réponse brute du Cloud Flow pour carte d'assurance (format snake_case)
 interface OCRInsuranceCloudFlowResponse {
@@ -362,11 +376,66 @@ export const useApi = () => {
     }
   }
 
+  /**
+   * 🎯 Valide un lien de préadmission via la Server Logic getpread
+   * @param preadmissionId - GUID de la préadmission
+   * @returns Promise<boolean> - true si valide, false sinon
+   */
+  const validatePreadmissionLink = async (preadmissionId: string): Promise<boolean> => {
+    // Mode développement - simulation
+    if (typeof (window as any).shell === 'undefined' || !(window as any).shell.ajaxSafePost) {
+      console.log('[DEV MODE] Validation simulée pour:', preadmissionId)
+      
+      // Simuler un délai réseau
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      // En dev: valide si le GUID n'est pas vide et n'est pas "invalid"
+      const isValid = !!preadmissionId && preadmissionId !== 'invalid'
+      console.log('[DEV MODE] Résultat validation:', isValid)
+      return isValid
+    }
+
+    // Environnement Power Pages
+    return new Promise((resolve) => {
+      (window as any).shell.ajaxSafePost({
+        type: "GET",
+        url: `/_api/server-logic/getpread?preadmissionId=${encodeURIComponent(preadmissionId)}`,
+        contentType: "application/json"
+      })
+      .done(function (response: ServerLogicResponse<GetPreadResponse>) {
+        console.log('✅ getpread réponse brute:', response)
+        
+        try {
+          if (!response.success) {
+            console.warn('⚠️ Server Logic a retourné success: false')
+            resolve(false)
+            return
+          }
+          
+          // Parser le champ data (JSON stringifié)
+          const parsedData: GetPreadResponse = JSON.parse(response.data)
+          console.log('✅ getpread données parsées:', parsedData)
+          
+          resolve(parsedData.isValid === true)
+          
+        } catch (parseError) {
+          console.error('❌ Erreur parsing réponse getpread:', parseError)
+          resolve(false)
+        }
+      })
+      .fail(function (error: any) {
+        console.error('❌ Erreur appel getpread:', error)
+        resolve(false)  // En cas d'erreur, considérer comme invalide
+      })
+    })
+  }
+
   return {
     postData,
     verifyBirthDate,
     verifyOTP,
     submitForm,
-    extractDocumentData
+    extractDocumentData,
+    validatePreadmissionLink
   }
 }

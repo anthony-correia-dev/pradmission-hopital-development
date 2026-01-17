@@ -1,5 +1,6 @@
 import { useWizard } from './hooks/useWizard'
 import type { FormData } from './hooks/useWizard'
+import { useApi } from './hooks/useApi'
 import { Landing } from './components/Landing'
 import { Security } from './components/Security'
 import { OTP } from './components/OTP'
@@ -7,6 +8,7 @@ import { LoadingScreen } from './components/LoadingScreen'
 import { Qualification } from './components/Qualification'
 import { Admin } from './components/Admin'
 import { Success } from './components/Success'
+import { InvalidLink } from './components/InvalidLink'
 import { ProgressIndicator } from './components/ProgressIndicator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
@@ -16,11 +18,18 @@ import { createWizardSchema } from './schemas/wizardSchema'
 import { securityTranslations, qualificationTranslations, adminTranslations, otpTranslations } from './locales'
 import { slideVariants, slideTransition } from './lib/animations'
 
+// 🎯 État de validation du lien
+type LinkValidationState = 'validating' | 'valid' | 'invalid'
+
 // 🎯 Step order for direction calculation (must match useWizard.ts)
 const STEP_ORDER = ['landing', 'security', 'otp', 'qualification', 'loading', 'admin', 'success'] as const
 
 function App() {
   const { currentStep, formData, updateFormData, nextStep, prevStep, resetWizard } = useWizard()
+  const api = useApi()
+  
+  // 🎯 État de validation du lien unique
+  const [linkState, setLinkState] = useState<LinkValidationState>('validating')
   
   // 🎬 Track direction for slide animations (1 = forward, -1 = backward)
   const [direction, setDirection] = useState(1)
@@ -148,6 +157,55 @@ function App() {
       return () => clearTimeout(timer)
     }
   }, [currentStep, nextStep])
+
+  // 🎯 Validation du lien au montage
+  useEffect(() => {
+    const validateLink = async () => {
+      // Extraire le preadmissionId de l'URL
+      const urlParams = new URLSearchParams(window.location.search)
+      const id = urlParams.get('preadmissionId')
+      
+      if (!id) {
+        console.warn('⚠️ Paramètre preadmissionId manquant dans l\'URL')
+        setLinkState('invalid')
+        return
+      }
+      
+      // Appeler l'API de validation
+      const isValid = await api.validatePreadmissionLink(id)
+      
+      if (isValid) {
+        setLinkState('valid')
+        // Stocker le GUID pour la soumission ultérieure
+        updateFormData({ preadmissionId: id })
+      } else {
+        setLinkState('invalid')
+      }
+    }
+    
+    validateLink()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 🎯 Rendu conditionnel selon l'état de validation
+  if (linkState === 'validating') {
+    return (
+      <div className="bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-x-hidden min-h-screen">
+        <LoadingScreen language={formData.language} />
+      </div>
+    )
+  }
+
+  if (linkState === 'invalid') {
+    return (
+      <div className="bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-x-hidden min-h-screen">
+        <InvalidLink 
+          language={formData.language} 
+          onLanguageChange={(lang) => updateFormData({ language: lang })}
+        />
+      </div>
+    )
+  }
 
   return (
     <FormProvider {...rhfMethods}>
