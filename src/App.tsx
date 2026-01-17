@@ -5,6 +5,7 @@ import { Landing } from './components/Landing'
 import { Security } from './components/Security'
 import { OTP } from './components/OTP'
 import { LoadingScreen } from './components/LoadingScreen'
+import { ValidationLoadingScreen } from './components/ValidationLoadingScreen'
 import { Qualification } from './components/Qualification'
 import { Admin } from './components/Admin'
 import { Success } from './components/Success'
@@ -191,7 +192,7 @@ function App() {
   if (linkState === 'validating') {
     return (
       <div className="bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-x-hidden min-h-screen">
-        <LoadingScreen language={formData.language} />
+        <ValidationLoadingScreen language={formData.language} />
       </div>
     )
   }
