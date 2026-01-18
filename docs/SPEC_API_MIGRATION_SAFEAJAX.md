@@ -1,304 +1,285 @@
-# Spécification : Récupération des Cloud Flow Trigger IDs via Server Logic
+# Spécification : Appels API sécurisés avec safeAjax
 
 ## Contexte
 
-Actuellement, le hook `useApi.ts` utilise `shell.ajaxSafePost` pour les appels Cloud Flow OCR avec des trigger IDs en dur via les variables d'environnement. Pour récupérer dynamiquement ces trigger IDs depuis Power Platform, nous devons ajouter un appel à la Server Logic `get_pread`.
+Dans Power Pages, `shell.ajaxSafePost` n'est **pas toujours disponible** dans les applications SPA personnalisées (React). Cette fonction était censée gérer automatiquement le token anti-CSRF, mais elle n'existe pas dans `window.shell` sur nos pages.
 
-## Objectif
+### Problème identifié
 
-Adapter la logique d'appel API pour :
-1. Récupérer dynamiquement les trigger IDs des Cloud Flows via `shell.ajaxSafePost` (Server Logic)
-2. Utiliser ces IDs pour les appels OCR existants
-
-## Format de réponse Server Logic
-
-### Requête (utilisant shell.ajaxSafePost comme dans useApi.ts)
 ```javascript
-shell.ajaxSafePost({
-  type: "GET",
-  url: "/_api/serverlogics/get_pread",
-  contentType: "application/json"
-})
-.done(function (res) {
-  console.log(res);
-})
-.fail(function (error) {
-  console.error(error);
-});
-```
-
-### Réponse brute
-```json
-{
-  "requestId": "d828cb6a-7f81-47a5-91ac-c46b1b4875df",
-  "success": true,
-  "data": "{\"status\":\"success\",\"data\":{\"identityDoc\":\"f729da03-646c-f011-b4cc-0022487492a4\",\"insuranceDoc\":\"43676cb8-6d6c-f011-b4cc-002248dae394\"}}",
-  "serverLogicName": "get_pread"
+// Ce qu'on voit dans window.shell :
+window.shell = {
+  getTokenDeferred: async ƒ fetchAntiForgeryToken()  // ✅ Disponible
+  // ajaxSafePost n'existe PAS ❌
 }
 ```
 
-### Données parsées
-```typescript
-interface ServerLogicResponse {
-  requestId: string
-  success: boolean
-  data: string // JSON stringifié
-  serverLogicName: string
-}
+## Solution implémentée : `safeAjax`
 
-interface PreadData {
-  status: 'success' | 'error'
-  data: {
-    identityDoc: string   // Trigger ID pour OCR carte d'identité
-    insuranceDoc: string  // Trigger ID pour OCR carte d'assurance
-  }
-}
-```
+Émulation de `shell.ajaxSafePost` avec `fetch` natif + récupération manuelle du token anti-CSRF.
 
-## Comparaison des appels shell.ajaxSafePost
+### Principe
 
-| Aspect | Appel Cloud Flow (actuel) | Appel Server Logic (nouveau) |
-|--------|---------------------------|------------------------------|
-| Méthode HTTP | POST | GET |
-| URL | `/_api/cloudflow/v1.0/trigger/{triggerId}` | `/_api/serverlogics/get_pread` |
-| Payload | `{ eventData: JSON.stringify({...}) }` | Aucun (GET) |
-| Réponse | Données OCR directes | Enveloppée avec `requestId`, `success`, `data` |
+1. Récupérer le token anti-CSRF depuis `/_layout/tokenhtml`
+2. Parser le HTML pour extraire le token
+3. Effectuer la requête `fetch` avec le token dans les headers
 
-## Changements proposés dans `useApi.ts`
+### Référence
 
-### 1. Nouvelles interfaces
+Basé sur l'article : [Power Pages SPA - Emulate ajaxSafePost with fetch](https://dev.to/andrewelans/power-pages-spa-emulate-ajaxsafepost-with-fetch-2ka)
+
+## Implémentation dans `useApi.ts`
+
+### 1. Fonction `fetchAntiCsrfToken`
 
 ```typescript
-// Réponse de la Server Logic get_pread
-interface ServerLogicResponse {
-  requestId: string
-  success: boolean
-  data: string  // JSON stringifié
-  serverLogicName: string
-}
-
-interface PreadConfigData {
-  status: 'success' | 'error'
-  data: {
-    identityDoc: string   // Cloud Flow trigger ID pour OCR identité
-    insuranceDoc: string  // Cloud Flow trigger ID pour OCR assurance
-  }
-}
-
-// Configuration OCR récupérée dynamiquement
-interface OCRConfig {
-  identityTriggerId: string
-  insuranceTriggerId: string
-}
-```
-
-### 2. Nouvelle fonction `fetchOCRConfig`
-
-```typescript
-// Cache pour la configuration OCR (évite les appels répétés)
-let cachedOCRConfig: OCRConfig | null = null
-
 /**
- * Récupère les trigger IDs des Cloud Flows OCR via Server Logic
- * Utilise shell.ajaxSafePost comme les autres appels de useApi.ts
+ * 🔐 Récupère le token anti-CSRF depuis Power Pages
+ * Utilise /_layout/tokenhtml pour extraire le token
  */
-const fetchOCRConfig = async (): Promise<OCRConfig | null> => {
-  // Retourner le cache si disponible
-  if (cachedOCRConfig) {
-    console.log('📄 OCR Config: Utilisation du cache', cachedOCRConfig)
-    return cachedOCRConfig
-  }
-
-  // Vérifier si shell.ajaxSafePost est disponible (environnement Power Pages)
-  if (typeof (window as any).shell === 'undefined' || !(window as any).shell.ajaxSafePost) {
-    console.log('[DEV MODE] Server Logic non disponible, utilisation des variables d\'environnement')
-    return {
-      identityTriggerId: import.meta.env.VITE_OCR_IDENTITY_TRIGGER_ID || 'dev-identity-trigger',
-      insuranceTriggerId: import.meta.env.VITE_OCR_INSURANCE_TRIGGER_ID || 'dev-insurance-trigger'
-    }
-  }
-
-  return new Promise((resolve, reject) => {
-    (window as any).shell.ajaxSafePost({
-      type: "GET",
-      url: "/_api/serverlogics/get_pread",
-      contentType: "application/json"
-    })
-    .done(function (res: ServerLogicResponse) {
-      console.log('✅ Server Logic get_pread réponse brute:', res)
-      
-      try {
-        if (!res.success) {
-          console.error('❌ Server Logic a retourné success: false')
-          resolve(null)
-          return
-        }
-        
-        // Parser le champ data (JSON stringifié)
-        const parsedData: PreadConfigData = JSON.parse(res.data)
-        
-        if (parsedData.status !== 'success') {
-          console.error('❌ Statut interne erreur:', parsedData)
-          resolve(null)
-          return
-        }
-        
-        const config: OCRConfig = {
-          identityTriggerId: parsedData.data.identityDoc,
-          insuranceTriggerId: parsedData.data.insuranceDoc
-        }
-        
-        // Mettre en cache
-        cachedOCRConfig = config
-        
-        console.log('✅ Configuration OCR récupérée et mise en cache:', config)
-        resolve(config)
-        
-      } catch (parseError) {
-        console.error('❌ Erreur parsing réponse Server Logic:', parseError)
-        reject(parseError)
-      }
-    })
-    .fail(function (error: any) {
-      console.error('❌ Erreur appel Server Logic get_pread:', error)
-      reject(error)
-    })
-  })
-}
-
-/**
- * Invalide le cache de configuration OCR
- */
-const clearOCRConfigCache = (): void => {
-  cachedOCRConfig = null
-  console.log('🗑️ Cache OCR Config invalidé')
-}
-```
-
-### 3. Modification de `extractDocumentData`
-
-```typescript
-const extractDocumentData = async (
-  file: File,
-  fileType: 'id_card' | 'insurance_card'
-): Promise<OCRDocumentResponse | OCRInsuranceResponse | null> => {
+const fetchAntiCsrfToken = async (): Promise<string | null> => {
   try {
-    console.log(`📄 OCR: Extraction des données du document ${fileType}...`)
+    console.log('🔐 [safeAjax] Récupération du token anti-CSRF...')
+    const response = await fetch('/_layout/tokenhtml')
+    const html = await response.text()
     
-    // Convertir le fichier en Base64
-    const base64Data = await fileToBase64(file)
+    const doc = new DOMParser().parseFromString(html, "text/html")
+    const input = doc.querySelector("input")
+    const token = input ? input.getAttribute("value") : null
     
-    // Mapper le fileType vers le format attendu par le Cloud Flow
-    const docType: 'identityid' | 'insuranceid' = fileType === 'id_card' ? 'identityid' : 'insuranceid'
-
-    // Vérifier si shell.ajaxSafePost est disponible (environnement Power Pages)
-    if (typeof (window as any).shell !== 'undefined' && (window as any).shell.ajaxSafePost) {
-      
-      // 🎯 NOUVEAU: Récupérer les trigger IDs dynamiquement
-      const ocrConfig = await fetchOCRConfig()
-      
-      if (!ocrConfig) {
-        console.error('❌ Impossible de récupérer la configuration OCR')
-        return null
-      }
-      
-      // Sélectionner le bon trigger ID
-      const triggerId = fileType === 'id_card' 
-        ? ocrConfig.identityTriggerId 
-        : ocrConfig.insuranceTriggerId
-      
-      return new Promise((resolve, reject) => {
-        (window as any).shell.ajaxSafePost({
-          type: "POST",
-          url: `/_api/cloudflow/v1.0/trigger/${triggerId}`,  // 🎯 Utilise le trigger ID dynamique
-          data: {
-            "eventData": JSON.stringify({
-              "doc": docType,
-              "base64": base64Data
-            })
-          }
-        })
-        .done(function (response: any) {
-          // ... reste du code existant de parsing ...
-        })
-        .fail(function (error: any) {
-          console.error('❌ Erreur Cloud flow OCR:', error)
-          reject(error)
-        })
-      })
+    if (token) {
+      console.log('🔐 [safeAjax] Token récupéré:', token.substring(0, 20) + '...')
     } else {
-      // Mode développement - simulation OCR
-      // ... code existant ...
+      console.warn('🔐 [safeAjax] Token non trouvé dans le HTML')
     }
+    
+    return token
   } catch (error) {
-    console.error('❌ OCR: Erreur lors de l\'extraction:', error)
+    console.error('🔐 [safeAjax] Erreur récupération token:', error)
     return null
   }
 }
 ```
 
-## Structure finale du hook
+### 2. Fonction `safeAjax`
+
+```typescript
+/**
+ * 🔐 Émule shell.ajaxSafePost avec fetch natif
+ * Récupère le token anti-CSRF puis effectue la requête
+ */
+const safeAjax = async (
+  url: string,
+  method: 'GET' | 'POST' = 'GET',
+  data?: unknown
+): Promise<unknown> => {
+  // Récupérer le token anti-CSRF
+  const token = await fetchAntiCsrfToken()
+  
+  if (!token) {
+    throw new Error('Impossible de récupérer le token anti-CSRF')
+  }
+  
+  // Construire les options de la requête
+  const options: RequestInit = {
+    method,
+    headers: {
+      '__RequestVerificationToken': token,
+      'content-type': method === 'POST' 
+        ? 'application/x-www-form-urlencoded; charset=UTF-8' 
+        : 'application/json',
+      'x-requested-with': 'XMLHttpRequest'
+    }
+  }
+  
+  // Ajouter le body pour les requêtes POST
+  if (method === 'POST' && data) {
+    options.body = new URLSearchParams({
+      eventData: JSON.stringify(data)
+    }).toString()
+  }
+  
+  console.log('🔐 [safeAjax] Appel fetch:', method, url)
+  
+  const response = await fetch(url, options)
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  }
+  
+  const text = await response.text()
+  
+  // Essayer de parser en JSON
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+```
+
+### 3. Utilisation dans `validatePreadmissionLink`
+
+```typescript
+const validatePreadmissionLink = async (preadmissionId: string): Promise<boolean> => {
+  // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+  const isLocalhost = window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1'
+  
+  // Mode développement - simulation
+  if (isLocalhost) {
+    console.log('🔗 [DEV MODE] Validation simulée')
+    await new Promise(resolve => setTimeout(resolve, 800))
+    return !!preadmissionId && preadmissionId !== 'invalid'
+  }
+
+  // Power Pages - utiliser safeAjax
+  const apiUrl = `/_api/serverlogics/getpread?preadmissionId=${encodeURIComponent(preadmissionId)}`
+  
+  try {
+    const response = await safeAjax(apiUrl, 'GET') as any
+    
+    // Parser la réponse Server Logic
+    let parsedResponse = response
+    if (typeof response === 'string') {
+      parsedResponse = JSON.parse(response)
+    }
+    
+    if (!parsedResponse.success) {
+      return false
+    }
+    
+    // Parser le champ data (JSON stringifié)
+    let parsedData: GetPreadResponse
+    if (typeof parsedResponse.data === 'string') {
+      parsedData = JSON.parse(parsedResponse.data)
+    } else {
+      parsedData = parsedResponse.data
+    }
+    
+    return parsedData.isValid === true
+    
+  } catch (error) {
+    console.error('🔗 [validatePreadmissionLink] ❌ Erreur:', error)
+    return false
+  }
+}
+```
+
+## Comparaison des approches
+
+| Aspect | `shell.ajaxSafePost` (ancien) | `safeAjax` (nouveau) |
+|--------|-------------------------------|----------------------|
+| **Disponibilité** | ❌ Non disponible dans SPA | ✅ Toujours disponible |
+| **Token CSRF** | Géré automatiquement | Récupéré via `/_layout/tokenhtml` |
+| **Dépendance** | jQuery | `fetch` natif |
+| **Format réponse** | jQuery Promise (`.done()/.fail()`) | Promise native |
+| **Compatibilité** | Power Pages natif uniquement | SPA React + Power Pages |
+
+## Headers requis
+
+| Header | Valeur | Description |
+|--------|--------|-------------|
+| `__RequestVerificationToken` | Token CSRF | Obligatoire pour les appels sécurisés |
+| `content-type` | `application/json` (GET) ou `application/x-www-form-urlencoded` (POST) | Type de contenu |
+| `x-requested-with` | `XMLHttpRequest` | Identifie la requête comme AJAX |
+
+## Tests en console F12
+
+### Test complet avec safeAjax
+
+```javascript
+(async () => {
+  try {
+    console.log('🚀 Début du test...')
+    
+    // Étape 1: Récupérer le token
+    const tokenResponse = await fetch('/_layout/tokenhtml')
+    const tokenHtml = await tokenResponse.text()
+    const doc = new DOMParser().parseFromString(tokenHtml, "text/html")
+    const token = doc.querySelector("input")?.getAttribute("value")
+    console.log('🔐 Token:', token?.substring(0, 30) + '...')
+    
+    // Étape 2: Appeler la Server Logic
+    const preadmissionId = '1f1fccfd-19af-f011-bbd3-002248dacckl'
+    const response = await fetch(
+      `/_api/serverlogics/getpread?preadmissionId=${preadmissionId}`,
+      {
+        method: 'GET',
+        headers: {
+          "__RequestVerificationToken": token,
+          "content-type": "application/json",
+          "x-requested-with": "XMLHttpRequest"
+        }
+      }
+    )
+    
+    const data = await response.json()
+    console.log('✅ Réponse:', data)
+    
+  } catch (error) {
+    console.error('❌ Erreur:', error)
+  }
+})()
+```
+
+### Test Cloud Flow (POST)
+
+```javascript
+(async () => {
+  // Récupérer le token
+  const tokenResponse = await fetch('/_layout/tokenhtml')
+  const tokenHtml = await tokenResponse.text()
+  const doc = new DOMParser().parseFromString(tokenHtml, "text/html")
+  const token = doc.querySelector("input")?.getAttribute("value")
+  
+  // Appeler le Cloud Flow
+  const triggerId = '88b95a74-8570-f011-b4cc-000d3ad91bc3'
+  const response = await fetch(
+    `/_api/cloudflow/v1.0/trigger/${triggerId}`,
+    {
+      method: 'POST',
+      body: new URLSearchParams({ 
+        eventData: JSON.stringify({ doc: 'identityid', base64: '...' }) 
+      }),
+      headers: {
+        "__RequestVerificationToken": token,
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "x-requested-with": "XMLHttpRequest"
+      }
+    }
+  )
+  
+  console.log('Réponse:', await response.text())
+})()
+```
+
+## Notes importantes
+
+1. **`shell.ajaxSafePost` est déprécié** - Ne pas l'utiliser dans les SPA React
+2. **Token via `/_layout/tokenhtml`** - Seule méthode fiable pour récupérer le token CSRF
+3. **`getTokenDeferred` existe mais insuffisant** - Il faut utiliser `/_layout/tokenhtml`
+4. **Double parsing JSON** - La réponse Server Logic contient `data` en JSON stringifié
+5. **Détection DEV/PROD** - Basée sur `window.location.hostname` (localhost vs Power Pages)
+
+## Structure finale du hook `useApi.ts`
 
 ```typescript
 export const useApi = () => {
   return {
-    // Existant
     postData,
     verifyBirthDate,
     verifyOTP,
     submitForm,
     extractDocumentData,
-    
-    // Nouveau
-    fetchOCRConfig,      // Récupérer les trigger IDs (optionnel, appelé auto par extractDocumentData)
-    clearOCRConfigCache  // Invalider le cache si nécessaire
+    validatePreadmissionLink  // ✅ Utilise safeAjax
   }
 }
 ```
 
-## Plan d'implémentation
+## Historique des modifications
 
-### Phase 1 : Ajout des nouvelles fonctions
-1. [ ] Ajouter les interfaces `ServerLogicResponse`, `PreadConfigData`, `OCRConfig`
-2. [ ] Ajouter la variable `cachedOCRConfig`
-3. [ ] Implémenter `fetchOCRConfig()` avec `shell.ajaxSafePost`
-4. [ ] Implémenter `clearOCRConfigCache()`
-
-### Phase 2 : Migration de `extractDocumentData`
-1. [ ] Ajouter l'appel à `fetchOCRConfig()` au début
-2. [ ] Remplacer `OCR_IDENTITY_TRIGGER_ID` / `OCR_INSURANCE_TRIGGER_ID` par les valeurs dynamiques
-3. [ ] Garder les constantes comme fallback en mode dev
-
-### Phase 3 : Nettoyage (optionnel)
-1. [ ] Les variables d'environnement `VITE_OCR_*` restent comme fallback dev uniquement
-
-## Tests
-
-### En environnement Power Pages
-```javascript
-// Console test - récupération config
-shell.ajaxSafePost({
-  type: "GET",
-  url: "/_api/serverlogics/get_pread",
-  contentType: "application/json"
-})
-.done(function (res) {
-  console.log('Réponse brute:', res)
-  console.log('Data parsée:', JSON.parse(res.data))
-})
-.fail(function (err) {
-  console.error('Erreur:', err)
-})
-```
-
-### En mode développement local
-- Les fonctions doivent retourner des valeurs mock via variables d'environnement
-- Le cache doit fonctionner correctement
-
-## Notes importantes
-
-1. **Double parsing JSON** : La réponse Server Logic contient `data` en JSON stringifié, il faut donc parser deux fois
-2. **Cache** : La configuration est mise en cache après le premier appel pour éviter les appels répétés
-3. **Même pattern** : Utilise `shell.ajaxSafePost` avec `.done()` / `.fail()` comme le code OCR existant
-4. **Compatibilité** : Garder le support des variables d'environnement pour le développement local
-5. **Méthode GET** : La Server Logic utilise GET (pas de body), contrairement aux Cloud Flows qui utilisent POST
+| Date | Modification |
+|------|-------------|
+| 2025-01-18 | Implémentation initiale avec `shell.ajaxSafePost` |
+| 2025-01-18 | Migration vers `safeAjax` (fetch + token CSRF) suite à l'indisponibilité de `shell.ajaxSafePost` |

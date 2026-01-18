@@ -143,6 +143,86 @@ const safeAjaxPost = async (triggerId: string, payload: unknown): Promise<unknow
   */
 }
 
+/**
+ * 🔐 Récupère le token anti-CSRF depuis Power Pages
+ * Utilise /_layout/tokenhtml pour extraire le token
+ */
+const fetchAntiCsrfToken = async (): Promise<string | null> => {
+  try {
+    console.log('🔐 [safeAjax] Récupération du token anti-CSRF...')
+    const response = await fetch('/_layout/tokenhtml')
+    const html = await response.text()
+    
+    const doc = new DOMParser().parseFromString(html, "text/html")
+    const input = doc.querySelector("input")
+    const token = input ? input.getAttribute("value") : null
+    
+    if (token) {
+      console.log('🔐 [safeAjax] Token récupéré:', token.substring(0, 20) + '...')
+    } else {
+      console.warn('🔐 [safeAjax] Token non trouvé dans le HTML')
+    }
+    
+    return token
+  } catch (error) {
+    console.error('🔐 [safeAjax] Erreur récupération token:', error)
+    return null
+  }
+}
+
+/**
+ * 🔐 Émule shell.ajaxSafePost avec fetch natif
+ * Récupère le token anti-CSRF puis effectue la requête
+ */
+const safeAjax = async (
+  url: string,
+  method: 'GET' | 'POST' = 'GET',
+  data?: unknown
+): Promise<unknown> => {
+  // Récupérer le token anti-CSRF
+  const token = await fetchAntiCsrfToken()
+  
+  if (!token) {
+    throw new Error('Impossible de récupérer le token anti-CSRF')
+  }
+  
+  // Construire les options de la requête
+  const options: RequestInit = {
+    method,
+    headers: {
+      '__RequestVerificationToken': token,
+      'content-type': method === 'POST' 
+        ? 'application/x-www-form-urlencoded; charset=UTF-8' 
+        : 'application/json',
+      'x-requested-with': 'XMLHttpRequest'
+    }
+  }
+  
+  // Ajouter le body pour les requêtes POST
+  if (method === 'POST' && data) {
+    options.body = new URLSearchParams({
+      eventData: JSON.stringify(data)
+    }).toString()
+  }
+  
+  console.log('🔐 [safeAjax] Appel fetch:', method, url)
+  
+  const response = await fetch(url, options)
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  }
+  
+  const text = await response.text()
+  
+  // Essayer de parser en JSON
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
 // 🎯 Convertit un fichier en Base64
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -378,6 +458,7 @@ export const useApi = () => {
 
   /**
    * 🎯 Valide un lien de préadmission via la Server Logic getpread
+   * Utilise safeAjax (fetch + token anti-CSRF) pour l'appel API
    * @param preadmissionId - GUID de la préadmission
    * @returns Promise<boolean> - true si valide, false sinon
    */
@@ -401,78 +482,43 @@ export const useApi = () => {
       return isValid
     }
 
-    // Environnement Power Pages - appel API réel
-    console.log('🔗 [validatePreadmissionLink] Environnement Power Pages détecté, appel API...')
+    // Environnement Power Pages - appel API réel avec safeAjax
+    console.log('🔗 [validatePreadmissionLink] Environnement Power Pages détecté, appel API avec safeAjax...')
     const apiUrl = `/_api/serverlogics/getpread?preadmissionId=${encodeURIComponent(preadmissionId)}`
     console.log('🔗 [validatePreadmissionLink] URL API:', apiUrl)
 
-    // Attendre que shell.ajaxSafePost soit disponible (max 10 secondes)
-    let attempts = 0
-    const maxAttempts = 20
-    while (attempts < maxAttempts) {
-      if (typeof (window as any).shell !== 'undefined' && (window as any).shell.ajaxSafePost) {
-        console.log('🔗 [validatePreadmissionLink] shell.ajaxSafePost disponible après', attempts * 500, 'ms')
-        break
-      }
-      console.log('🔗 [validatePreadmissionLink] Attente de shell.ajaxSafePost... tentative', attempts + 1)
-      await new Promise(resolve => setTimeout(resolve, 500))
-      attempts++
-    }
-
-    // Vérifier si shell.ajaxSafePost est maintenant disponible
-    if (typeof (window as any).shell === 'undefined' || !(window as any).shell.ajaxSafePost) {
-      console.error('🔗 [validatePreadmissionLink] ❌ shell.ajaxSafePost non disponible après 10 secondes')
-      console.log('🔗 [validatePreadmissionLink] window.shell:', (window as any).shell)
-      console.log('🔗 [validatePreadmissionLink] shell.ajaxSafePost:', (window as any).shell?.ajaxSafePost)
-      // Fallback: considérer comme valide pour ne pas bloquer l'utilisateur
-      console.warn('🔗 [validatePreadmissionLink] ⚠️ Fallback: validation ignorée, lien considéré valide')
-      return true
-    }
-
-    return new Promise<boolean>((resolve) => {
-      console.log('🔗 [validatePreadmissionLink] Appel shell.ajaxSafePost en cours...');
+    try {
+      const response = await safeAjax(apiUrl, 'GET') as any
+      console.log('🔗 [validatePreadmissionLink] ✅ Réponse reçue:', response)
       
-      (window as any).shell.ajaxSafePost({
-        type: "GET",
-        url: apiUrl,
-        contentType: "application/json"
-      })
-      .done(function (response: any) {
-        console.log('🔗 [validatePreadmissionLink] ✅ Réponse reçue')
-        console.log('🔗 [validatePreadmissionLink] Réponse brute:', response)
-        
-        try {
-          let parsedResponse = response
-          if (typeof response === 'string') {
-            parsedResponse = JSON.parse(response)
-          }
-          
-          if (!parsedResponse.success) {
-            console.warn('🔗 [validatePreadmissionLink] ⚠️ Server Logic success: false')
-            resolve(false)
-            return
-          }
-          
-          let parsedData: GetPreadResponse
-          if (typeof parsedResponse.data === 'string') {
-            parsedData = JSON.parse(parsedResponse.data)
-          } else {
-            parsedData = parsedResponse.data as GetPreadResponse
-          }
-          
-          console.log('🔗 [validatePreadmissionLink] ✅ isValid:', parsedData.isValid)
-          resolve(parsedData.isValid === true)
-          
-        } catch (parseError) {
-          console.error('🔗 [validatePreadmissionLink] ❌ Erreur parsing:', parseError)
-          resolve(false)
-        }
-      })
-      .fail(function (error: any) {
-        console.error('🔗 [validatePreadmissionLink] ❌ Erreur API:', error)
-        resolve(false)
-      })
-    })
+      // Parser la réponse Server Logic
+      let parsedResponse = response
+      if (typeof response === 'string') {
+        parsedResponse = JSON.parse(response)
+      }
+      
+      if (!parsedResponse.success) {
+        console.warn('🔗 [validatePreadmissionLink] ⚠️ Server Logic success: false')
+        return false
+      }
+      
+      // Parser le champ data (JSON stringifié)
+      let parsedData: GetPreadResponse
+      if (typeof parsedResponse.data === 'string') {
+        parsedData = JSON.parse(parsedResponse.data)
+      } else {
+        parsedData = parsedResponse.data as GetPreadResponse
+      }
+      
+      console.log('🔗 [validatePreadmissionLink] ✅ Données parsées:', parsedData)
+      console.log('🔗 [validatePreadmissionLink] ✅ isValid:', parsedData.isValid)
+      
+      return parsedData.isValid === true
+      
+    } catch (error) {
+      console.error('🔗 [validatePreadmissionLink] ❌ Erreur:', error)
+      return false
+    }
   }
 
   return {
