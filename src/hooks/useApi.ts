@@ -382,50 +382,95 @@ export const useApi = () => {
    * @returns Promise<boolean> - true si valide, false sinon
    */
   const validatePreadmissionLink = async (preadmissionId: string): Promise<boolean> => {
-    // Mode développement - simulation
-    if (typeof (window as any).shell === 'undefined' || !(window as any).shell.ajaxSafePost) {
-      console.log('[DEV MODE] Validation simulée pour:', preadmissionId)
-      
-      // Simuler un délai réseau
+    console.log('🔗 [validatePreadmissionLink] Début de la validation')
+    console.log('🔗 [validatePreadmissionLink] preadmissionId:', preadmissionId)
+    
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+    
+    console.log('🔗 [validatePreadmissionLink] hostname:', window.location.hostname)
+    console.log('🔗 [validatePreadmissionLink] isLocalhost:', isLocalhost)
+    
+    // Mode développement - simulation (uniquement sur localhost)
+    if (isLocalhost) {
+      console.log('🔗 [DEV MODE] Validation simulée pour:', preadmissionId)
       await new Promise(resolve => setTimeout(resolve, 800))
-      
-      // En dev: valide si le GUID n'est pas vide et n'est pas "invalid"
       const isValid = !!preadmissionId && preadmissionId !== 'invalid'
-      console.log('[DEV MODE] Résultat validation:', isValid)
+      console.log('🔗 [DEV MODE] Résultat validation:', isValid)
       return isValid
     }
 
-    // Environnement Power Pages
-    return new Promise((resolve) => {
+    // Environnement Power Pages - appel API réel
+    console.log('🔗 [validatePreadmissionLink] Environnement Power Pages détecté, appel API...')
+    const apiUrl = `/_api/serverlogics/getpread?preadmissionId=${encodeURIComponent(preadmissionId)}`
+    console.log('🔗 [validatePreadmissionLink] URL API:', apiUrl)
+
+    // Attendre que shell.ajaxSafePost soit disponible (max 10 secondes)
+    let attempts = 0
+    const maxAttempts = 20
+    while (attempts < maxAttempts) {
+      if (typeof (window as any).shell !== 'undefined' && (window as any).shell.ajaxSafePost) {
+        console.log('🔗 [validatePreadmissionLink] shell.ajaxSafePost disponible après', attempts * 500, 'ms')
+        break
+      }
+      console.log('🔗 [validatePreadmissionLink] Attente de shell.ajaxSafePost... tentative', attempts + 1)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      attempts++
+    }
+
+    // Vérifier si shell.ajaxSafePost est maintenant disponible
+    if (typeof (window as any).shell === 'undefined' || !(window as any).shell.ajaxSafePost) {
+      console.error('🔗 [validatePreadmissionLink] ❌ shell.ajaxSafePost non disponible après 10 secondes')
+      console.log('🔗 [validatePreadmissionLink] window.shell:', (window as any).shell)
+      console.log('🔗 [validatePreadmissionLink] shell.ajaxSafePost:', (window as any).shell?.ajaxSafePost)
+      // Fallback: considérer comme valide pour ne pas bloquer l'utilisateur
+      console.warn('🔗 [validatePreadmissionLink] ⚠️ Fallback: validation ignorée, lien considéré valide')
+      return true
+    }
+
+    return new Promise<boolean>((resolve) => {
+      console.log('🔗 [validatePreadmissionLink] Appel shell.ajaxSafePost en cours...');
+      
       (window as any).shell.ajaxSafePost({
         type: "GET",
-        url: `/_api/server-logic/getpread?preadmissionId=${encodeURIComponent(preadmissionId)}`,
+        url: apiUrl,
         contentType: "application/json"
       })
-      .done(function (response: ServerLogicResponse<GetPreadResponse>) {
-        console.log('✅ getpread réponse brute:', response)
+      .done(function (response: any) {
+        console.log('🔗 [validatePreadmissionLink] ✅ Réponse reçue')
+        console.log('🔗 [validatePreadmissionLink] Réponse brute:', response)
         
         try {
-          if (!response.success) {
-            console.warn('⚠️ Server Logic a retourné success: false')
+          let parsedResponse = response
+          if (typeof response === 'string') {
+            parsedResponse = JSON.parse(response)
+          }
+          
+          if (!parsedResponse.success) {
+            console.warn('🔗 [validatePreadmissionLink] ⚠️ Server Logic success: false')
             resolve(false)
             return
           }
           
-          // Parser le champ data (JSON stringifié)
-          const parsedData: GetPreadResponse = JSON.parse(response.data)
-          console.log('✅ getpread données parsées:', parsedData)
+          let parsedData: GetPreadResponse
+          if (typeof parsedResponse.data === 'string') {
+            parsedData = JSON.parse(parsedResponse.data)
+          } else {
+            parsedData = parsedResponse.data as GetPreadResponse
+          }
           
+          console.log('🔗 [validatePreadmissionLink] ✅ isValid:', parsedData.isValid)
           resolve(parsedData.isValid === true)
           
         } catch (parseError) {
-          console.error('❌ Erreur parsing réponse getpread:', parseError)
+          console.error('🔗 [validatePreadmissionLink] ❌ Erreur parsing:', parseError)
           resolve(false)
         }
       })
       .fail(function (error: any) {
-        console.error('❌ Erreur appel getpread:', error)
-        resolve(false)  // En cas d'erreur, considérer comme invalide
+        console.error('🔗 [validatePreadmissionLink] ❌ Erreur API:', error)
+        resolve(false)
       })
     })
   }

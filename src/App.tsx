@@ -162,15 +162,57 @@ function App() {
   // 🎯 Validation du lien au montage
   useEffect(() => {
     const validateLink = async () => {
+      // 🔍 DEBUG: Afficher les informations de l'URL
+      console.log('🔗 [DEBUG] ====== VALIDATION DU LIEN ======')
+      console.log('🔗 [DEBUG] window.location.href:', window.location.href)
+      console.log('🔗 [DEBUG] window.location.search:', window.location.search)
+      console.log('🔗 [DEBUG] window.location.pathname:', window.location.pathname)
+      console.log('🔗 [DEBUG] window.location.hash:', window.location.hash)
+      console.log('🔗 [DEBUG] document.URL:', document.URL)
+      
+      // 🕐 ATTENDRE 10 SECONDES pour laisser le temps à shell.ajaxSafePost de s'initialiser
+      console.log('🔗 [DEBUG] Attente de 10 secondes pour initialisation de Power Pages...')
+      await new Promise(resolve => setTimeout(resolve, 10000))
+      console.log('🔗 [DEBUG] Fin de l\'attente, démarrage de la validation')
+      
+      // Essayer aussi avec le hash (au cas où Power Pages utilise le hash routing)
+      const hashParams = new URLSearchParams(window.location.hash.replace('#', '').split('?')[1] || '')
+      console.log('🔗 [DEBUG] Hash params:', hashParams.toString())
+      
       // Extraire le preadmissionId de l'URL
       const urlParams = new URLSearchParams(window.location.search)
-      const id = urlParams.get('preadmissionId')
+      console.log('🔗 [DEBUG] URLSearchParams entries:')
+      for (const [key, value] of urlParams.entries()) {
+        console.log(`🔗 [DEBUG]   - ${key}: ${value}`)
+      }
+      
+      let id = urlParams.get('preadmissionId')
+      console.log('🔗 [DEBUG] preadmissionId depuis search:', id)
+      
+      // Fallback: essayer depuis le hash
+      if (!id) {
+        id = hashParams.get('preadmissionId')
+        console.log('🔗 [DEBUG] preadmissionId depuis hash:', id)
+      }
+      
+      // Fallback: essayer d'extraire manuellement depuis l'URL complète
+      if (!id) {
+        const fullUrl = window.location.href
+        const match = fullUrl.match(/preadmissionId=([^&]+)/)
+        if (match) {
+          id = decodeURIComponent(match[1])
+          console.log('🔗 [DEBUG] preadmissionId extrait manuellement:', id)
+        }
+      }
       
       if (!id) {
         console.warn('⚠️ Paramètre preadmissionId manquant dans l\'URL')
+        console.log('🔗 [DEBUG] ====== FIN VALIDATION (INVALID) ======')
         setLinkState('invalid')
         return
       }
+      
+      console.log('🔗 [DEBUG] preadmissionId trouvé:', id)
       
       // Appeler l'API de validation
       const isValid = await api.validatePreadmissionLink(id)
@@ -179,8 +221,10 @@ function App() {
         setLinkState('valid')
         // Stocker le GUID pour la soumission ultérieure
         updateFormData({ preadmissionId: id })
+        console.log('🔗 [DEBUG] ====== FIN VALIDATION (VALID) ======')
       } else {
         setLinkState('invalid')
+        console.log('🔗 [DEBUG] ====== FIN VALIDATION (INVALID - API) ======')
       }
     }
     
