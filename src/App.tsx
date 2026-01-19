@@ -172,7 +172,7 @@ function App() {
       
       // 🕐 ATTENDRE 10 SECONDES pour laisser le temps à shell.ajaxSafePost de s'initialiser
       console.log('🔗 [DEBUG] Attente de 10 secondes pour initialisation de Power Pages...')
-      await new Promise(resolve => setTimeout(resolve, 10000))
+      await new Promise(resolve => setTimeout(resolve, 2000))
       console.log('🔗 [DEBUG] Fin de l\'attente, démarrage de la validation')
       
       // Essayer aussi avec le hash (au cas où Power Pages utilise le hash routing)

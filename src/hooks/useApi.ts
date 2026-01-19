@@ -223,6 +223,73 @@ const safeAjax = async (
   }
 }
 
+/**
+ * 🔐 Appel Cloud Flow avec fetch natif (comme safeAjax)
+ * Utilise le même pattern que safeAjax mais adapté pour les Cloud Flows
+ * @param triggerId - ID du trigger Cloud Flow
+ * @param payload - Données à envoyer au Cloud Flow
+ */
+const safeAjaxCloudFlow = async (
+  triggerId: string,
+  payload: unknown
+): Promise<unknown> => {
+  // Récupérer le token anti-CSRF
+  const token = await fetchAntiCsrfToken()
+  
+  if (!token) {
+    throw new Error('Impossible de récupérer le token anti-CSRF')
+  }
+  
+  const url = `/_api/cloudflow/v1.0/trigger/${triggerId}`
+  
+  const options: RequestInit = {
+    method: 'POST',
+    headers: {
+      '__RequestVerificationToken': token,
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'x-requested-with': 'XMLHttpRequest'
+    },
+    body: new URLSearchParams({
+      eventData: JSON.stringify(payload)
+    }).toString()
+  }
+  
+  console.log('🔐 [safeAjaxCloudFlow] Appel fetch POST:', url)
+  
+  const response = await fetch(url, options)
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  }
+  
+  const text = await response.text()
+  
+  // Essayer de parser en JSON
+  let result: unknown
+  try {
+    result = JSON.parse(text)
+  } catch {
+    return text
+  }
+  
+  // 🎯 Détecter si la réponse contient une propriété 'json' (chaîne JSON stringifiée)
+  // C'est le format retourné par les Cloud Flows OCR
+  if (result && typeof result === 'object' && 'json' in result) {
+    const jsonString = (result as { json: string }).json
+    console.log('🔐 [safeAjaxCloudFlow] Propriété "json" détectée, parsing...')
+    try {
+      const parsed = JSON.parse(jsonString)
+      console.log('🔐 [safeAjaxCloudFlow] Données parsées:', parsed)
+      return parsed
+    } catch (e) {
+      console.warn('🔐 [safeAjaxCloudFlow] Échec du parsing de la propriété json:', e)
+      return result
+    }
+  }
+  
+  return result
+}
+
 // 🎯 Convertit un fichier en Base64
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -352,103 +419,21 @@ export const useApi = () => {
       // Mapper le fileType vers le format attendu par le Cloud Flow
       const docType: 'identityid' | 'insuranceid' = fileType === 'id_card' ? 'identityid' : 'insuranceid'
 
-      // Vérifier si shell.ajaxSafePost est disponible (environnement Power Pages)
-      if (typeof (window as any).shell !== 'undefined' && (window as any).shell.ajaxSafePost) {
-        return new Promise((resolve, reject) => {
-          (window as any).shell.ajaxSafePost({
-            type: "POST",
-            url: `/_api/cloudflow/v1.0/trigger/${fileType === 'id_card' ? OCR_IDENTITY_TRIGGER_ID : OCR_INSURANCE_TRIGGER_ID}`,
-            data: {
-              "eventData": JSON.stringify({
-                "doc": docType,
-                "base64": base64Data
-              })
-            }
-          })
-          .done(function (response: any) {
-            console.log('Cloud flow OCR appelé avec succès (raw):', response)
-            
-            try {
-              let rawResponse: any = {}
-              
-              // La réponse peut être sous plusieurs formats (IDENTIQUE pour les 2 types):
-              // 1. String JSON direct: '{"last_name": "...", ...}' ou '{"rue": "...", ...}'
-              // 2. String JSON avec propriété json: '{"json": "{...}"}'
-              // 3. Objet avec propriété json: { json: '{"last_name": "...", ...}' }
-              // 4. Objet direct: { last_name: "...", ... } ou { rue: "...", ... }
-              // 5. Tableau: [{rue: "...", ...}] (cas insurance)
-              
-              if (typeof response === 'string') {
-                const parsed = JSON.parse(response)
-                // Vérifier si c'est un objet avec une propriété "json" (cas 2)
-                if (parsed.json && typeof parsed.json === 'string') {
-                  rawResponse = JSON.parse(parsed.json)
-                } else {
-                  rawResponse = parsed
-                }
-              } else if (response.json && typeof response.json === 'string') {
-                // Cas 3: objet avec propriété json stringifiée
-                rawResponse = JSON.parse(response.json)
-              } else {
-                // Cas 4: objet direct
-                rawResponse = response
-              }
-              
-              // 🎯 Cas 5: Si la réponse est un tableau, extraire le premier élément
-              if (Array.isArray(rawResponse)) {
-                console.log('📄 OCR: Réponse reçue sous forme de tableau, extraction du premier élément')
-                rawResponse = rawResponse[0] || {}
-              }
-              
-              console.log('📄 OCR: Données brutes parsées:', rawResponse)
-              
-              // Mapper selon le type de document
-              if (fileType === 'insurance_card') {
-                const mappedResponse = mapInsuranceCloudFlowResponse(rawResponse as OCRInsuranceCloudFlowResponse)
-                console.log('📄 OCR Insurance: Données mappées:', mappedResponse)
-                resolve(mappedResponse)
-              } else {
-                const mappedResponse = mapCloudFlowResponse(rawResponse as OCRCloudFlowResponse)
-                console.log('📄 OCR Identity: Données mappées:', mappedResponse)
-                resolve(mappedResponse)
-              }
-            } catch (parseError) {
-              console.error('Erreur parsing réponse OCR:', parseError)
-              reject(parseError)
-            }
-          })
-          .fail(function (error: any) {
-            console.error('❌ Erreur Cloud flow OCR:', error)
-            reject(error)
-          })
-        })
+      // Utiliser safeAjaxCloudFlow pour les appels Cloud Flow
+      const triggerId = fileType === 'id_card' ? OCR_IDENTITY_TRIGGER_ID : OCR_INSURANCE_TRIGGER_ID
+      const rawResponse = await safeAjaxCloudFlow(triggerId, { doc: docType, base64: base64Data })
+
+      console.log('📄 OCR: Données brutes reçues:', rawResponse)
+
+      // Mapper selon le type de document
+      if (fileType === 'insurance_card') {
+        const mappedResponse = mapInsuranceCloudFlowResponse(rawResponse as OCRInsuranceCloudFlowResponse)
+        console.log('📄 OCR Insurance: Données mappées:', mappedResponse)
+        return mappedResponse
       } else {
-        // Mode développement - simulation OCR (format déjà mappé)
-        console.log(`[DEV MODE] OCR Cloud Flow Call`, { docType, base64Length: base64Data.length })
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            if (fileType === 'insurance_card') {
-              resolve({
-                street: 'Rue de la Gare 15',
-                city: 'Lausanne',
-                zipCode: '1003',
-                country: 'CH',
-                avsNumber: '756.1234.5678.90',
-                kvgCardNumber: '80756012345678901234',
-                kvgInsuranceName: 'Swica',
-                vvgCardNumber: '80756012345678901234'
-              } as OCRInsuranceResponse)
-            } else {
-              resolve({
-                lastName: 'Dupont',
-                firstNames: 'Jean Pierre',
-                firstName: 'Jean Pierre',
-                gender: 'male',
-                nationality: 'CH'
-              } as OCRDocumentResponse)
-            }
-          }, 1500)
-        })
+        const mappedResponse = mapCloudFlowResponse(rawResponse as OCRCloudFlowResponse)
+        console.log('📄 OCR Identity: Données mappées:', mappedResponse)
+        return mappedResponse
       }
     } catch (error) {
       console.error('❌ OCR: Erreur lors de l\'extraction:', error)
