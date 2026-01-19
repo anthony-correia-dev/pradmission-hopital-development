@@ -81,9 +81,10 @@ export interface OCRInsuranceResponse {
 // 🎯 OCR Cloud Flow Trigger IDs (depuis variables d'environnement)
 const OCR_IDENTITY_TRIGGER_ID = import.meta.env.VITE_OCR_IDENTITY_TRIGGER_ID
 const OCR_INSURANCE_TRIGGER_ID = import.meta.env.VITE_OCR_INSURANCE_TRIGGER_ID
+const SEND_OTP_TRIGGER_ID = import.meta.env.VITE_OCR_SENDOTP_TRIGGER_ID
+const VERIFY_OTP_TRIGGER_ID = import.meta.env.VITE_OCR_VERIFYOTP_TRIGGER_ID
 
 // 🎯 Mapping des étapes wizard vers les valeurs Stage Power Platform
-// Note: 'loading' est exclu - pas d'appel API pour cet écran transitoire
 export const WIZARD_STAGES: Record<string, number> = {
   landing: 100000001,
   security: 100000002,
@@ -559,9 +560,84 @@ export const useApi = () => {
     }
   }
 
-  const verifyOTP = async (code: string): Promise<{ success: boolean; message?: string }> => {
-    const result = await postData('verify-otp', { code })
-    return result as { success: boolean; message?: string }
+  /**
+   * 🎯 Envoie un code OTP par SMS via le Cloud Flow sendOtp
+   * @param preadmissionId - GUID de la préadmission
+   * @returns true si l'envoi a réussi, false sinon
+   */
+  const sendOtp = async (preadmissionId: string): Promise<boolean> => {
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+
+    // Mode développement - simulation
+    if (isLocalhost) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      return true
+    }
+
+    try {
+      await safeAjaxCloudFlow(SEND_OTP_TRIGGER_ID, { number: preadmissionId })
+      return true
+    } catch (error) {
+      console.error('❌ [sendOtp] Erreur:', error)
+      return false
+    }
+  }
+
+  /**
+   * 🎯 Vérifie le code OTP via le Cloud Flow verifyOtp
+   * @param preadmissionId - GUID de la préadmission
+   * @param code - Code OTP à 6 chiffres
+   */
+  const verifyOTP = async (
+    preadmissionId: string,
+    code: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+
+    // Mode développement - simulation
+    if (isLocalhost) {
+      await new Promise(resolve => setTimeout(resolve, 800))
+      // Simulation: accepte le code "123456" uniquement
+      const isValid = code === '123456'
+      return { 
+        success: isValid, 
+        message: isValid ? undefined : 'Le code est incorrect' 
+      }
+    }
+
+    try {
+      const response = await safeAjaxCloudFlow(VERIFY_OTP_TRIGGER_ID, { 
+        number: preadmissionId, 
+        code 
+      })
+
+      // Le Cloud Flow retourne { "json": "True" } en cas de succès
+      // safeAjaxCloudFlow parse automatiquement la propriété 'json'
+      // Peut retourner: "True" (string), true (boolean), ou { json: "True", isValid: true }
+      let isValid = false
+      
+      if (typeof response === 'string') {
+        isValid = response === 'True' || response === 'true'
+      } else if (typeof response === 'boolean') {
+        isValid = response
+      } else if (response && typeof response === 'object') {
+        const resp = response as { json?: string; isValid?: boolean }
+        isValid = resp.json === 'True' || resp.isValid === true
+      }
+
+      return {
+        success: isValid,
+        message: isValid ? undefined : 'Le code est incorrect'
+      }
+
+    } catch (error) {
+      console.error('❌ [verifyOTP] Erreur:', error)
+      return { success: false, message: 'Erreur de connexion' }
+    }
   }
 
   const submitForm = async (formData: unknown): Promise<{ success: boolean; message?: string }> => {
@@ -610,6 +686,7 @@ export const useApi = () => {
     extractDocumentData,
     validatePreadmissionLink,
     setStep,
-    getPhoneLastDigits
+    getPhoneLastDigits,
+    sendOtp
   }
 }

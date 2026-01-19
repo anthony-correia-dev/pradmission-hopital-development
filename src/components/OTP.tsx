@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useFormContext } from 'react-hook-form'
-import { Shield, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
+import { Shield, ArrowRight, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
@@ -22,8 +22,11 @@ interface OTPProps {
 
 export function OTP({ language, onNext, onBack }: OTPProps) {
   const t = otpTranslations[language]
-  const { getPhoneLastDigits } = useApi()
+  const { getPhoneLastDigits, sendOtp, verifyOTP } = useApi()
   const [lastDigits, setLastDigits] = useState('XXXX')
+  const [apiError, setApiError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const otpSentRef = useRef(false)
 
   const {
     setValue,
@@ -35,31 +38,71 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
 
   const otpCode = watch('otpCode')
 
-  // Récupérer les derniers chiffres au montage
+  // Récupérer les derniers chiffres ET envoyer l'OTP au montage
   useEffect(() => {
-    const fetchLastDigits = async () => {
+    const initOtp = async () => {
       const preadmissionId = getValues('preadmissionId')
       if (preadmissionId) {
+        // Récupérer les derniers chiffres du téléphone
         const digits = await getPhoneLastDigits(preadmissionId)
         setLastDigits(digits)
+        
+        // Envoyer l'OTP (une seule fois)
+        if (!otpSentRef.current) {
+          otpSentRef.current = true
+          await sendOtp(preadmissionId)
+        }
       }
     }
-    fetchLastDigits()
-  }, [getPhoneLastDigits, getValues])
+    initOtp()
+  }, [getPhoneLastDigits, sendOtp, getValues])
 
   // Remplacer XXXX dans le subtitle
   const subtitleWithPhone = t.subtitle.replace('XXXX', lastDigits)
 
+  // Fonction pour renvoyer le code
+  const handleResendOtp = async () => {
+    const preadmissionId = getValues('preadmissionId')
+    if (preadmissionId) {
+      await sendOtp(preadmissionId)
+    }
+  }
+
   const handleChange = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 6)
     setValue('otpCode', cleaned, { shouldDirty: true, shouldValidate: false })
+    setApiError('')
     trigger('otpCode')
   }
 
   const onSubmit = async () => {
-    const ok = await trigger('otpCode')
-    if (!ok) return
-    onNext()
+    setLoading(true)
+    setApiError('')
+    
+    try {
+      // Validation Zod locale
+      const ok = await trigger('otpCode')
+      if (!ok) {
+        setLoading(false)
+        return
+      }
+
+      const preadmissionId = getValues('preadmissionId')
+      const code = getValues('otpCode')
+      
+      // ✅ Appel Cloud Flow verifyOtp
+      const result = await verifyOTP(preadmissionId, code)
+      
+      if (result.success) {
+        onNext() // Passage à qualification
+      } else {
+        setApiError(result.message || t.invalidCode)
+      }
+    } catch {
+      setApiError(t.invalidCode)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -94,7 +137,8 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
                 value={otpCode}
                 onChange={handleChange}
                 containerClassName="justify-center"
-                aria-invalid={!!(errors as any).otpCode}
+                aria-invalid={!!((errors as any).otpCode || apiError)}
+                disabled={loading}
               >
                 <InputOTPGroup className="otp-group">
                   {Array.from({ length: 6 }, (_, index) => (
@@ -102,10 +146,10 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
                   ))}
                 </InputOTPGroup>
               </InputOTP>
-              {(errors as any).otpCode && (
+              {((errors as any).otpCode || apiError) && (
                 <div className="form-error-inline">
                   <AlertCircle className="w-4 h-4" />
-                  <span>{(errors as any).otpCode.message}</span>
+                  <span>{(errors as any).otpCode?.message || apiError}</span>
                 </div>
               )}
             </motion.div>
@@ -115,9 +159,8 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
                 type="button"
                 variant="ghost"
                 className="w-full text-brand-primary hover:text-brand-primary-hover hover:bg-brand-primary/5"
-                onClick={() => {
-                  console.log('Resend OTP')
-                }}
+                onClick={handleResendOtp}
+                disabled={loading}
               >
                 {t.resend}
               </Button>
@@ -127,6 +170,7 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
               <Button
                 type="button"
                 onClick={onBack}
+                disabled={loading}
                 variant="outline"
                 size="lg"
                 className="h-12 px-6 transition-transform active:scale-[0.98]"
@@ -136,11 +180,21 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
               </Button>
               <Button
                 type="submit"
+                disabled={loading}
                 size="lg"
                 className="flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-transform active:scale-[0.98]"
               >
-                {t.continue}
-                <ArrowRight className="w-5 h-5" />
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {t.verifying}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    {t.continue}
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
+                )}
               </Button>
             </motion.div>
           </form>
