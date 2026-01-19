@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { Shield, ArrowRight, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp'
@@ -13,6 +13,9 @@ import {
 } from '@/lib/animations'
 import type { FormData } from '@/hooks/useWizard'
 
+// 🎯 Clé sessionStorage pour tracker l'envoi unique de l'OTP
+const OTP_SENT_KEY = 'otp_sent'
+
 interface OTPProps {
   language: 'fr' | 'en'
   phoneNumber?: string
@@ -26,7 +29,6 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
   const [lastDigits, setLastDigits] = useState('XXXX')
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
-  const otpSentRef = useRef(false)
 
   const {
     setValue,
@@ -38,7 +40,7 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
 
   const otpCode = watch('otpCode')
 
-  // Récupérer les derniers chiffres ET envoyer l'OTP au montage
+  // Récupérer les derniers chiffres ET envoyer l'OTP au montage (UNE SEULE FOIS par session)
   useEffect(() => {
     const initOtp = async () => {
       const preadmissionId = getValues('preadmissionId')
@@ -47,9 +49,10 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
         const digits = await getPhoneLastDigits(preadmissionId)
         setLastDigits(digits)
         
-        // Envoyer l'OTP (une seule fois)
-        if (!otpSentRef.current) {
-          otpSentRef.current = true
+        // ✅ Vérifier si OTP déjà envoyé dans cette session
+        const alreadySent = sessionStorage.getItem(OTP_SENT_KEY) === 'true'
+        if (!alreadySent) {
+          sessionStorage.setItem(OTP_SENT_KEY, 'true')
           await sendOtp(preadmissionId)
         }
       }
@@ -147,7 +150,7 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
                 </InputOTPGroup>
               </InputOTP>
               {((errors as any).otpCode || apiError) && (
-                <div className="form-error-inline">
+                <div className="flex items-center justify-center gap-2 mt-3 text-brand-error text-sm">
                   <AlertCircle className="w-4 h-4" />
                   <span>{(errors as any).otpCode?.message || apiError}</span>
                 </div>

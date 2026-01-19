@@ -303,7 +303,7 @@ adx_sitesetting:
 adx_webfile:
 - RecordId: 00cee286-54d2-4327-973f-64c74a87e12a
   DisplayName: 00cee286-54d2-4327-973f-64c74a87e12a
-  CheckSum: bfc4824ece364607a33aa4aa921ecfeaea08bb2307e2d5a885771feddc9546e0
+  CheckSum: e3eea5ed0fcd64c22ea10a25e67919c561140d90ed3a18469910b3ac42852f0b
   IsDeleted: false
 - RecordId: 03b78722-c14a-4d31-91a3-985625dea1df
   DisplayName: 03b78722-c14a-4d31-91a3-985625dea1df
@@ -602,7 +602,7 @@ adx_webpage:
   IsDeleted: false
 - RecordId: 6c6dee7f-52cd-426f-85cd-5406d2246d76
   DisplayName: 6c6dee7f-52cd-426f-85cd-5406d2246d76
-  CheckSum: 807bfe826f4470a9617b5a191b366857c5a023ed6553835f55695239532c7965
+  CheckSum: 92158bc2b5c1daa57aa1ac23236dd3088beb0233d0bd0bbb3355d1e6e2813766
   IsDeleted: false
 - RecordId: 6e8255e7-3c04-42db-a066-382e4ecc9e9b
   DisplayName: 6e8255e7-3c04-42db-a066-382e4ecc9e9b
@@ -759,7 +759,7 @@ adx_webtemplate:
 annotation:
 - RecordId: 00cee286-54d2-4327-973f-64c74a87e12a
   DisplayName: index.html
-  CheckSum: 14657f7e792c4869d32e13fe073da760b6fa53446563f2b6b0baa7380fcd39b3
+  CheckSum: db6a1c5dfa97c3c800edaccef3aa8af8e0cb13c51f34cdc6b5c999bfc7d9ebaa
   IsDeleted: false
 - RecordId: 03b78722-c14a-4d31-91a3-985625dea1df
   DisplayName: charts-C19cybdJ.js

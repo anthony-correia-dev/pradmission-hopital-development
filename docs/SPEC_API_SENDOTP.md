@@ -7,9 +7,11 @@ Après validation de la date de naissance sur l'écran **Security**, l'utilisate
 ## Objectif
 
 Quand l'utilisateur arrive sur l'écran OTP :
-1. Appeler le Cloud Flow `sendOtp` pour envoyer le code par SMS
-2. L'envoi se fait automatiquement au montage du composant
-3. En cas d'erreur, ne pas bloquer l'utilisateur (l'option "Renvoyer le code" est disponible)
+1. Appeler le Cloud Flow `sendOtp` pour envoyer le code par SMS **une seule fois par session**
+2. L'envoi automatique ne se fait qu'au **premier montage** du composant
+3. Si l'utilisateur revient sur l'écran OTP (navigation back/forward), **pas de nouvel envoi automatique**
+4. La seule façon de renvoyer un code est d'appuyer sur le bouton **"Renvoyer le code"**
+5. En cas d'erreur, ne pas bloquer l'utilisateur (l'option "Renvoyer le code" est disponible)
 
 ## Cloud Flow
 
@@ -121,16 +123,22 @@ return {
 
 ### 4. Modification du composant `OTP.tsx`
 
+#### Gestion de l'envoi unique par session
+
+Utiliser un `useRef` pour tracker si l'OTP a déjà été envoyé pendant la session :
+
 ```typescript
 export function OTP({ language, onNext, onBack }: OTPProps) {
   const t = otpTranslations[language]
   const { getPhoneLastDigits, sendOtp } = useApi()
   const [lastDigits, setLastDigits] = useState('XXXX')
-  const [otpSent, setOtpSent] = useState(false)
+  
+  // 🎯 Ref pour tracker l'envoi unique (persiste entre les re-renders ET les remontages)
+  const otpSentRef = useRef(false)
 
   const { getValues } = useFormContext<FormData>()
 
-  // Récupérer les derniers chiffres ET envoyer l'OTP au montage
+  // Récupérer les derniers chiffres ET envoyer l'OTP au montage (UNE SEULE FOIS)
   useEffect(() => {
     const initOtp = async () => {
       const preadmissionId = getValues('preadmissionId')
@@ -139,17 +147,17 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
         const digits = await getPhoneLastDigits(preadmissionId)
         setLastDigits(digits)
         
-        // Envoyer l'OTP (une seule fois)
-        if (!otpSent) {
-          const sent = await sendOtp(preadmissionId)
-          setOtpSent(sent)
+        // ✅ Envoyer l'OTP UNE SEULE FOIS par session
+        if (!otpSentRef.current) {
+          otpSentRef.current = true
+          await sendOtp(preadmissionId)
         }
       }
     }
     initOtp()
-  }, [getPhoneLastDigits, sendOtp, getValues, otpSent])
+  }, [getPhoneLastDigits, sendOtp, getValues])
 
-  // Fonction pour renvoyer le code
+  // ✅ Fonction pour renvoyer le code (bouton "Renvoyer")
   const handleResendOtp = async () => {
     const preadmissionId = getValues('preadmissionId')
     if (preadmissionId) {
@@ -171,6 +179,42 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
     // ...
   )
 }
+```
+
+#### Pourquoi `useRef` et pas `useState` ?
+
+| Approche | Comportement |
+|----------|--------------|
+| `useState` | Réinitialisé à chaque remontage du composant (navigation back/forward) |
+| `useRef` | Persiste entre les re-renders, mais réinitialisé au remontage |
+
+> ⚠️ **Limitation** : Avec `useRef`, si l'utilisateur navigue en arrière puis revient sur OTP, le ref sera réinitialisé. Pour une vraie persistance de session, utiliser `sessionStorage` ou un state global.
+
+#### Alternative avec `sessionStorage` (recommandée)
+
+Pour une vraie persistance de session même après navigation :
+
+```typescript
+// Au lieu de useRef
+const OTP_SENT_KEY = 'otp_sent'
+
+useEffect(() => {
+  const initOtp = async () => {
+    const preadmissionId = getValues('preadmissionId')
+    if (preadmissionId) {
+      const digits = await getPhoneLastDigits(preadmissionId)
+      setLastDigits(digits)
+      
+      // ✅ Vérifier si OTP déjà envoyé dans cette session
+      const alreadySent = sessionStorage.getItem(OTP_SENT_KEY) === 'true'
+      if (!alreadySent) {
+        sessionStorage.setItem(OTP_SENT_KEY, 'true')
+        await sendOtp(preadmissionId)
+      }
+    }
+  }
+  initOtp()
+}, [getPhoneLastDigits, sendOtp, getValues])
 ```
 
 ## Test en console F12
@@ -222,39 +266,64 @@ fetch('/_layout/tokenhtml')
 │  (montage)      │
 └────────┬────────┘
          │
+         ▼
+┌─────────────────────────┐
+│ sessionStorage          │
+│ OTP déjà envoyé ?       │
+└────────┬────────────────┘
+         │
     ┌────┴────┐
     │         │
     ▼         ▼
-┌────────┐ ┌────────────┐
-│getphone│ │  sendOtp   │
-│ (GET)  │ │(Cloud Flow)│
-└────┬───┘ └─────┬──────┘
-     │           │
-     ▼           ▼
-┌────────┐ ┌────────────┐
-│ "8406" │ │  SMS envoyé│
-└────────┘ └────────────┘
+   NON       OUI
+    │         │
+    ▼         │
+┌────────────┐│
+│  sendOtp   ││
+│(Cloud Flow)││
+└─────┬──────┘│
+      │       │
+      ▼       │
+┌────────────┐│
+│ sessionStorage
+│ = 'true'   ││
+└─────┬──────┘│
+      │       │
+      └───┬───┘
+          ▼
+┌─────────────────────────┐
+│  Affichage écran OTP    │
+│  + numéro masqué        │
+└─────────────────────────┘
+          │
+          ▼
+┌─────────────────────────┐
+│  Bouton "Renvoyer"      │──────► sendOtp (toujours possible)
+└─────────────────────────┘
 ```
 
 ## Checklist d'implémentation
 
-- [ ] Ajouter `SEND_OTP_TRIGGER_ID` dans les constantes de `useApi.ts`
-- [ ] Ajouter la fonction `sendOtp` dans `useApi.ts`
-- [ ] Exporter `sendOtp` dans le return de `useApi()`
-- [ ] Modifier `OTP.tsx` pour appeler `sendOtp` au montage
-- [ ] Modifier le bouton "Renvoyer le code" pour appeler `sendOtp`
+- [x] Ajouter `SEND_OTP_TRIGGER_ID` dans les constantes de `useApi.ts`
+- [x] Ajouter la fonction `sendOtp` dans `useApi.ts`
+- [x] Exporter `sendOtp` dans le return de `useApi()`
+- [x] Modifier `OTP.tsx` pour appeler `sendOtp` au montage (une seule fois)
+- [ ] **Utiliser `sessionStorage` pour persister l'état "OTP envoyé" entre navigations**
+- [x] Modifier le bouton "Renvoyer le code" pour appeler `sendOtp`
 - [ ] Tester en environnement Power Pages
 
 ## Notes importantes
 
-1. **Cloud Flow vs Server Logic** : `sendOtp` utilise `safeAjaxCloudFlow` (format `eventData`), pas `safeAjax`
-2. **Payload `number`** : Le champ s'appelle `number` mais contient le `preadmissionId`
-3. **Envoi unique** : Utiliser un état `otpSent` pour éviter les envois multiples au montage
-4. **Resend** : Le bouton "Renvoyer le code" appelle la même fonction `sendOtp`
+1. **Envoi unique par session** : L'OTP n'est envoyé automatiquement qu'une seule fois, même si l'utilisateur navigue back/forward
+2. **Resend toujours possible** : Le bouton "Renvoyer le code" permet de déclencher un nouvel envoi à tout moment
+3. **Cloud Flow vs Server Logic** : `sendOtp` utilise `safeAjaxCloudFlow` (format `eventData`), pas `safeAjax`
+4. **Payload `number`** : Le champ s'appelle `number` mais contient le `preadmissionId`
 5. **Pas de blocage** : En cas d'erreur, l'utilisateur peut utiliser "Renvoyer le code"
+6. **Persistance session** : Utiliser `sessionStorage` pour garantir l'envoi unique même après navigation
 
 ## Historique
 
 | Date | Modification |
 |------|-------------|
 | 2025-01-19 | Création de la spécification |
+| 2025-01-19 | Mise à jour : envoi unique par session avec `sessionStorage` |
