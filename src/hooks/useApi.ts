@@ -72,6 +72,17 @@ export interface OCRInsuranceResponse {
 const OCR_IDENTITY_TRIGGER_ID = import.meta.env.VITE_OCR_IDENTITY_TRIGGER_ID
 const OCR_INSURANCE_TRIGGER_ID = import.meta.env.VITE_OCR_INSURANCE_TRIGGER_ID
 
+// 🎯 Mapping des étapes wizard vers les valeurs Stage Power Platform
+// Note: 'loading' est exclu - pas d'appel API pour cet écran transitoire
+export const WIZARD_STAGES: Record<string, number> = {
+  landing: 100000001,
+  security: 100000002,
+  otp: 100000003,
+  qualification: 100000004,
+  admin: 100000005,
+  success: 100000006
+}
+
 // Interface pour les appels Cloud Flow avec jQuery
 interface CloudFlowAjaxOptions {
   type: 'POST'
@@ -176,9 +187,14 @@ const fetchAntiCsrfToken = async (): Promise<string | null> => {
  */
 const safeAjax = async (
   url: string,
-  method: 'GET' | 'POST' = 'GET',
+  method: 'GET' | 'POST' | 'PUT' = 'GET',
   data?: unknown
 ): Promise<unknown> => {
+  console.log('🔐 [safeAjax] Début - method:', method, 'url:', url)
+  if (data) {
+    console.log('🔐 [safeAjax] Data:', JSON.stringify(data))
+  }
+
   // Récupérer le token anti-CSRF
   const token = await fetchAntiCsrfToken()
   
@@ -203,22 +219,37 @@ const safeAjax = async (
     options.body = new URLSearchParams({
       eventData: JSON.stringify(data)
     }).toString()
+    console.log('🔐 [safeAjax] Body POST (URLSearchParams):', options.body)
+  }
+  
+  // Ajouter le body pour les requêtes PUT (JSON)
+  if (method === 'PUT' && data) {
+    options.body = JSON.stringify(data)
+    console.log('🔐 [safeAjax] Body PUT (JSON):', options.body)
   }
   
   console.log('🔐 [safeAjax] Appel fetch:', method, url)
+  console.log('🔐 [safeAjax] Headers:', JSON.stringify(options.headers))
   
   const response = await fetch(url, options)
   
+  console.log('🔐 [safeAjax] Response status:', response.status, response.statusText)
+  
   if (!response.ok) {
+    console.error('🔐 [safeAjax] ❌ Erreur HTTP:', response.status, response.statusText)
     throw new Error(`HTTP ${response.status}: ${response.statusText}`)
   }
   
   const text = await response.text()
+  console.log('🔐 [safeAjax] Response text:', text.substring(0, 200) + (text.length > 200 ? '...' : ''))
   
   // Essayer de parser en JSON
   try {
-    return JSON.parse(text)
+    const parsed = JSON.parse(text)
+    console.log('🔐 [safeAjax] ✅ Response parsed:', parsed)
+    return parsed
   } catch {
+    console.log('🔐 [safeAjax] ✅ Response (text):', text)
     return text
   }
 }
@@ -506,12 +537,58 @@ export const useApi = () => {
     }
   }
 
+  /**
+   * 🎯 Met à jour l'étape courante de la préadmission
+   * Réutilise safeAjax avec méthode PUT
+   * @param preadmissionId - GUID de la préadmission
+   * @param step - Nom de l'étape wizard (landing, security, otp, qualification, admin, success)
+   * @returns Promise<boolean> - true si succès, false sinon
+   */
+  const setStep = async (preadmissionId: string, step: string): Promise<boolean> => {
+    // Ignorer l'étape loading
+    if (step === 'loading') {
+      console.log('🎯 [setStep] Étape loading ignorée')
+      return true
+    }
+
+    const stage = WIZARD_STAGES[step]
+    if (!stage) {
+      console.warn('🎯 [setStep] Étape inconnue:', step)
+      return false
+    }
+
+    console.log('🎯 [setStep] Début - preadmissionId:', preadmissionId, 'step:', step, 'stage:', stage)
+
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+
+    // Mode développement - simulation
+    if (isLocalhost) {
+      console.log('🎯 [DEV MODE] setStep simulé - step:', step, 'stage:', stage)
+      return true
+    }
+
+    // Environnement Power Pages - appel API réel
+    const apiUrl = `/_api/serverlogics/setstep?preadmissionId=${encodeURIComponent(preadmissionId)}`
+
+    try {
+      await safeAjax(apiUrl, 'PUT', { Stage: stage })
+      console.log('✅ [setStep] Succès - step:', step, 'stage:', stage)
+      return true
+    } catch (error) {
+      console.error('❌ [setStep] Erreur:', error)
+      return false
+    }
+  }
+
   return {
     postData,
     verifyBirthDate,
     verifyOTP,
     submitForm,
     extractDocumentData,
-    validatePreadmissionLink
+    validatePreadmissionLink,
+    setStep
   }
 }

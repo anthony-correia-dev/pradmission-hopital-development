@@ -232,6 +232,17 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // 🎯 Appel API setStep à chaque changement d'étape
+  useEffect(() => {
+    // Ne pas appeler si le lien n'est pas validé ou si pas de preadmissionId
+    if (linkState !== 'valid' || !formData.preadmissionId) {
+      return
+    }
+    
+    // Appeler setStep à chaque changement d'étape
+    api.setStep(formData.preadmissionId, currentStep)
+  }, [currentStep, linkState, formData.preadmissionId, api])
+
   // 🎯 Rendu conditionnel selon l'état de validation
   if (linkState === 'validating') {
     return (
