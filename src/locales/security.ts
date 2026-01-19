@@ -14,7 +14,9 @@ export const securityTranslations = {
     required: 'La date de naissance est requise',
     invalid: 'Date invalide',
     futureDate: 'La date de naissance ne peut pas être dans le futur',
-    verifying: 'Vérification...'
+    verifying: 'Vérification...',
+    invalidBirthDate: 'Date de naissance invalide',
+    connectionError: 'Erreur de connexion, veuillez réessayer'
   },
   en: {
     title: 'Security Verification',
@@ -26,7 +28,9 @@ export const securityTranslations = {
     required: 'Date of birth is required',
     invalid: 'Invalid date',
     futureDate: 'Date of birth cannot be in the future',
-    verifying: 'Verifying...'
+    verifying: 'Verifying...',
+    invalidBirthDate: 'Invalid birth date',
+    connectionError: 'Connection error, please try again'
   }
 } as const
 

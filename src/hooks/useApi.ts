@@ -43,6 +43,16 @@ interface GetPreadResponse {
   count: number
 }
 
+// Réponse spécifique de getbirth
+interface GetBirthResponse {
+  isValid: boolean
+}
+
+// Réponse spécifique de getphone
+interface GetPhoneResponse {
+  lastDigits: string
+}
+
 // 🎯 OCR Insurance Cloud Flow Types
 // Réponse brute du Cloud Flow pour carte d'assurance (format snake_case)
 interface OCRInsuranceCloudFlowResponse {
@@ -160,7 +170,6 @@ const safeAjaxPost = async (triggerId: string, payload: unknown): Promise<unknow
  */
 const fetchAntiCsrfToken = async (): Promise<string | null> => {
   try {
-    console.log('🔐 [safeAjax] Récupération du token anti-CSRF...')
     const response = await fetch('/_layout/tokenhtml')
     const html = await response.text()
     
@@ -168,10 +177,8 @@ const fetchAntiCsrfToken = async (): Promise<string | null> => {
     const input = doc.querySelector("input")
     const token = input ? input.getAttribute("value") : null
     
-    if (token) {
-      console.log('🔐 [safeAjax] Token récupéré:', token.substring(0, 20) + '...')
-    } else {
-      console.warn('🔐 [safeAjax] Token non trouvé dans le HTML')
+    if (!token) {
+      console.warn('🔐 [safeAjax] Token CSRF non trouvé')
     }
     
     return token
@@ -190,11 +197,6 @@ const safeAjax = async (
   method: 'GET' | 'POST' | 'PUT' = 'GET',
   data?: unknown
 ): Promise<unknown> => {
-  console.log('🔐 [safeAjax] Début - method:', method, 'url:', url)
-  if (data) {
-    console.log('🔐 [safeAjax] Data:', JSON.stringify(data))
-  }
-
   // Récupérer le token anti-CSRF
   const token = await fetchAntiCsrfToken()
   
@@ -207,33 +209,17 @@ const safeAjax = async (
     method,
     headers: {
       '__RequestVerificationToken': token,
-      'content-type': method === 'POST' 
-        ? 'application/x-www-form-urlencoded; charset=UTF-8' 
-        : 'application/json',
+      'content-type': 'application/json',
       'x-requested-with': 'XMLHttpRequest'
     }
   }
   
-  // Ajouter le body pour les requêtes POST
-  if (method === 'POST' && data) {
-    options.body = new URLSearchParams({
-      eventData: JSON.stringify(data)
-    }).toString()
-    console.log('🔐 [safeAjax] Body POST (URLSearchParams):', options.body)
-  }
-  
-  // Ajouter le body pour les requêtes PUT (JSON)
-  if (method === 'PUT' && data) {
+  // Ajouter le body pour les requêtes POST/PUT (JSON direct)
+  if ((method === 'POST' || method === 'PUT') && data) {
     options.body = JSON.stringify(data)
-    console.log('🔐 [safeAjax] Body PUT (JSON):', options.body)
   }
-  
-  console.log('🔐 [safeAjax] Appel fetch:', method, url)
-  console.log('🔐 [safeAjax] Headers:', JSON.stringify(options.headers))
   
   const response = await fetch(url, options)
-  
-  console.log('🔐 [safeAjax] Response status:', response.status, response.statusText)
   
   if (!response.ok) {
     console.error('🔐 [safeAjax] ❌ Erreur HTTP:', response.status, response.statusText)
@@ -241,15 +227,11 @@ const safeAjax = async (
   }
   
   const text = await response.text()
-  console.log('🔐 [safeAjax] Response text:', text.substring(0, 200) + (text.length > 200 ? '...' : ''))
   
   // Essayer de parser en JSON
   try {
-    const parsed = JSON.parse(text)
-    console.log('🔐 [safeAjax] ✅ Response parsed:', parsed)
-    return parsed
+    return JSON.parse(text)
   } catch {
-    console.log('🔐 [safeAjax] ✅ Response (text):', text)
     return text
   }
 }
@@ -285,8 +267,6 @@ const safeAjaxCloudFlow = async (
     }).toString()
   }
   
-  console.log('🔐 [safeAjaxCloudFlow] Appel fetch POST:', url)
-  
   const response = await fetch(url, options)
   
   if (!response.ok) {
@@ -307,13 +287,10 @@ const safeAjaxCloudFlow = async (
   // C'est le format retourné par les Cloud Flows OCR
   if (result && typeof result === 'object' && 'json' in result) {
     const jsonString = (result as { json: string }).json
-    console.log('🔐 [safeAjaxCloudFlow] Propriété "json" détectée, parsing...')
     try {
       const parsed = JSON.parse(jsonString)
-      console.log('🔐 [safeAjaxCloudFlow] Données parsées:', parsed)
       return parsed
     } catch (e) {
-      console.warn('🔐 [safeAjaxCloudFlow] Échec du parsing de la propriété json:', e)
       return result
     }
   }
@@ -418,9 +395,168 @@ export const useApi = () => {
     return safeAjaxPost(triggerId, payload)
   }
 
-  const verifyBirthDate = async (birthDate: string): Promise<{ success: boolean; message?: string }> => {
-    const result = await postData('verify-birthdate', { birthDate })
-    return result as { success: boolean; message?: string }
+  /**
+   * 🎯 Vérifie la date de naissance via la Server Logic getbirth
+   * @param preadmissionId - GUID de la préadmission
+   * @param birthDate - Date au format ISO (YYYY-MM-DD) - sera convertie en DD/MM/YYYY
+   */
+  const verifyBirthDate = async (
+    preadmissionId: string,
+    birthDate: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+
+    // Mode développement - simulation
+    if (isLocalhost) {
+      await new Promise(resolve => setTimeout(resolve, 800))
+      const isValid = !birthDate.endsWith('-01')
+      return { 
+        success: isValid, 
+        message: isValid ? undefined : 'Date de naissance invalide' 
+      }
+    }
+
+    // Convertir ISO (YYYY-MM-DD) → DD/MM/YYYY pour l'API
+    const [year, month, day] = birthDate.split('-')
+    const formattedDate = `${day}/${month}/${year}`
+
+    const apiUrl = `/_api/serverlogics/getbirth?preadmissionId=${encodeURIComponent(preadmissionId)}`
+
+    try {
+      const response = await safeAjax(apiUrl, 'POST', { birthdate: formattedDate }) as ServerLogicResponse<string>
+
+      if (!response.success) {
+        return { success: false, message: 'Erreur de validation' }
+      }
+
+      // Parser le champ data (JSON stringifié)
+      const parsedData: GetBirthResponse = typeof response.data === 'string' 
+        ? JSON.parse(response.data) 
+        : response.data as unknown as GetBirthResponse
+
+      return {
+        success: parsedData.isValid === true,
+        message: parsedData.isValid ? undefined : 'Date de naissance invalide'
+      }
+
+    } catch (error) {
+      console.error('❌ [verifyBirthDate] Erreur:', error)
+      return { success: false, message: 'Erreur de connexion' }
+    }
+  }
+
+  /**
+   * 🎯 Valide un lien de préadmission via la Server Logic getpread
+   * @param preadmissionId - GUID de la préadmission
+   */
+  const validatePreadmissionLink = async (preadmissionId: string): Promise<boolean> => {
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+    
+    // Mode développement - simulation (uniquement sur localhost)
+    if (isLocalhost) {
+      await new Promise(resolve => setTimeout(resolve, 800))
+      return !!preadmissionId && preadmissionId !== 'invalid'
+    }
+
+    const apiUrl = `/_api/serverlogics/getpread?preadmissionId=${encodeURIComponent(preadmissionId)}`
+
+    try {
+      const response = await safeAjax(apiUrl, 'GET') as ServerLogicResponse<string>
+      
+      if (!response.success) {
+        return false
+      }
+      
+      // Parser le champ data (JSON stringifié)
+      const parsedData: GetPreadResponse = typeof response.data === 'string'
+        ? JSON.parse(response.data)
+        : response.data as unknown as GetPreadResponse
+      
+      return parsedData.isValid === true
+      
+    } catch (error) {
+      console.error('❌ [validatePreadmissionLink] Erreur:', error)
+      return false
+    }
+  }
+
+  /**
+   * 🎯 Met à jour l'étape courante de la préadmission
+   * @param preadmissionId - GUID de la préadmission
+   * @param step - Nom de l'étape wizard
+   */
+  const setStep = async (preadmissionId: string, step: string): Promise<boolean> => {
+    // Ignorer l'étape loading
+    if (step === 'loading') {
+      return true
+    }
+
+    const stage = WIZARD_STAGES[step]
+    if (!stage) {
+      console.warn('⚠️ [setStep] Étape inconnue:', step)
+      return false
+    }
+
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+
+    // Mode développement - simulation
+    if (isLocalhost) {
+      return true
+    }
+
+    const apiUrl = `/_api/serverlogics/setstep?preadmissionId=${encodeURIComponent(preadmissionId)}`
+
+    try {
+      await safeAjax(apiUrl, 'PUT', { Stage: stage })
+      return true
+    } catch (error) {
+      console.error('❌ [setStep] Erreur:', error)
+      return false
+    }
+  }
+
+  /**
+   * 🎯 Récupère les 4 derniers chiffres du téléphone via la Server Logic getphone
+   * @param preadmissionId - GUID de la préadmission
+   * @returns Les 4 derniers chiffres ou "XXXX" en cas d'erreur
+   */
+  const getPhoneLastDigits = async (preadmissionId: string): Promise<string> => {
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+
+    // Mode développement - simulation
+    if (isLocalhost) {
+      await new Promise(resolve => setTimeout(resolve, 300))
+      return '1234'
+    }
+
+    const apiUrl = `/_api/serverlogics/getphone?preadmissionId=${encodeURIComponent(preadmissionId)}`
+
+    try {
+      const response = await safeAjax(apiUrl, 'GET') as ServerLogicResponse<string>
+
+      if (!response.success) {
+        return 'XXXX'
+      }
+
+      // Parser le champ data (JSON stringifié)
+      const parsedData: GetPhoneResponse = typeof response.data === 'string'
+        ? JSON.parse(response.data)
+        : response.data as unknown as GetPhoneResponse
+
+      return parsedData.lastDigits || 'XXXX'
+
+    } catch (error) {
+      console.error('❌ [getPhoneLastDigits] Erreur:', error)
+      return 'XXXX'
+    }
   }
 
   const verifyOTP = async (code: string): Promise<{ success: boolean; message?: string }> => {
@@ -442,8 +578,6 @@ export const useApi = () => {
     fileType: 'id_card' | 'insurance_card'
   ): Promise<OCRDocumentResponse | OCRInsuranceResponse | null> => {
     try {
-      console.log(`📄 OCR: Extraction des données du document ${fileType}...`)
-      
       // Convertir le fichier en Base64
       const base64Data = await fileToBase64(file)
       
@@ -454,131 +588,17 @@ export const useApi = () => {
       const triggerId = fileType === 'id_card' ? OCR_IDENTITY_TRIGGER_ID : OCR_INSURANCE_TRIGGER_ID
       const rawResponse = await safeAjaxCloudFlow(triggerId, { doc: docType, base64: base64Data })
 
-      console.log('📄 OCR: Données brutes reçues:', rawResponse)
-
       // Mapper selon le type de document
       if (fileType === 'insurance_card') {
         const mappedResponse = mapInsuranceCloudFlowResponse(rawResponse as OCRInsuranceCloudFlowResponse)
-        console.log('📄 OCR Insurance: Données mappées:', mappedResponse)
         return mappedResponse
       } else {
         const mappedResponse = mapCloudFlowResponse(rawResponse as OCRCloudFlowResponse)
-        console.log('📄 OCR Identity: Données mappées:', mappedResponse)
         return mappedResponse
       }
     } catch (error) {
       console.error('❌ OCR: Erreur lors de l\'extraction:', error)
       return null
-    }
-  }
-
-  /**
-   * 🎯 Valide un lien de préadmission via la Server Logic getpread
-   * Utilise safeAjax (fetch + token anti-CSRF) pour l'appel API
-   * @param preadmissionId - GUID de la préadmission
-   * @returns Promise<boolean> - true si valide, false sinon
-   */
-  const validatePreadmissionLink = async (preadmissionId: string): Promise<boolean> => {
-    console.log('🔗 [validatePreadmissionLink] Début de la validation')
-    console.log('🔗 [validatePreadmissionLink] preadmissionId:', preadmissionId)
-    
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-    
-    console.log('🔗 [validatePreadmissionLink] hostname:', window.location.hostname)
-    console.log('🔗 [validatePreadmissionLink] isLocalhost:', isLocalhost)
-    
-    // Mode développement - simulation (uniquement sur localhost)
-    if (isLocalhost) {
-      console.log('🔗 [DEV MODE] Validation simulée pour:', preadmissionId)
-      await new Promise(resolve => setTimeout(resolve, 800))
-      const isValid = !!preadmissionId && preadmissionId !== 'invalid'
-      console.log('🔗 [DEV MODE] Résultat validation:', isValid)
-      return isValid
-    }
-
-    // Environnement Power Pages - appel API réel avec safeAjax
-    console.log('🔗 [validatePreadmissionLink] Environnement Power Pages détecté, appel API avec safeAjax...')
-    const apiUrl = `/_api/serverlogics/getpread?preadmissionId=${encodeURIComponent(preadmissionId)}`
-    console.log('🔗 [validatePreadmissionLink] URL API:', apiUrl)
-
-    try {
-      const response = await safeAjax(apiUrl, 'GET') as any
-      console.log('🔗 [validatePreadmissionLink] ✅ Réponse reçue:', response)
-      
-      // Parser la réponse Server Logic
-      let parsedResponse = response
-      if (typeof response === 'string') {
-        parsedResponse = JSON.parse(response)
-      }
-      
-      if (!parsedResponse.success) {
-        console.warn('🔗 [validatePreadmissionLink] ⚠️ Server Logic success: false')
-        return false
-      }
-      
-      // Parser le champ data (JSON stringifié)
-      let parsedData: GetPreadResponse
-      if (typeof parsedResponse.data === 'string') {
-        parsedData = JSON.parse(parsedResponse.data)
-      } else {
-        parsedData = parsedResponse.data as GetPreadResponse
-      }
-      
-      console.log('🔗 [validatePreadmissionLink] ✅ Données parsées:', parsedData)
-      console.log('🔗 [validatePreadmissionLink] ✅ isValid:', parsedData.isValid)
-      
-      return parsedData.isValid === true
-      
-    } catch (error) {
-      console.error('🔗 [validatePreadmissionLink] ❌ Erreur:', error)
-      return false
-    }
-  }
-
-  /**
-   * 🎯 Met à jour l'étape courante de la préadmission
-   * Réutilise safeAjax avec méthode PUT
-   * @param preadmissionId - GUID de la préadmission
-   * @param step - Nom de l'étape wizard (landing, security, otp, qualification, admin, success)
-   * @returns Promise<boolean> - true si succès, false sinon
-   */
-  const setStep = async (preadmissionId: string, step: string): Promise<boolean> => {
-    // Ignorer l'étape loading
-    if (step === 'loading') {
-      console.log('🎯 [setStep] Étape loading ignorée')
-      return true
-    }
-
-    const stage = WIZARD_STAGES[step]
-    if (!stage) {
-      console.warn('🎯 [setStep] Étape inconnue:', step)
-      return false
-    }
-
-    console.log('🎯 [setStep] Début - preadmissionId:', preadmissionId, 'step:', step, 'stage:', stage)
-
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-
-    // Mode développement - simulation
-    if (isLocalhost) {
-      console.log('🎯 [DEV MODE] setStep simulé - step:', step, 'stage:', stage)
-      return true
-    }
-
-    // Environnement Power Pages - appel API réel
-    const apiUrl = `/_api/serverlogics/setstep?preadmissionId=${encodeURIComponent(preadmissionId)}`
-
-    try {
-      await safeAjax(apiUrl, 'PUT', { Stage: stage })
-      console.log('✅ [setStep] Succès - step:', step, 'stage:', stage)
-      return true
-    } catch (error) {
-      console.error('❌ [setStep] Erreur:', error)
-      return false
     }
   }
 
@@ -589,6 +609,7 @@ export const useApi = () => {
     submitForm,
     extractDocumentData,
     validatePreadmissionLink,
-    setStep
+    setStep,
+    getPhoneLastDigits
   }
 }

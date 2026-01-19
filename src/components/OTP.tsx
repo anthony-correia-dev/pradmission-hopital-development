@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { Shield, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp'
@@ -5,6 +6,7 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { motion } from 'framer-motion'
 import { otpTranslations } from '@/locales'
+import { useApi } from '@/hooks/useApi'
 import {
   containerVariants,
   itemVariants,
@@ -20,15 +22,33 @@ interface OTPProps {
 
 export function OTP({ language, onNext, onBack }: OTPProps) {
   const t = otpTranslations[language]
+  const { getPhoneLastDigits } = useApi()
+  const [lastDigits, setLastDigits] = useState('XXXX')
 
   const {
     setValue,
     trigger,
     watch,
+    getValues,
     formState: { errors }
   } = useFormContext<FormData>()
 
   const otpCode = watch('otpCode')
+
+  // Récupérer les derniers chiffres au montage
+  useEffect(() => {
+    const fetchLastDigits = async () => {
+      const preadmissionId = getValues('preadmissionId')
+      if (preadmissionId) {
+        const digits = await getPhoneLastDigits(preadmissionId)
+        setLastDigits(digits)
+      }
+    }
+    fetchLastDigits()
+  }, [getPhoneLastDigits, getValues])
+
+  // Remplacer XXXX dans le subtitle
+  const subtitleWithPhone = t.subtitle.replace('XXXX', lastDigits)
 
   const handleChange = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 6)
@@ -60,7 +80,7 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
                 {t.title}
               </CardTitle>
               <CardDescription className="step-subtitle">
-                {t.subtitle}
+                {subtitleWithPhone}
               </CardDescription>
             </motion.div>
           </CardHeader>

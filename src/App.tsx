@@ -221,6 +221,8 @@ function App() {
         setLinkState('valid')
         // Stocker le GUID pour la soumission ultérieure
         updateFormData({ preadmissionId: id })
+        // ✅ Synchroniser aussi dans RHF pour que getValues('preadmissionId') fonctionne
+        rhfMethods.setValue('preadmissionId', id)
         console.log('🔗 [DEBUG] ====== FIN VALIDATION (VALID) ======')
       } else {
         setLinkState('invalid')

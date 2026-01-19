@@ -68,17 +68,24 @@ export function Security({ language, onNext, onBack }: SecurityProps) {
     setApiError('')
     try {
       const ok = await trigger('birthDate')
-      if (!ok) return
+      if (!ok) {
+        setLoading(false)
+        return
+      }
 
       const birthDate = getValues('birthDate')
-      const result = await verifyBirthDate(birthDate)
+      const preadmissionId = getValues('preadmissionId')
+      
+      // ✅ Appel API getbirth avec preadmissionId
+      const result = await verifyBirthDate(preadmissionId, birthDate)
+      
       if (result.success) {
         onNext()
       } else {
-        setApiError(result.message || t.invalid)
+        setApiError(result.message || t.invalidBirthDate)
       }
     } catch {
-      setApiError(t.invalid)
+      setApiError(t.invalidBirthDate)
     } finally {
       setLoading(false)
     }
