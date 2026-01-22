@@ -29,6 +29,7 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
   const [lastDigits, setLastDigits] = useState('XXXX')
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resendCountdown, setResendCountdown] = useState(30)
 
   const {
     setValue,
@@ -39,6 +40,16 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
   } = useFormContext<FormData>()
 
   const otpCode = watch('otpCode')
+
+  // Timer pour le compte à rebours du bouton Resend
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => {
+        setResendCountdown(prev => prev - 1)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [resendCountdown])
 
   // Récupérer les derniers chiffres ET envoyer l'OTP au montage (UNE SEULE FOIS par session)
   useEffect(() => {
@@ -68,6 +79,7 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
     const preadmissionId = getValues('preadmissionId')
     if (preadmissionId) {
       await sendOtp(preadmissionId)
+      setResendCountdown(30) // Reset le timer après envoi
     }
   }
 
@@ -163,9 +175,12 @@ export function OTP({ language, onNext, onBack }: OTPProps) {
                 variant="ghost"
                 className="w-full text-brand-primary hover:text-brand-primary-hover hover:bg-brand-primary/5"
                 onClick={handleResendOtp}
-                disabled={loading}
+                disabled={loading || resendCountdown > 0}
               >
-                {t.resend}
+                {resendCountdown > 0 
+                  ? t.resendIn.replace('{seconds}', String(resendCountdown))
+                  : t.resend
+                }
               </Button>
             </motion.div>
 

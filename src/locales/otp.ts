@@ -15,6 +15,7 @@ export const otpTranslations = {
     invalid: 'Code invalide (6 chiffres requis)',
     verifying: 'Vérification...',
     resend: 'Renvoyer le code',
+    resendIn: 'Renvoyer le code dans {seconds}s',
     invalidCode: 'Le code est incorrect',
     connectionError: 'Erreur de connexion, veuillez réessayer'
   },
@@ -29,6 +30,7 @@ export const otpTranslations = {
     invalid: 'Invalid code (6 digits required)',
     verifying: 'Verifying...',
     resend: 'Resend code',
+    resendIn: 'Resend code in {seconds}s',
     invalidCode: 'The code is incorrect',
     connectionError: 'Connection error, please try again'
   }

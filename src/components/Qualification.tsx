@@ -607,17 +607,6 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
               {/* 🎯 Boutons de navigation - CSS transitions only */}
               <div className="step-actions">
                 <Button
-                  type="button"
-                  onClick={onBack}
-                  variant="outline"
-                  size="lg"
-                  className="h-12 px-6 transition-transform active:scale-[0.98]"
-                  aria-label={t.back}
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  {t.back}
-                </Button>
-                <Button
                   type="submit"
                   size="lg"
                   className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-transform active:scale-[0.98]"
