@@ -1,0 +1,14 @@
+enablerating: false
+enabletracking: false
+excludefromsearch: true
+hiddenfromsitemap: true
+id: 04580d93-4813-4da7-9b12-adb712385339
+isroot: false
+name: Page Not Found
+pagetemplateid: c6dc41e5-97f4-4a65-a997-710ca744100f
+parentpageid: ef008755-38e4-4bdf-af3c-48d386cc2a77
+partialurl: page-not-found
+publishingstateid: ac0fc4a1-143e-4a2b-9348-56391fcbe1c9
+rootwebpageid: f4383ede-8518-4c1e-b942-f720d7fe1dde
+sharedpageconfiguration: false
+webpagelanguageid: 9884c874-fb23-4f2c-bd5d-f7913e7a9a32

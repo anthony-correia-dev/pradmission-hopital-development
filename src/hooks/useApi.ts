@@ -412,7 +412,9 @@ export const useApi = () => {
     // Mode développement - simulation
     if (isLocalhost) {
       await new Promise(resolve => setTimeout(resolve, 800))
-      const isValid = !birthDate.endsWith('-01')
+      // Date mock valide: 12.06.1989 (format ISO: 1989-06-12)
+      const isValid = birthDate === '1989-06-12'
+      console.log(`[DEV MODE] 🎂 Vérification date de naissance: ${birthDate} → ${isValid ? '✅ Valide' : '❌ Invalide'}`)
       return { 
         success: isValid, 
         message: isValid ? undefined : 'Date de naissance invalide' 
@@ -653,6 +655,41 @@ export const useApi = () => {
     file: File,
     fileType: 'id_card' | 'insurance_card'
   ): Promise<OCRDocumentResponse | OCRInsuranceResponse | null> => {
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+
+    // Mode développement - simulation avec données mock
+    if (isLocalhost) {
+      console.log(`[DEV MODE] 🔍 OCR Mock pour ${fileType}:`, file.name)
+      await new Promise(resolve => setTimeout(resolve, 1500)) // Simuler le temps de traitement OCR
+
+      if (fileType === 'id_card') {
+        const mockIdCard: OCRDocumentResponse = {
+          lastName: 'Dupont',
+          firstNames: 'Jean Pierre',
+          firstName: 'Jean Pierre',
+          gender: 'male',
+          nationality: 'CH'
+        }
+        console.log('[DEV MODE] 📄 Données ID Card mock:', mockIdCard)
+        return mockIdCard
+      } else {
+        const mockInsurance: OCRInsuranceResponse = {
+          street: 'Rue du Lac 15',
+          city: 'Genève',
+          zipCode: '1200',
+          country: 'CH',
+          avsNumber: '756.1234.5678.90',
+          kvgCardNumber: '80756012345678901234',
+          kvgInsuranceName: 'CSS Assurance',
+          vvgCardNumber: '80756098765432109876'
+        }
+        console.log('[DEV MODE] 🏥 Données Assurance mock:', mockInsurance)
+        return mockInsurance
+      }
+    }
+
     try {
       // Convertir le fichier en Base64
       const base64Data = await fileToBase64(file)
