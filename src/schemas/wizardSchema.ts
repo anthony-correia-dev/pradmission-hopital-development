@@ -51,6 +51,12 @@ export const createWizardSchema = (t: {
     consentMarketing: z.boolean().default(false),
     identityCard: z.instanceof(File).nullable().default(null),
     insuranceCard: z.instanceof(File).nullable().default(null),
+    
+    // 🎯 Documents Base64 (pré-calculés lors de l'OCR pour éviter double conversion)
+    identityCardBase64: z.string().optional().default(''),
+    identityCardMimeType: z.string().optional().default(''),
+    insuranceCardBase64: z.string().optional().default(''),
+    insuranceCardMimeType: z.string().optional().default(''),
 
     // Admin: non-bloquant par défaut (validé à l'étape Admin)
     firstName: z.string().optional().default(''),

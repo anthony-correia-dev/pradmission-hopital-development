@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
-import { User, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
+import { User, ArrowRight, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
 import { CountryCombobox } from './CountryCombobox'
 import { DoctorCombobox } from './DoctorCombobox'
 import { getCountries } from '../lib/countries'
@@ -10,6 +10,7 @@ import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { adminTranslations } from '@/locales'
+import { useApi } from '../hooks/useApi'
 import type { FormData as WizardFormData } from '../hooks/useWizard'
 
 interface AdminProps {
@@ -21,7 +22,9 @@ interface AdminProps {
 export function Admin({ language, onNext, onBack }: AdminProps) {
   const t = adminTranslations[language]
   const [accidentDateInput, setAccidentDateInput] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const countries = getCountries(language)
+  const { submitPreadmission } = useApi()
 
   const {
     control,
@@ -30,13 +33,13 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
     setValue,
     trigger,
     watch,
+    getValues,
     formState: { errors }
   } = useFormContext<WizardFormData>()
 
   const reason = watch('reason')
   const insurance = watch('insurance')
   const hasEmployer = watch('hasEmployer')
-
   const firstNameValue = (watch('firstName') ?? '') as string
   const lastNameValue = (watch('lastName') ?? '') as string
 
@@ -137,7 +140,18 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
     const ok = await trigger()
     if (!ok) return
 
-    onNext()
+    setIsSubmitting(true)
+
+    try {
+      const formData = getValues()
+      await submitPreadmission(formData)
+      onNext()
+    } catch (error) {
+      console.error('❌ [Admin] Erreur soumission:', error)
+      onNext() // On passe à l'étape success même en cas d'erreur
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const formatAvsNumber = (value: string) => {
@@ -825,17 +839,28 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                 variant="outline"
                 size="lg"
                 className="h-12 px-6 active-scale"
+                disabled={isSubmitting}
               >
                 <ArrowLeft className="w-5 h-5" />
                 {t.back}
               </Button>
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 size="lg"
-                className="group flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white active-scale"
+                className="flex-1 h-12 px-6 bg-brand-primary hover:bg-brand-primary-hover text-white transition-transform active:scale-[0.98]"
               >
-                {t.continue}
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {t.submitting}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    {t.continue}
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
+                )}
               </Button>
             </div>
           </form>

@@ -15,7 +15,7 @@ import { Label } from './ui/label'
 import { FileUpload } from './ui/file-upload'
 import { qualificationTranslations } from '../locales/qualification'
 import { motion, type Variants, AnimatePresence } from 'framer-motion'
-import { useApi, type OCRDocumentResponse, type OCRInsuranceResponse } from '../hooks/useApi'
+import { useApi, type OCRDocumentResponse, type OCRInsuranceResponse, fileToBase64 } from '../hooks/useApi'
 import { getCountryNameByCode } from '../lib/countries'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { ANIMATION } from '@/lib/animations'
@@ -183,6 +183,11 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
         setOcrError(null)
 
         try {
+          // 🎯 Convertir en Base64 une seule fois et stocker dans le state
+          const base64 = await fileToBase64(file)
+          setValue('identityCardBase64', base64)
+          setValue('identityCardMimeType', file.type)
+
           const ocrData = await extractDocumentData(file, 'id_card')
 
           // 🎯 Type guard: vérifier que c'est bien une réponse d'identité
@@ -209,6 +214,10 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
           setIsOCRProcessing(false)
         }
       } else {
+        // 🎯 Nettoyage des champs Base64 si fichier retiré
+        setValue('identityCardBase64', '')
+        setValue('identityCardMimeType', '')
+        
         const cleared = {
           firstName: '',
           lastName: '',
@@ -233,6 +242,11 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
         setOcrError(null)
 
         try {
+          // 🎯 Convertir en Base64 une seule fois et stocker dans le state
+          const base64 = await fileToBase64(file)
+          setValue('insuranceCardBase64', base64)
+          setValue('insuranceCardMimeType', file.type)
+
           console.log('[Qualification] 📄 Début extraction OCR carte d\'assurance...')
           const ocrData = await extractDocumentData(file, 'insurance_card')
 
@@ -271,6 +285,10 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
           setIsOCRProcessing(false)
         }
       } else {
+        // 🎯 Nettoyage des champs Base64 si fichier retiré
+        setValue('insuranceCardBase64', '')
+        setValue('insuranceCardMimeType', '')
+        
         // Nettoyage des champs si fichier retiré
         const cleared = {
           street: '',

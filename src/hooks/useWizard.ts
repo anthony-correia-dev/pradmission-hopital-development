@@ -14,6 +14,11 @@ export interface FormData {
   consentMarketing: boolean
   identityCard: File | null
   insuranceCard: File | null
+  // 🎯 Documents Base64 (pré-calculés lors de l'OCR pour éviter double conversion)
+  identityCardBase64: string
+  identityCardMimeType: string
+  insuranceCardBase64: string
+  insuranceCardMimeType: string
   firstName: string
   lastName: string
   birthDatePersonal: string
@@ -56,6 +61,10 @@ const getDefaultFormData = (): FormData => ({
   consentMarketing: false,
   identityCard: null,
   insuranceCard: null,
+  identityCardBase64: '',
+  identityCardMimeType: '',
+  insuranceCardBase64: '',
+  insuranceCardMimeType: '',
   firstName: '',
   lastName: '',
   birthDatePersonal: '',

@@ -53,6 +53,100 @@ interface GetPhoneResponse {
   lastDigits: string
 }
 
+// 🎯 Configuration des Cloud Flows (depuis getflows)
+interface GetConfigResponse {
+  status: 'success' | 'error'
+  data?: CloudFlowConfig
+  message?: string
+}
+
+interface CloudFlowConfig {
+  identityDoc: string    // Trigger ID OCR carte d'identité
+  insuranceDoc: string   // Trigger ID OCR carte d'assurance
+  submitflow: string     // Trigger ID soumission formulaire
+}
+
+// 🎯 Cache de la configuration Cloud Flow (chargée une seule fois)
+let cloudFlowConfigCache: CloudFlowConfig | null = null
+let configLoadingPromise: Promise<CloudFlowConfig | null> | null = null
+
+/**
+ * 🎯 Récupère la configuration des Cloud Flows via la Server Logic getflows
+ * Utilise un cache en mémoire pour éviter les appels multiples
+ */
+const getCloudFlowConfig = async (): Promise<CloudFlowConfig | null> => {
+  // Retourner le cache si disponible
+  if (cloudFlowConfigCache) {
+    return cloudFlowConfigCache
+  }
+
+  // Éviter les appels concurrents (singleton pattern)
+  if (configLoadingPromise) {
+    return configLoadingPromise
+  }
+
+  // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+  const isLocalhost = window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1'
+
+  // Mode développement - simulation avec valeurs des variables d'env
+  if (isLocalhost) {
+    configLoadingPromise = new Promise(resolve => {
+      setTimeout(() => {
+        const mockConfig: CloudFlowConfig = {
+          identityDoc: OCR_IDENTITY_TRIGGER_ID || 'mock-identity-trigger',
+          insuranceDoc: OCR_INSURANCE_TRIGGER_ID || 'mock-insurance-trigger',
+          submitflow: 'mock-submit-trigger'
+        }
+        console.log('[DEV MODE] ⚙️ Configuration Cloud Flow mock:', mockConfig)
+        cloudFlowConfigCache = mockConfig
+        resolve(mockConfig)
+      }, 100)
+    })
+    return configLoadingPromise
+  }
+
+  const apiUrl = '/_api/serverlogics/getflows'
+
+  configLoadingPromise = (async () => {
+    try {
+      const response = await safeAjax(apiUrl, 'GET') as ServerLogicResponse<string>
+
+      if (!response.success) {
+        console.error('❌ [getCloudFlowConfig] Réponse non réussie')
+        return null
+      }
+
+      // Parser le champ data (JSON stringifié)
+      const parsedData: GetConfigResponse = typeof response.data === 'string'
+        ? JSON.parse(response.data)
+        : response.data as unknown as GetConfigResponse
+
+      if (parsedData.status !== 'success' || !parsedData.data) {
+        console.error('❌ [getCloudFlowConfig] Erreur:', parsedData.message)
+        return null
+      }
+
+      // Stocker en cache
+      cloudFlowConfigCache = parsedData.data
+      console.log('✅ [getCloudFlowConfig] Configuration chargée:', cloudFlowConfigCache)
+
+      return cloudFlowConfigCache
+
+    } catch (error) {
+      console.error('❌ [getCloudFlowConfig] Erreur:', error)
+      return null
+    } finally {
+      // Reset le promise pour permettre un retry en cas d'erreur
+      if (!cloudFlowConfigCache) {
+        configLoadingPromise = null
+      }
+    }
+  })()
+
+  return configLoadingPromise
+}
+
 // 🎯 OCR Insurance Cloud Flow Types
 // Réponse brute du Cloud Flow pour carte d'assurance (format snake_case)
 interface OCRInsuranceCloudFlowResponse {
@@ -76,6 +170,69 @@ export interface OCRInsuranceResponse {
   kvgCardNumber: string   // Numéro de carte KVG
   kvgInsuranceName: string // Nom de la caisse KVG (capitalisé)
   vvgCardNumber: string   // Numéro de carte VVG
+}
+
+// 🎯 Submit Payload - Structure fixe avec tous les champs
+export interface SubmitPayload {
+  // Identifiant
+  preadmissionId: string
+
+  // Qualification
+  reason: 'illness' | 'accident' | ''
+  insurance: 'swiss' | 'international' | 'auto' | ''
+  hasEmployer: boolean
+  consentNLPD: boolean
+  consentMarketing: boolean
+
+  // Documents (Base64 + MIME Type)
+  identityCardBase64: string
+  identityCardMimeType: string
+  insuranceCardBase64: string
+  insuranceCardMimeType: string
+
+  // Informations personnelles
+  firstName: string
+  lastName: string
+  gender: string
+  nationality: string
+
+  // Adresse
+  street: string
+  npa: string
+  city: string
+  country: string
+
+  // Contact
+  email: string
+
+  // Employeur
+  profession: string
+  employerName: string
+  employerAddress: string
+
+  // Médecins
+  referringDoctor: string
+  generalPractitioner: string
+
+  // Accident
+  accidentDate: string
+  accidentInsurance: string
+  claimNumber: string
+
+  // Assurance
+  avsNumber: string
+  basicInsurance: string
+  cardNumber: string
+  policyNumber: string
+  complementaryInsurance: string
+}
+
+// 🎯 Submit Response
+export interface SubmitResponse {
+  status: 'success' | 'error'
+  message?: string
+  confirmationNumber?: string
+  errorCode?: 'VALIDATION_ERROR' | 'DUPLICATE_SUBMISSION' | 'EXPIRED_LINK' | 'SYSTEM_ERROR'
 }
 
 // 🎯 OCR Cloud Flow Trigger IDs (depuis variables d'environnement)
@@ -299,8 +456,8 @@ const safeAjaxCloudFlow = async (
   return result
 }
 
-// 🎯 Convertit un fichier en Base64
-const fileToBase64 = (file: File): Promise<string> => {
+// 🎯 Convertit un fichier en Base64 (exporté pour usage externe)
+export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.readAsDataURL(file)
@@ -648,6 +805,151 @@ export const useApi = () => {
   }
 
   /**
+   * 🎯 Soumet la préadmission avec toutes les données collectées
+   * Appelle le Cloud Flow submitflow avec le payload complet
+   * Utilise les Base64 pré-calculés lors de l'OCR (pas de double conversion)
+   * @param formData - Données du wizard (WizardFormData)
+   */
+  const submitPreadmission = async (
+    formData: {
+      preadmissionId?: string
+      reason: 'illness' | 'accident' | ''
+      insurance: 'swiss' | 'international' | 'auto' | ''
+      hasEmployer: boolean
+      consentNLPD: boolean
+      consentMarketing: boolean
+      // 🎯 Base64 pré-calculés (depuis Qualification)
+      identityCardBase64?: string
+      identityCardMimeType?: string
+      insuranceCardBase64?: string
+      insuranceCardMimeType?: string
+      firstName: string
+      lastName: string
+      gender: string
+      nationality: string
+      street: string
+      npa: string
+      city: string
+      country: string
+      email: string
+      profession: string
+      employerName: string
+      employerAddress: string
+      referringDoctor: string
+      generalPractitioner: string
+      accidentDate: string
+      accidentInsurance: string
+      claimNumber: string
+      avsNumber: string
+      basicInsurance: string
+      cardNumber: string
+      policyNumber: string
+      complementaryInsurance: string
+    }
+  ): Promise<SubmitResponse> => {
+    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1'
+
+    // Mode développement - simulation
+    if (isLocalhost) {
+      console.log('[DEV MODE] 📤 Soumission préadmission:', formData)
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      return {
+        status: 'success',
+        message: 'Préadmission mock soumise avec succès',
+        confirmationNumber: 'PREAD-MOCK-' + Date.now()
+      }
+    }
+
+    try {
+      // 1. Récupérer la configuration Cloud Flow
+      const config = await getCloudFlowConfig()
+      if (!config) {
+        return { 
+          status: 'error', 
+          message: 'Configuration non disponible',
+          errorCode: 'SYSTEM_ERROR'
+        }
+      }
+
+      // 2. Construire le payload (utilise les Base64 pré-calculés - pas de double conversion)
+      const payload: SubmitPayload = {
+        preadmissionId: formData.preadmissionId ?? '',
+        
+        // Qualification
+        reason: formData.reason,
+        insurance: formData.insurance,
+        hasEmployer: formData.hasEmployer,
+        consentNLPD: formData.consentNLPD,
+        consentMarketing: formData.consentMarketing,
+        
+        // 🎯 Documents (Base64 pré-calculés dans Qualification)
+        identityCardBase64: formData.identityCardBase64 ?? '',
+        identityCardMimeType: formData.identityCardMimeType ?? '',
+        insuranceCardBase64: formData.insuranceCardBase64 ?? '',
+        insuranceCardMimeType: formData.insuranceCardMimeType ?? '',
+        
+        // Informations personnelles
+        firstName: formData.firstName ?? '',
+        lastName: formData.lastName ?? '',
+        gender: formData.gender ?? '',
+        nationality: formData.nationality ?? '',
+        
+        // Adresse
+        street: formData.street ?? '',
+        npa: formData.npa ?? '',
+        city: formData.city ?? '',
+        country: formData.country ?? '',
+        
+        // Contact
+        email: formData.email ?? '',
+        
+        // Employeur
+        profession: formData.profession ?? '',
+        employerName: formData.employerName ?? '',
+        employerAddress: formData.employerAddress ?? '',
+        
+        // Médecins
+        referringDoctor: formData.referringDoctor ?? '',
+        generalPractitioner: formData.generalPractitioner ?? '',
+        
+        // Accident
+        accidentDate: formData.accidentDate ?? '',
+        accidentInsurance: formData.accidentInsurance ?? '',
+        claimNumber: formData.claimNumber ?? '',
+        
+        // Assurance
+        avsNumber: formData.avsNumber ?? '',
+        basicInsurance: formData.basicInsurance ?? '',
+        cardNumber: formData.cardNumber ?? '',
+        policyNumber: formData.policyNumber ?? '',
+        complementaryInsurance: formData.complementaryInsurance ?? ''
+      }
+
+      // 3. Wrapper le payload dans la propriété "json" attendue par le Cloud Flow
+      // Le trigger Power Pages attend: { json: "..." } où json est le payload stringifié
+      const wrappedPayload = {
+        json: JSON.stringify(payload)
+      }
+
+      // 4. Appeler le Cloud Flow
+      const response = await safeAjaxCloudFlow(config.submitflow, wrappedPayload)
+      
+      // 5. Parser et retourner la réponse
+      return response as SubmitResponse
+
+    } catch (error) {
+      console.error('❌ [submitPreadmission] Erreur:', error)
+      return { 
+        status: 'error', 
+        message: 'Erreur lors de la soumission',
+        errorCode: 'SYSTEM_ERROR'
+      }
+    }
+  }
+
+  /**
    * 🎯 Extrait les données d'un document via OCR Cloud Flow
    * Retourne OCRDocumentResponse pour id_card, OCRInsuranceResponse pour insurance_card
    */
@@ -691,14 +993,21 @@ export const useApi = () => {
     }
 
     try {
+      // 🎯 Récupérer la configuration dynamique des Cloud Flows
+      const config = await getCloudFlowConfig()
+      if (!config) {
+        console.error('❌ OCR: Configuration Cloud Flow non disponible')
+        return null
+      }
+
       // Convertir le fichier en Base64
       const base64Data = await fileToBase64(file)
       
       // Mapper le fileType vers le format attendu par le Cloud Flow
       const docType: 'identityid' | 'insuranceid' = fileType === 'id_card' ? 'identityid' : 'insuranceid'
 
-      // Utiliser safeAjaxCloudFlow pour les appels Cloud Flow
-      const triggerId = fileType === 'id_card' ? OCR_IDENTITY_TRIGGER_ID : OCR_INSURANCE_TRIGGER_ID
+      // 🎯 Utiliser les trigger IDs depuis la config dynamique
+      const triggerId = fileType === 'id_card' ? config.identityDoc : config.insuranceDoc
       const rawResponse = await safeAjaxCloudFlow(triggerId, { doc: docType, base64: base64Data })
 
       // Mapper selon le type de document
@@ -720,6 +1029,7 @@ export const useApi = () => {
     verifyBirthDate,
     verifyOTP,
     submitForm,
+    submitPreadmission,
     extractDocumentData,
     validatePreadmissionLink,
     setStep,
