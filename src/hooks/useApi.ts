@@ -1,3 +1,5 @@
+import { useCallback, useMemo } from 'react'
+
 // 🎯 OCR Cloud Flow Types - Format correspondant au Cloud Flow
 export interface OCRDocumentRequest {
   doc: 'identityid' | 'insuranceid'
@@ -549,27 +551,27 @@ const mapInsuranceCloudFlowResponse = (
 }
 
 export const useApi = () => {
-  const postData = async (triggerId: string, payload: unknown): Promise<unknown> => {
+  /**
+   * 🎯 Toutes les fonctions sont mémorisées avec useCallback pour éviter les re-renders
+   * et les boucles infinies dans les useEffect des composants consommateurs
+   */
+
+  const postData = useCallback(async (triggerId: string, payload: unknown): Promise<unknown> => {
     return safeAjaxPost(triggerId, payload)
-  }
+  }, [])
 
   /**
    * 🎯 Vérifie la date de naissance via la Server Logic getbirth
-   * @param preadmissionId - GUID de la préadmission
-   * @param birthDate - Date au format ISO (YYYY-MM-DD) - sera convertie en DD/MM/YYYY
    */
-  const verifyBirthDate = async (
+  const verifyBirthDate = useCallback(async (
     preadmissionId: string,
     birthDate: string
   ): Promise<{ success: boolean; message?: string }> => {
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
     const isLocalhost = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1'
 
-    // Mode développement - simulation
     if (isLocalhost) {
       await new Promise(resolve => setTimeout(resolve, 800))
-      // Date mock valide: 12.06.1989 (format ISO: 1989-06-12)
       const isValid = birthDate === '1989-06-12'
       console.log(`[DEV MODE] 🎂 Vérification date de naissance: ${birthDate} → ${isValid ? '✅ Valide' : '❌ Invalide'}`)
       return { 
@@ -578,10 +580,8 @@ export const useApi = () => {
       }
     }
 
-    // Convertir ISO (YYYY-MM-DD) → DD/MM/YYYY pour l'API
     const [year, month, day] = birthDate.split('-')
     const formattedDate = `${day}/${month}/${year}`
-
     const apiUrl = `/_api/serverlogics/getbirth?preadmissionId=${encodeURIComponent(preadmissionId)}`
 
     try {
@@ -591,7 +591,6 @@ export const useApi = () => {
         return { success: false, message: 'Erreur de validation' }
       }
 
-      // Parser le champ data (JSON stringifié)
       const parsedData: GetBirthResponse = typeof response.data === 'string' 
         ? JSON.parse(response.data) 
         : response.data as unknown as GetBirthResponse
@@ -605,18 +604,15 @@ export const useApi = () => {
       console.error('❌ [verifyBirthDate] Erreur:', error)
       return { success: false, message: 'Erreur de connexion' }
     }
-  }
+  }, [])
 
   /**
    * 🎯 Valide un lien de préadmission via la Server Logic getpread
-   * @param preadmissionId - GUID de la préadmission
    */
-  const validatePreadmissionLink = async (preadmissionId: string): Promise<boolean> => {
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+  const validatePreadmissionLink = useCallback(async (preadmissionId: string): Promise<boolean> => {
     const isLocalhost = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1'
     
-    // Mode développement - simulation (uniquement sur localhost)
     if (isLocalhost) {
       await new Promise(resolve => setTimeout(resolve, 800))
       return !!preadmissionId && preadmissionId !== 'invalid'
@@ -631,7 +627,6 @@ export const useApi = () => {
         return false
       }
       
-      // Parser le champ data (JSON stringifié)
       const parsedData: GetPreadResponse = typeof response.data === 'string'
         ? JSON.parse(response.data)
         : response.data as unknown as GetPreadResponse
@@ -642,15 +637,12 @@ export const useApi = () => {
       console.error('❌ [validatePreadmissionLink] Erreur:', error)
       return false
     }
-  }
+  }, [])
 
   /**
    * 🎯 Met à jour l'étape courante de la préadmission
-   * @param preadmissionId - GUID de la préadmission
-   * @param step - Nom de l'étape wizard
    */
-  const setStep = async (preadmissionId: string, step: string): Promise<boolean> => {
-    // Ignorer l'étape loading
+  const setStep = useCallback(async (preadmissionId: string, step: string): Promise<boolean> => {
     if (step === 'loading') {
       return true
     }
@@ -661,11 +653,9 @@ export const useApi = () => {
       return false
     }
 
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
     const isLocalhost = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1'
 
-    // Mode développement - simulation
     if (isLocalhost) {
       return true
     }
@@ -679,19 +669,15 @@ export const useApi = () => {
       console.error('❌ [setStep] Erreur:', error)
       return false
     }
-  }
+  }, [])
 
   /**
    * 🎯 Récupère les 4 derniers chiffres du téléphone via la Server Logic getphone
-   * @param preadmissionId - GUID de la préadmission
-   * @returns Les 4 derniers chiffres ou "XXXX" en cas d'erreur
    */
-  const getPhoneLastDigits = async (preadmissionId: string): Promise<string> => {
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+  const getPhoneLastDigits = useCallback(async (preadmissionId: string): Promise<string> => {
     const isLocalhost = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1'
 
-    // Mode développement - simulation
     if (isLocalhost) {
       await new Promise(resolve => setTimeout(resolve, 300))
       return '1234'
@@ -706,7 +692,6 @@ export const useApi = () => {
         return 'XXXX'
       }
 
-      // Parser le champ data (JSON stringifié)
       const parsedData: GetPhoneResponse = typeof response.data === 'string'
         ? JSON.parse(response.data)
         : response.data as unknown as GetPhoneResponse
@@ -717,19 +702,15 @@ export const useApi = () => {
       console.error('❌ [getPhoneLastDigits] Erreur:', error)
       return 'XXXX'
     }
-  }
+  }, [])
 
   /**
    * 🎯 Envoie un code OTP par SMS via le Cloud Flow sendOtp
-   * @param preadmissionId - GUID de la préadmission
-   * @returns true si l'envoi a réussi, false sinon
    */
-  const sendOtp = async (preadmissionId: string): Promise<boolean> => {
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
+  const sendOtp = useCallback(async (preadmissionId: string): Promise<boolean> => {
     const isLocalhost = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1'
 
-    // Mode développement - simulation
     if (isLocalhost) {
       await new Promise(resolve => setTimeout(resolve, 500))
       return true
@@ -742,25 +723,20 @@ export const useApi = () => {
       console.error('❌ [sendOtp] Erreur:', error)
       return false
     }
-  }
+  }, [])
 
   /**
    * 🎯 Vérifie le code OTP via le Cloud Flow verifyOtp
-   * @param preadmissionId - GUID de la préadmission
-   * @param code - Code OTP à 6 chiffres
    */
-  const verifyOTP = async (
+  const verifyOTP = useCallback(async (
     preadmissionId: string,
     code: string
   ): Promise<{ success: boolean; message?: string }> => {
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
     const isLocalhost = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1'
 
-    // Mode développement - simulation
     if (isLocalhost) {
       await new Promise(resolve => setTimeout(resolve, 800))
-      // Simulation: accepte le code "123456" uniquement
       const isValid = code === '123456'
       return { 
         success: isValid, 
@@ -774,9 +750,6 @@ export const useApi = () => {
         code 
       })
 
-      // Le Cloud Flow retourne { "json": "True" } en cas de succès
-      // safeAjaxCloudFlow parse automatiquement la propriété 'json'
-      // Peut retourner: "True" (string), true (boolean), ou { json: "True", isValid: true }
       let isValid = false
       
       if (typeof response === 'string') {
@@ -797,20 +770,17 @@ export const useApi = () => {
       console.error('❌ [verifyOTP] Erreur:', error)
       return { success: false, message: 'Erreur de connexion' }
     }
-  }
+  }, [])
 
-  const submitForm = async (formData: unknown): Promise<{ success: boolean; message?: string }> => {
-    const result = await postData('submit-preadmission', formData)
+  const submitForm = useCallback(async (formData: unknown): Promise<{ success: boolean; message?: string }> => {
+    const result = await safeAjaxPost('submit-preadmission', formData)
     return result as { success: boolean; message?: string }
-  }
+  }, [])
 
   /**
    * 🎯 Soumet la préadmission avec toutes les données collectées
-   * Appelle le Cloud Flow submitflow avec le payload complet
-   * Utilise les Base64 pré-calculés lors de l'OCR (pas de double conversion)
-   * @param formData - Données du wizard (WizardFormData)
    */
-  const submitPreadmission = async (
+  const submitPreadmission = useCallback(async (
     formData: {
       preadmissionId?: string
       reason: 'illness' | 'accident' | ''
@@ -818,7 +788,6 @@ export const useApi = () => {
       hasEmployer: boolean
       consentNLPD: boolean
       consentMarketing: boolean
-      // 🎯 Base64 pré-calculés (depuis Qualification)
       identityCardBase64?: string
       identityCardMimeType?: string
       insuranceCardBase64?: string
@@ -847,11 +816,9 @@ export const useApi = () => {
       complementaryInsurance: string
     }
   ): Promise<SubmitResponse> => {
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
     const isLocalhost = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1'
 
-    // Mode développement - simulation
     if (isLocalhost) {
       console.log('[DEV MODE] 📤 Soumission préadmission:', formData)
       await new Promise(resolve => setTimeout(resolve, 1500))
@@ -863,7 +830,6 @@ export const useApi = () => {
     }
 
     try {
-      // 1. Récupérer la configuration Cloud Flow
       const config = await getCloudFlowConfig()
       if (!config) {
         return { 
@@ -873,53 +839,34 @@ export const useApi = () => {
         }
       }
 
-      // 2. Construire le payload (utilise les Base64 pré-calculés - pas de double conversion)
       const payload: SubmitPayload = {
         preadmissionId: formData.preadmissionId ?? '',
-        
-        // Qualification
         reason: formData.reason,
         insurance: formData.insurance,
         hasEmployer: formData.hasEmployer,
         consentNLPD: formData.consentNLPD,
         consentMarketing: formData.consentMarketing,
-        
-        // 🎯 Documents (Base64 pré-calculés dans Qualification)
         identityCardBase64: formData.identityCardBase64 ?? '',
         identityCardMimeType: formData.identityCardMimeType ?? '',
         insuranceCardBase64: formData.insuranceCardBase64 ?? '',
         insuranceCardMimeType: formData.insuranceCardMimeType ?? '',
-        
-        // Informations personnelles
         firstName: formData.firstName ?? '',
         lastName: formData.lastName ?? '',
         gender: formData.gender ?? '',
         nationality: formData.nationality ?? '',
-        
-        // Adresse
         street: formData.street ?? '',
         npa: formData.npa ?? '',
         city: formData.city ?? '',
         country: formData.country ?? '',
-        
-        // Contact
         email: formData.email ?? '',
-        
-        // Employeur
         profession: formData.profession ?? '',
         employerName: formData.employerName ?? '',
         employerAddress: formData.employerAddress ?? '',
-        
-        // Médecins
         referringDoctor: formData.referringDoctor ?? '',
         generalPractitioner: formData.generalPractitioner ?? '',
-        
-        // Accident
         accidentDate: formData.accidentDate ?? '',
         accidentInsurance: formData.accidentInsurance ?? '',
         claimNumber: formData.claimNumber ?? '',
-        
-        // Assurance
         avsNumber: formData.avsNumber ?? '',
         basicInsurance: formData.basicInsurance ?? '',
         cardNumber: formData.cardNumber ?? '',
@@ -927,16 +874,12 @@ export const useApi = () => {
         complementaryInsurance: formData.complementaryInsurance ?? ''
       }
 
-      // 3. Wrapper le payload dans la propriété "json" attendue par le Cloud Flow
-      // Le trigger Power Pages attend: { json: "..." } où json est le payload stringifié
       const wrappedPayload = {
         json: JSON.stringify(payload)
       }
 
-      // 4. Appeler le Cloud Flow
       const response = await safeAjaxCloudFlow(config.submitflow, wrappedPayload)
       
-      // 5. Parser et retourner la réponse
       return response as SubmitResponse
 
     } catch (error) {
@@ -947,24 +890,21 @@ export const useApi = () => {
         errorCode: 'SYSTEM_ERROR'
       }
     }
-  }
+  }, [])
 
   /**
    * 🎯 Extrait les données d'un document via OCR Cloud Flow
-   * Retourne OCRDocumentResponse pour id_card, OCRInsuranceResponse pour insurance_card
    */
-  const extractDocumentData = async (
+  const extractDocumentData = useCallback(async (
     file: File,
     fileType: 'id_card' | 'insurance_card'
   ): Promise<OCRDocumentResponse | OCRInsuranceResponse | null> => {
-    // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
     const isLocalhost = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1'
 
-    // Mode développement - simulation avec données mock
     if (isLocalhost) {
       console.log(`[DEV MODE] 🔍 OCR Mock pour ${fileType}:`, file.name)
-      await new Promise(resolve => setTimeout(resolve, 1500)) // Simuler le temps de traitement OCR
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
       if (fileType === 'id_card') {
         const mockIdCard: OCRDocumentResponse = {
@@ -993,24 +933,17 @@ export const useApi = () => {
     }
 
     try {
-      // 🎯 Récupérer la configuration dynamique des Cloud Flows
       const config = await getCloudFlowConfig()
       if (!config) {
         console.error('❌ OCR: Configuration Cloud Flow non disponible')
         return null
       }
 
-      // Convertir le fichier en Base64
       const base64Data = await fileToBase64(file)
-      
-      // Mapper le fileType vers le format attendu par le Cloud Flow
       const docType: 'identityid' | 'insuranceid' = fileType === 'id_card' ? 'identityid' : 'insuranceid'
-
-      // 🎯 Utiliser les trigger IDs depuis la config dynamique
       const triggerId = fileType === 'id_card' ? config.identityDoc : config.insuranceDoc
       const rawResponse = await safeAjaxCloudFlow(triggerId, { doc: docType, base64: base64Data })
 
-      // Mapper selon le type de document
       if (fileType === 'insurance_card') {
         const mappedResponse = mapInsuranceCloudFlowResponse(rawResponse as OCRInsuranceCloudFlowResponse)
         return mappedResponse
@@ -1022,9 +955,10 @@ export const useApi = () => {
       console.error('❌ OCR: Erreur lors de l\'extraction:', error)
       return null
     }
-  }
+  }, [])
 
-  return {
+  // 🎯 Retourner un objet stable avec useMemo pour éviter les re-renders
+  return useMemo(() => ({
     postData,
     verifyBirthDate,
     verifyOTP,
@@ -1035,5 +969,16 @@ export const useApi = () => {
     setStep,
     getPhoneLastDigits,
     sendOtp
-  }
+  }), [
+    postData,
+    verifyBirthDate,
+    verifyOTP,
+    submitForm,
+    submitPreadmission,
+    extractDocumentData,
+    validatePreadmissionLink,
+    setStep,
+    getPhoneLastDigits,
+    sendOtp
+  ])
 }

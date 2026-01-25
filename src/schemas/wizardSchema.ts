@@ -135,8 +135,91 @@ export const createWizardSchema = (t: {
       }
     }
 
-    // --- Admin validation: uniquement quand on est à l'étape Admin ---
-    // (Déclenché par trigger([...]) dans Admin, pas ici globalement)
+    // --- Admin validation ---
+    // Champs obligatoires de base
+    if (!data.firstName) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['firstName'], message: t.admin.required })
+    }
+    if (!data.lastName) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['lastName'], message: t.admin.required })
+    }
+    if (!data.gender) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['gender'], message: t.admin.required })
+    }
+    if (!data.nationality) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['nationality'], message: t.admin.required })
+    }
+    if (!data.street) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['street'], message: t.admin.required })
+    }
+    if (!data.npa) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['npa'], message: t.admin.required })
+    } else if (!/^\d+$/.test(data.npa)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['npa'], message: t.admin.invalidNpa })
+    }
+    if (!data.city) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['city'], message: t.admin.required })
+    }
+    if (!data.country) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['country'], message: t.admin.required })
+    }
+    if (!data.email) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['email'], message: t.admin.required })
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['email'], message: t.admin.invalidEmail })
+    }
+
+    // Champs conditionnels: Employeur (si hasEmployer === true)
+    if (data.hasEmployer) {
+      if (!data.profession) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['profession'], message: t.admin.required })
+      }
+      if (!data.employerName) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['employerName'], message: t.admin.required })
+      }
+      if (!data.employerAddress) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['employerAddress'], message: t.admin.required })
+      }
+    }
+
+    // Champs conditionnels: Accident (si reason === 'accident')
+    if (data.reason === 'accident') {
+      if (!data.accidentDate) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['accidentDate'], message: t.admin.required })
+      } else if (!isValidDate(data.accidentDate)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['accidentDate'], message: t.admin.invalidDate })
+      }
+    }
+
+    // Champs conditionnels: AVS (si insurance === 'swiss')
+    if (data.insurance === 'swiss') {
+      if (!data.avsNumber) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['avsNumber'], message: t.admin.required })
+      } else if (!/^\d{13}$/.test(data.avsNumber.replace(/\./g, ''))) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['avsNumber'], message: t.admin.invalidAvsNumber })
+      }
+    }
+
+    // Champs conditionnels: Assurance de base (si swiss, international, ou accident+auto)
+    const needsBasicInsurance = data.insurance === 'swiss' || data.insurance === 'international' || (data.reason === 'accident' && data.insurance === 'auto')
+    if (needsBasicInsurance && !data.basicInsurance) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['basicInsurance'], message: t.admin.required })
+    }
+
+    // Champs conditionnels: Numéro de carte (si swiss, international, ou accident+auto)
+    const needsCardNumber = data.insurance === 'swiss' || data.insurance === 'international' || (data.reason === 'accident' && data.insurance === 'auto')
+    if (needsCardNumber) {
+      if (!data.cardNumber) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['cardNumber'], message: t.admin.required })
+      } else if (!/^\d{20}$/.test(data.cardNumber.replace(/\s/g, '').replace(/\./g, ''))) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['cardNumber'], message: t.admin.invalidCardNumber })
+      }
+    }
+
+    // Champs conditionnels: Numéro de police (si international)
+    if (data.insurance === 'international' && !data.policyNumber) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['policyNumber'], message: t.admin.required })
+    }
   })
 }
 

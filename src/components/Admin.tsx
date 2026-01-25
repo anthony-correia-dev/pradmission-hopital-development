@@ -66,43 +66,30 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
   const policyNumberRef = useRef<HTMLDivElement>(null)
   const complementaryInsuranceRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (Object.keys(errors).length > 0) {
-      const firstErrorField = Object.keys(errors)[0]
-      const refMap: Record<string, React.RefObject<HTMLDivElement | null>> = {
-        firstName: firstNameRef,
-        lastName: lastNameRef,
-        gender: genderRef,
-        nationality: nationalityRef,
-        street: streetRef,
-        npa: npaRef,
-        city: cityRef,
-        country: countryRef,
-        email: emailRef,
-        profession: professionRef,
-        employerName: employerNameRef,
-        employerAddress: employerAddressRef,
-        referringDoctor: referringDoctorRef,
-        generalPractitioner: generalPractitionerRef,
-        accidentDate: accidentDateRef,
-        accidentInsurance: accidentInsuranceRef,
-        claimNumber: claimNumberRef,
-        avsNumber: avsNumberRef,
-        basicInsurance: basicInsuranceRef,
-        cardNumber: cardNumberRef,
-        policyNumber: policyNumberRef,
-        complementaryInsurance: complementaryInsuranceRef
-      }
-
-      const targetRef = refMap[firstErrorField]
-      if (targetRef?.current) {
-        targetRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        })
-      }
-    }
-  }, [errors])
+  const refMap: Record<string, React.RefObject<HTMLDivElement | null>> = {
+    firstName: firstNameRef,
+    lastName: lastNameRef,
+    gender: genderRef,
+    nationality: nationalityRef,
+    street: streetRef,
+    npa: npaRef,
+    city: cityRef,
+    country: countryRef,
+    email: emailRef,
+    profession: professionRef,
+    employerName: employerNameRef,
+    employerAddress: employerAddressRef,
+    referringDoctor: referringDoctorRef,
+    generalPractitioner: generalPractitionerRef,
+    accidentDate: accidentDateRef,
+    accidentInsurance: accidentInsuranceRef,
+    claimNumber: claimNumberRef,
+    avsNumber: avsNumberRef,
+    basicInsurance: basicInsuranceRef,
+    cardNumber: cardNumberRef,
+    policyNumber: policyNumberRef,
+    complementaryInsurance: complementaryInsuranceRef
+  }
 
   useEffect(() => {
     const current = (watch('accidentDate') ?? '') as string
@@ -137,8 +124,78 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
   }
 
   const onSubmit = async () => {
-    const ok = await trigger()
-    if (!ok) return
+    // 🎯 Liste des champs Admin à valider (pattern cohérent avec Qualification.tsx)
+    const adminFields: Array<keyof WizardFormData> = [
+      'firstName',
+      'lastName',
+      'gender',
+      'nationality',
+      'street',
+      'npa',
+      'city',
+      'country',
+      'email'
+    ]
+
+    // Champs conditionnels: Employeur
+    if (hasEmployer) {
+      adminFields.push('profession', 'employerName', 'employerAddress')
+    }
+
+    // Champs conditionnels: Accident
+    if (reason === 'accident') {
+      adminFields.push('accidentDate')
+    }
+
+    // Champs conditionnels: AVS (swiss uniquement)
+    if (insurance === 'swiss') {
+      adminFields.push('avsNumber')
+    }
+
+    // Champs conditionnels: Assurance de base
+    if (insurance === 'swiss' || insurance === 'international' || (reason === 'accident' && insurance === 'auto')) {
+      adminFields.push('basicInsurance')
+    }
+
+    // Champs conditionnels: Numéro de carte
+    if (insurance === 'swiss' || insurance === 'international' || (reason === 'accident' && insurance === 'auto')) {
+      adminFields.push('cardNumber')
+    }
+
+    // Champs conditionnels: Numéro de police (international)
+    if (insurance === 'international') {
+      adminFields.push('policyNumber')
+    }
+
+    const ok = await trigger(adminFields)
+    
+    // 🎯 Scroll smooth vers le premier champ en erreur si validation échoue
+    if (!ok) {
+      // Petit délai pour laisser React Hook Form mettre à jour les erreurs
+      setTimeout(() => {
+        const formState = control._formState
+        
+        // Trouver le premier champ en erreur selon l'ordre de adminFields
+        const firstErrorField = adminFields.find(field => formState.errors[field])
+        
+        if (firstErrorField) {
+          const targetRef = refMap[firstErrorField]
+          if (targetRef?.current) {
+            // 🎯 Scroll smooth manuel pour une animation fluide
+            const element = targetRef.current
+            const elementRect = element.getBoundingClientRect()
+            const absoluteElementTop = elementRect.top + window.pageYOffset
+            const middle = absoluteElementTop - (window.innerHeight / 2) + (elementRect.height / 2)
+            
+            window.scrollTo({
+              top: middle,
+              behavior: 'smooth'
+            })
+          }
+        }
+      }, 50)
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -195,7 +252,7 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
           </CardHeader>
 
           <CardContent className="step-card-content">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={(e) => { e.preventDefault(); void onSubmit() }} className="space-y-6">
             <div className="space-y-4">
               <div className="form-section-header">
                 <span className="form-section-title">{t.identity}</span>
