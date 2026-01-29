@@ -1,5 +1,11 @@
 import { useCallback, useMemo } from 'react'
 
+// 🔐 SÉCURITÉ: Fonction centralisée pour détecter le mode mock
+// Utilise import.meta.env qui est résolu au BUILD-TIME (impossible à manipuler côté client)
+const isMockEnabled = (): boolean => {
+  return import.meta.env.VITE_MOCK_ENABLED === 'true'
+}
+
 // 🎯 OCR Cloud Flow Types - Format correspondant au Cloud Flow
 export interface OCRDocumentRequest {
   doc: 'identityid' | 'insuranceid'
@@ -66,6 +72,8 @@ interface CloudFlowConfig {
   identityDoc: string    // Trigger ID OCR carte d'identité
   insuranceDoc: string   // Trigger ID OCR carte d'assurance
   submitflow: string     // Trigger ID soumission formulaire
+  sendOtp: string        // Trigger ID envoi OTP
+  verifyOtp: string      // Trigger ID vérification OTP
 }
 
 // 🎯 Cache de la configuration Cloud Flow (chargée une seule fois)
@@ -87,18 +95,16 @@ const getCloudFlowConfig = async (): Promise<CloudFlowConfig | null> => {
     return configLoadingPromise
   }
 
-  // Détecter si on est en local (DEV) ou sur Power Pages (PROD)
-  const isLocalhost = window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1'
-
-  // Mode développement - simulation avec valeurs des variables d'env
-  if (isLocalhost) {
+  // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+  if (isMockEnabled()) {
     configLoadingPromise = new Promise(resolve => {
       setTimeout(() => {
         const mockConfig: CloudFlowConfig = {
           identityDoc: OCR_IDENTITY_TRIGGER_ID || 'mock-identity-trigger',
           insuranceDoc: OCR_INSURANCE_TRIGGER_ID || 'mock-insurance-trigger',
-          submitflow: 'mock-submit-trigger'
+          submitflow: 'mock-submit-trigger',
+          sendOtp: SEND_OTP_TRIGGER_ID || 'mock-sendotp-trigger',
+          verifyOtp: VERIFY_OTP_TRIGGER_ID || 'mock-verifyotp-trigger'
         }
         console.log('[DEV MODE] ⚙️ Configuration Cloud Flow mock:', mockConfig)
         cloudFlowConfigCache = mockConfig
@@ -276,25 +282,21 @@ interface PowerPlatformWindow extends Window {
 
 // Wrapper sécurisé pour les appels Power Platform
 const safeAjaxPost = async (triggerId: string, payload: unknown): Promise<unknown> => {
-  // TEMPORAIRE: Désactiver les vrais appels API - toujours en mode dev
-  console.log(`[DEV MODE - API DISABLED] API Call to trigger: ${triggerId}`, payload)
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, data: payload })
-    }, 500)
-  })
-
-  /* DÉSACTIVÉ TEMPORAIREMENT - Pour réactiver, décommenter ce bloc et supprimer le code ci-dessus
-  const win = window as PowerPlatformWindow
-  
-  if (!win.shell?.ajaxSafePost) {
-    // Mode développement - simulation
+  // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+  if (isMockEnabled()) {
     console.log(`[DEV MODE] API Call to trigger: ${triggerId}`, payload)
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({ success: true, data: payload })
       }, 500)
     })
+  }
+
+  // 🎯 PRODUCTION: Vrais appels API Power Platform
+  const win = window as PowerPlatformWindow
+  
+  if (!win.shell?.ajaxSafePost) {
+    throw new Error('Power Platform shell non disponible')
   }
 
   // Attendre que le DOM soit stable avant d'appeler jQuery
@@ -321,7 +323,6 @@ const safeAjaxPost = async (triggerId: string, payload: unknown): Promise<unknow
     }
     throw error
   }
-  */
 }
 
 /**
@@ -567,12 +568,12 @@ export const useApi = () => {
     preadmissionId: string,
     birthDate: string
   ): Promise<{ success: boolean; message?: string }> => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-
-    if (isLocalhost) {
+    // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+    if (isMockEnabled()) {
       await new Promise(resolve => setTimeout(resolve, 800))
-      const isValid = birthDate === '1989-06-12'
+      // Utiliser la variable d'environnement pour le mock
+      const mockBirthDate = import.meta.env.VITE_MOCK_BIRTH_DATE
+      const isValid = mockBirthDate ? birthDate === mockBirthDate : true
       console.log(`[DEV MODE] 🎂 Vérification date de naissance: ${birthDate} → ${isValid ? '✅ Valide' : '❌ Invalide'}`)
       return { 
         success: isValid, 
@@ -610,10 +611,8 @@ export const useApi = () => {
    * 🎯 Valide un lien de préadmission via la Server Logic getpread
    */
   const validatePreadmissionLink = useCallback(async (preadmissionId: string): Promise<boolean> => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-    
-    if (isLocalhost) {
+    // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+    if (isMockEnabled()) {
       await new Promise(resolve => setTimeout(resolve, 800))
       return !!preadmissionId && preadmissionId !== 'invalid'
     }
@@ -653,10 +652,8 @@ export const useApi = () => {
       return false
     }
 
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-
-    if (isLocalhost) {
+    // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+    if (isMockEnabled()) {
       return true
     }
 
@@ -675,10 +672,8 @@ export const useApi = () => {
    * 🎯 Récupère les 4 derniers chiffres du téléphone via la Server Logic getphone
    */
   const getPhoneLastDigits = useCallback(async (preadmissionId: string): Promise<string> => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-
-    if (isLocalhost) {
+    // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+    if (isMockEnabled()) {
       await new Promise(resolve => setTimeout(resolve, 300))
       return '1234'
     }
@@ -706,18 +701,25 @@ export const useApi = () => {
 
   /**
    * 🎯 Envoie un code OTP par SMS via le Cloud Flow sendOtp
+   * Utilise getCloudFlowConfig() pour récupérer le trigger ID dynamiquement
    */
   const sendOtp = useCallback(async (preadmissionId: string): Promise<boolean> => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-
-    if (isLocalhost) {
+    // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+    if (isMockEnabled()) {
       await new Promise(resolve => setTimeout(resolve, 500))
+      console.log('[DEV MODE] 📱 OTP envoyé (mock)')
       return true
     }
 
     try {
-      await safeAjaxCloudFlow(SEND_OTP_TRIGGER_ID, { number: preadmissionId })
+      // 🎯 Récupérer le trigger ID via getCloudFlowConfig (pas de variable d'env hardcodée)
+      const config = await getCloudFlowConfig()
+      if (!config) {
+        console.error('❌ [sendOtp] Configuration Cloud Flow non disponible')
+        return false
+      }
+
+      await safeAjaxCloudFlow(config.sendOtp, { number: preadmissionId })
       return true
     } catch (error) {
       console.error('❌ [sendOtp] Erreur:', error)
@@ -727,17 +729,19 @@ export const useApi = () => {
 
   /**
    * 🎯 Vérifie le code OTP via le Cloud Flow verifyOtp
+   * Utilise getCloudFlowConfig() pour récupérer le trigger ID dynamiquement
    */
   const verifyOTP = useCallback(async (
     preadmissionId: string,
     code: string
   ): Promise<{ success: boolean; message?: string }> => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-
-    if (isLocalhost) {
+    // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+    if (isMockEnabled()) {
       await new Promise(resolve => setTimeout(resolve, 800))
-      const isValid = code === '123456'
+      // Utiliser la variable d'environnement pour le mock OTP
+      const mockOtp = import.meta.env.VITE_MOCK_OTP_CODE
+      const isValid = mockOtp ? code === mockOtp : code.length === 6
+      console.log(`[DEV MODE] 🔐 Vérification OTP: ${code} → ${isValid ? '✅ Valide' : '❌ Invalide'}`)
       return { 
         success: isValid, 
         message: isValid ? undefined : 'Le code est incorrect' 
@@ -745,7 +749,14 @@ export const useApi = () => {
     }
 
     try {
-      const response = await safeAjaxCloudFlow(VERIFY_OTP_TRIGGER_ID, { 
+      // 🎯 Récupérer le trigger ID via getCloudFlowConfig (pas de variable d'env hardcodée)
+      const config = await getCloudFlowConfig()
+      if (!config) {
+        console.error('❌ [verifyOTP] Configuration Cloud Flow non disponible')
+        return { success: false, message: 'Configuration non disponible' }
+      }
+
+      const response = await safeAjaxCloudFlow(config.verifyOtp, { 
         number: preadmissionId, 
         code 
       })
@@ -816,10 +827,8 @@ export const useApi = () => {
       complementaryInsurance: string
     }
   ): Promise<SubmitResponse> => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-
-    if (isLocalhost) {
+    // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+    if (isMockEnabled()) {
       console.log('[DEV MODE] 📤 Soumission préadmission:', formData)
       await new Promise(resolve => setTimeout(resolve, 1500))
       return {
@@ -899,18 +908,17 @@ export const useApi = () => {
     file: File,
     fileType: 'id_card' | 'insurance_card'
   ): Promise<OCRDocumentResponse | OCRInsuranceResponse | null> => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1'
-
-    if (isLocalhost) {
+    // 🔐 SÉCURISÉ: Mode mock via variable d'environnement build-time
+    if (isMockEnabled()) {
       console.log(`[DEV MODE] 🔍 OCR Mock pour ${fileType}:`, file.name)
       await new Promise(resolve => setTimeout(resolve, 1500))
 
+      // Données mock génériques (pas de vraies PII)
       if (fileType === 'id_card') {
         const mockIdCard: OCRDocumentResponse = {
-          lastName: 'Dupont',
-          firstNames: 'Jean Pierre',
-          firstName: 'Jean Pierre',
+          lastName: 'TestNom',
+          firstNames: 'TestPrenom',
+          firstName: 'TestPrenom',
           gender: 'male',
           nationality: 'CH'
         }
@@ -918,14 +926,14 @@ export const useApi = () => {
         return mockIdCard
       } else {
         const mockInsurance: OCRInsuranceResponse = {
-          street: 'Rue du Lac 15',
-          city: 'Genève',
-          zipCode: '1200',
+          street: 'Rue Test 1',
+          city: 'TestVille',
+          zipCode: '1000',
           country: 'CH',
-          avsNumber: '756.1234.5678.90',
-          kvgCardNumber: '80756012345678901234',
-          kvgInsuranceName: 'CSS Assurance',
-          vvgCardNumber: '80756098765432109876'
+          avsNumber: '756.0000.0000.00',
+          kvgCardNumber: '00000000000000000000',
+          kvgInsuranceName: 'Test Assurance',
+          vvgCardNumber: '00000000000000000000'
         }
         console.log('[DEV MODE] 🏥 Données Assurance mock:', mockInsurance)
         return mockInsurance

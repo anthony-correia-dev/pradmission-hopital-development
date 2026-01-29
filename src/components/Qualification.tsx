@@ -116,7 +116,6 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
     setValue,
     watch,
     trigger,
-    handleSubmit,
     formState: { errors }
   } = useFormContext<FormData>()
 
@@ -356,7 +355,7 @@ export function Qualification({ language, onNext, onBack }: QualificationProps) 
           </CardHeader>
 
           <CardContent className="step-card-content">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-8">
               <motion.div 
                 ref={reasonRef}
                 id="reason"
