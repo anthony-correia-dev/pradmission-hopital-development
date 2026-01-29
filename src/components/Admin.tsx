@@ -370,7 +370,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                   <Input
                     id="street"
                     type="text"
-                    {...register('street')}
+                    value={watch('street') ?? ''}
+                    onChange={(e) => setValue('street', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     aria-invalid={!!errors.street}
                     className={`form-input ${
                       errors.street ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -419,7 +420,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     <Input
                       id="city"
                       type="text"
-                      {...register('city')}
+                      value={watch('city') ?? ''}
+                      onChange={(e) => setValue('city', e.target.value, { shouldDirty: true, shouldValidate: true })}
                       aria-invalid={!!errors.city}
                       className={`form-input ${
                         errors.city ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -461,7 +463,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                   <Input
                     id="email"
                     type="email"
-                    {...register('email')}
+                    value={watch('email') ?? ''}
+                    onChange={(e) => setValue('email', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     aria-invalid={!!errors.email}
                     className={`form-input ${
                       errors.email ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -489,7 +492,8 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                   <Input
                     id="profession"
                     type="text"
-                    {...register('profession')}
+                    value={watch('profession') ?? ''}
+                    onChange={(e) => setValue('profession', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     aria-invalid={!!errors.profession}
                     className={`form-input ${
                       errors.profession ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -502,14 +506,15 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     </div>
                   )}
                 </div>
-                <div>
+                <div ref={employerNameRef}>
                   <label htmlFor="employerName" className="block text-sm font-medium text-brand-text mb-2">
                     {t.employerName} {hasEmployer ? <span className="text-brand-error">*</span> : <span className="text-slate-500 text-xs">({t.optional})</span>}
                   </label>
                   <Input
                     id="employerName"
                     type="text"
-                    {...register('employerName')}
+                    value={watch('employerName') ?? ''}
+                    onChange={(e) => setValue('employerName', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     aria-invalid={!!errors.employerName}
                     className={`form-input ${
                       errors.employerName ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -522,14 +527,15 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                     </div>
                   )}
                 </div>
-                <div>
+                <div ref={employerAddressRef}>
                   <label htmlFor="employerAddress" className="block text-sm font-medium text-brand-text mb-2">
                     {t.employerAddress} {hasEmployer ? <span className="text-brand-error">*</span> : <span className="text-slate-500 text-xs">({t.optional})</span>}
                   </label>
                   <Input
                     id="employerAddress"
                     type="text"
-                    {...register('employerAddress')}
+                    value={watch('employerAddress') ?? ''}
+                    onChange={(e) => setValue('employerAddress', e.target.value, { shouldDirty: true, shouldValidate: true })}
                     aria-invalid={!!errors.employerAddress}
                     className={`form-input ${
                       errors.employerAddress ? 'border-brand-error focus-visible:ring-brand-error' : ''
@@ -561,7 +567,6 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
                         value={field.value ?? ''}
                         onChange={(value) => field.onChange(value)}
                         error={errors.referringDoctor?.message as any}
-                        noResultsText={t.noResults}
                         required={false}
                         optionalText={t.optional}
                       />
