@@ -1,0 +1,75 @@
+/* ========================================
+   DESIGN TOKENS — Hopital de La Tour
+   ======================================== */
+
+:root {
+  /* Brand Colors */
+  --brand-primary: #5BC2E7;
+  --brand-primary-hover: #4ab0d4;
+  --brand-text: #101820;
+  --brand-error: #E30613;
+  --brand-success: #009664;
+
+  /* OKLCH Theme (shadcn) */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.738 0.106 219.737);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.97 0.001 106.424);
+  --secondary-foreground: oklch(0.205 0.015 285.823);
+  --muted: oklch(0.97 0.001 106.424);
+  --muted-foreground: oklch(0.556 0.016 285.938);
+  --accent: oklch(0.547 0.152 166.148);
+  --accent-foreground: oklch(0.205 0.015 285.823);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0.004 286.32);
+  --input: oklch(0.922 0.004 286.32);
+  --ring: oklch(0.738 0.106 219.737);
+  --radius: 0.625rem;
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Spacing Scale */
+  --size-scale: 1;
+  --size-0: 0px;
+  --size-1: calc(0.25rem * var(--size-scale));
+  --size-2: calc(0.5rem * var(--size-scale));
+  --size-3: calc(0.75rem * var(--size-scale));
+  --size-4: calc(1rem * var(--size-scale));
+  --size-5: calc(1.25rem * var(--size-scale));
+  --size-6: calc(1.5rem * var(--size-scale));
+  --size-8: calc(2rem * var(--size-scale));
+  --size-10: calc(2.5rem * var(--size-scale));
+  --size-12: calc(3rem * var(--size-scale));
+  --size-16: calc(4rem * var(--size-scale));
+  --size-20: calc(5rem * var(--size-scale));
+  --size-24: calc(6rem * var(--size-scale));
+  --size-32: calc(8rem * var(--size-scale));
+  --size-40: calc(10rem * var(--size-scale));
+  --size-48: calc(12rem * var(--size-scale));
+  --size-56: calc(14rem * var(--size-scale));
+  --size-64: calc(16rem * var(--size-scale));
+  --size-72: calc(18rem * var(--size-scale));
+  --size-80: calc(20rem * var(--size-scale));
+  --size-96: calc(24rem * var(--size-scale));
+
+  /* Border Radii */
+  --radius-factor: 1;
+  --radius-sm: calc(2px * var(--radius-factor));
+  --radius-md: calc(4px * var(--radius-factor));
+  --radius-lg: calc(8px * var(--radius-factor));
+  --radius-xl: calc(12px * var(--radius-factor));
+  --radius-2xl: calc(16px * var(--radius-factor));
+  --radius-full: 9999px;
+
+  /* Font Family */
+  --font-sans-serif: 'Simplon Norm', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}

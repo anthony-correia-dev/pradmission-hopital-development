@@ -1,0 +1,28 @@
+export const securityTranslations = {
+  fr: {
+    title: "Vérification d'identité",
+    subtitle: 'Pour des raisons de sécurité, veuillez confirmer votre date de naissance.',
+    label: 'Date de naissance',
+    placeholder: 'JJ.MM.AAAA',
+    continue: 'Continuer',
+    back: 'Retour',
+    required: 'La date de naissance est requise',
+    invalid: 'Date de naissance invalide',
+    futureDate: 'La date ne peut pas être dans le futur',
+    wrongDate: 'La date de naissance ne correspond pas à nos dossiers',
+    verifying: 'Vérification en cours...',
+  },
+  en: {
+    title: 'Identity Verification',
+    subtitle: 'For security reasons, please confirm your date of birth.',
+    label: 'Date of birth',
+    placeholder: 'DD.MM.YYYY',
+    continue: 'Continue',
+    back: 'Back',
+    required: 'Date of birth is required',
+    invalid: 'Invalid date of birth',
+    futureDate: 'Date cannot be in the future',
+    wrongDate: 'The date of birth does not match our records',
+    verifying: 'Verifying...',
+  },
+} as const
