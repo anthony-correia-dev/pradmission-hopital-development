@@ -1,20 +1,20 @@
 export const invalidLinkTranslations = {
   fr: {
     title: 'Lien invalide',
-    message: "Le lien que vous avez utilisé est invalide ou a expiré. Veuillez contacter l'hôpital pour obtenir un nouveau lien.",
-    contact: 'Nous contacter',
+    message: 'Ce lien de préadmission n\'est plus valide ou a expiré.',
+    contact: 'Si vous pensez qu\'il s\'agit d\'une erreur, veuillez contacter l\'hôpital.',
     emailLabel: 'Email',
     emailAddress: 'digital@latour.ch',
     emailLink: 'mailto:digital@latour.ch',
-    selectLanguage: 'Langue',
+    selectLanguage: 'Choisissez votre langue'
   },
   en: {
     title: 'Invalid Link',
-    message: 'The link you used is invalid or has expired. Please contact the hospital to get a new link.',
-    contact: 'Contact us',
+    message: 'This pre-admission link is no longer valid or has expired.',
+    contact: 'If you believe this is an error, please contact the hospital.',
     emailLabel: 'Email',
     emailAddress: 'digital@latour.ch',
     emailLink: 'mailto:digital@latour.ch',
-    selectLanguage: 'Language',
-  },
+    selectLanguage: 'Choose your language'
+  }
 } as const

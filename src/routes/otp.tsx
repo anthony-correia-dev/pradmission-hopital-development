@@ -1,34 +1,32 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useFormContext } from 'react-hook-form'
 import { useState, useEffect, useRef } from 'react'
-import { MessageSquare, ArrowLeft, ArrowRight, Loader2, AlertCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
-import { otpTranslations } from '@/locales/otp'
-import { createOTPSchema } from '@/schemas/otp'
-import { useApi } from '@/hooks/useApi'
-import { cn } from '@/utils/cn'
+import { useTranslation } from 'react-i18next'
+import { ArrowLeft, ArrowRight, Loader2, AlertCircle, Shield } from 'lucide-react'
+import { HStack, VStack, Button, InputOTP, InputOTPGroup, InputOTPSlot, H1, P } from '@/components/ui'
+import { createOTPSchema } from '@/schemas'
+import { useApi } from '@/hooks'
 import { TIMINGS } from '@/constants/ui'
 import type { WizardFormData } from '@/types/form'
 
 function OTPPage() {
   const navigate = useNavigate()
   const { setValue, watch } = useFormContext<WizardFormData>()
-  const language = watch('language')
   const preadmissionId = watch('preadmissionId')
-  const t = otpTranslations[language]
+  const { t } = useTranslation('otp')
   const api = useApi()
 
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
+  const [isResending, setIsResending] = useState(false)
   const [lastDigits, setLastDigits] = useState('')
   const [cooldown, setCooldown] = useState(0)
   const otpSentRef = useRef(false)
 
   const schema = createOTPSchema({
-    required: t.required,
-    invalid: t.invalid,
+    required: t('required'),
+    invalid: t('invalid'),
   })
 
   // Fetch phone last digits
@@ -59,16 +57,23 @@ function OTPPage() {
     return () => clearInterval(timer)
   }, [cooldown])
 
+  const isCoolingDown = cooldown > 0
+
   async function handleResend() {
-    if (cooldown > 0) return
-    await api.sendOtp(preadmissionId)
-    setCooldown(TIMINGS.OTP_COOLDOWN_S)
+    if (isCoolingDown || isResending) return
+    setIsResending(true)
+    try {
+      await api.sendOtp(preadmissionId)
+      setCooldown(TIMINGS.OTP_COOLDOWN_S)
+    } finally {
+      setIsResending(false)
+    }
   }
 
   async function handleSubmit() {
     const result = schema.safeParse({ otpCode: code })
     if (!result.success) {
-      setError(result.error.errors[0]?.message ?? t.invalid)
+      setError(result.error.errors[0]?.message ?? t('invalid'))
       return
     }
 
@@ -79,33 +84,29 @@ function OTPPage() {
         setValue('otpCode', code)
         void navigate({ to: '/qualification' })
       } else {
-        setError(t.wrongCode)
+        setError(t('invalidCode'))
       }
     } catch {
-      setError(t.wrongCode)
+      setError(t('invalidCode'))
     } finally {
       setIsVerifying(false)
     }
   }
 
-  const subtitle = lastDigits
-    ? t.subtitle.replace('{digits}', lastDigits)
-    : t.subtitle.replace('****{digits}', '****')
-
   return (
-    <div className="step-page-centered">
-      <div className="step-container-sm">
         <div className="step-card">
-          <div className="step-card-header">
+          <VStack className="step-card-header" align='center'>
             <div className="step-icon">
-              <MessageSquare className="w-8 h-8 text-[var(--brand-primary)]" />
+              <Shield className="w-8 h-8 text-[var(--brand-primary)]" />
             </div>
-            <h1 className="step-title">{t.title}</h1>
-            <p className="step-subtitle">{subtitle}</p>
-          </div>
-          <div className="step-card-content">
-            <div className="space-y-4">
-              <div className="flex justify-center">
+            <VStack gap='1' align='center'>
+              <H1>{t('title')}</H1>
+            <P className="step-subtitle">{t('subtitle', { digits: lastDigits || '****' })}</P>
+            </VStack>
+          </VStack>
+          <VStack className="step-card-content">
+            <VStack className="gap-4">
+              <HStack justify="center">
                 <InputOTP
                   value={code}
                   onChange={(val) => {
@@ -124,7 +125,7 @@ function OTPPage() {
                     ))}
                   </InputOTPGroup>
                 </InputOTP>
-              </div>
+              </HStack>
 
               {error && (
                 <div className="form-error-inline justify-center">
@@ -133,25 +134,26 @@ function OTPPage() {
                 </div>
               )}
 
-              <div className="text-center">
-                <button
+              <HStack justify="center">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => void handleResend()}
-                  disabled={cooldown > 0}
-                  className={cn(
-                    'text-sm cursor-pointer',
-                    cooldown > 0
-                      ? 'text-slate-400'
-                      : 'text-[var(--brand-primary)] hover:underline'
-                  )}
+                  disabled={isCoolingDown || isResending}
+                  className="text-sm text-[var(--brand-primary)] border-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10"
                 >
-                  {cooldown > 0
-                    ? `${t.resendPrefix} ${t.resendCountdown.replace('{seconds}', String(cooldown))}`
-                    : t.resendReady}
-                </button>
-              </div>
+                  {isResending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {t('resend')}
+                    </>
+                  ) : isCoolingDown
+                    ? t('resendIn', { count: cooldown })
+                    : t('resend')}
+                </Button>
+              </HStack>
 
-              <div className="step-actions">
+              <HStack className="step-actions">
                 <Button
                   type="button"
                   variant="outline"
@@ -159,32 +161,30 @@ function OTPPage() {
                   className="flex-1 h-12 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  {t.back}
+                  {t('back')}
                 </Button>
                 <Button
                   type="button"
                   onClick={() => void handleSubmit()}
                   disabled={isVerifying || code.length !== 6}
-                  className="flex-1 h-12 active-scale cursor-pointer"
+                  className="flex-2 h-12 cursor-pointer"
                 >
                   {isVerifying ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {t.verifying}
+                      {t('verifying')}
                     </>
                   ) : (
                     <>
-                      {t.continue}
+                      {t('continue')}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
                 </Button>
-              </div>
-            </div>
-          </div>
+              </HStack>
+            </VStack>
+          </VStack>
         </div>
-      </div>
-    </div>
   )
 }
 

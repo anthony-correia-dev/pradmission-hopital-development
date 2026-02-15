@@ -2,8 +2,8 @@ import { z } from 'zod'
 import { isValidDate } from '@/utils/date'
 
 export function createAdminSchema(
-  reason: string,
-  insurance: string,
+  reason: string | undefined,
+  insurance: string | undefined,
   hasEmployer: boolean,
   t: {
     required: string

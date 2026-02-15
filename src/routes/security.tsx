@@ -1,22 +1,21 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useFormContext } from 'react-hook-form'
 import { useState } from 'react'
-import { Shield, ArrowLeft, ArrowRight, Loader2, AlertCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { FormInput } from '@/components/FormInput'
-import { securityTranslations } from '@/locales/security'
-import { createSecuritySchema } from '@/schemas/security'
-import { formatDateInput, parseDisplayDate, formatDisplayDate } from '@/utils/date'
-import { useApi } from '@/hooks/useApi'
+import { useTranslation } from 'react-i18next'
+import { ArrowLeft, ArrowRight, Loader2, Calendar } from 'lucide-react'
+import { HStack, VStack, Button, H1 } from '@/components/ui'
+import { FormInput } from '@/components'
+import { createSecuritySchema } from '@/schemas'
+import { useApi } from '@/hooks'
+import { formatDateInput, parseDisplayDate, formatDisplayDate } from '@/utils'
 import type { WizardFormData } from '@/types/form'
 
 function SecurityPage() {
   const navigate = useNavigate()
   const { setValue, watch } = useFormContext<WizardFormData>()
-  const language = watch('language')
   const preadmissionId = watch('preadmissionId')
   const birthDate = watch('birthDate')
-  const t = securityTranslations[language]
+  const { t } = useTranslation('security')
   const api = useApi()
 
   const [displayDate, setDisplayDate] = useState(() =>
@@ -26,9 +25,9 @@ function SecurityPage() {
   const [isVerifying, setIsVerifying] = useState(false)
 
   const schema = createSecuritySchema({
-    required: t.required,
-    invalid: t.invalid,
-    futureDate: t.futureDate,
+    required: t('required'),
+    invalid: t('invalid'),
+    futureDate: t('futureDate'),
   })
 
   function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -47,13 +46,13 @@ function SecurityPage() {
   async function handleSubmit() {
     const isoDate = parseDisplayDate(displayDate)
     if (!isoDate) {
-      setError(t.invalid)
+      setError(t('invalid'))
       return
     }
 
     const result = schema.safeParse({ birthDate: isoDate })
     if (!result.success) {
-      setError(result.error.errors[0]?.message ?? t.invalid)
+      setError(result.error.errors[0]?.message ?? t('invalid'))
       return
     }
 
@@ -64,46 +63,37 @@ function SecurityPage() {
         setValue('birthDate', isoDate)
         void navigate({ to: '/otp' })
       } else {
-        setError(t.wrongDate)
+        setError(t('wrongDate'))
       }
     } catch {
-      setError(t.wrongDate)
+      setError(t('connectionError'))
     } finally {
       setIsVerifying(false)
     }
   }
 
   return (
-    <div className="step-page-centered">
-      <div className="step-container-sm">
-        <div className="step-card">
-          <div className="step-card-header">
+        <VStack className="step-card" gap='4'>
+          <VStack className="step-card-header" align='center'>
             <div className="step-icon">
-              <Shield className="w-8 h-8 text-[var(--brand-primary)]" />
+              <Calendar className="w-8 h-8 text-[var(--brand-primary)]" />
             </div>
-            <h1 className="step-title">{t.title}</h1>
-            <p className="step-subtitle">{t.subtitle}</p>
-          </div>
-          <div className="step-card-content">
-            <div className="space-y-4">
+            <H1>{t('title')}</H1>
+            <p className="step-subtitle">{t('subtitle')}</p>
+          </VStack>
+          <VStack className="step-card-content">
+            <VStack className="gap-4">
               <FormInput
-                label={t.label}
+                label={t('label')}
                 value={displayDate}
                 onChange={handleDateChange}
-                placeholder={t.placeholder}
+                placeholder={t('placeholder')}
                 error={error}
                 required
                 inputClassName="form-input-mono"
               />
 
-              {error && (
-                <div className="form-error-inline">
-                  <AlertCircle className="form-error-icon" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <div className="step-actions">
+              <HStack className="step-actions">
                 <Button
                   type="button"
                   variant="outline"
@@ -111,32 +101,30 @@ function SecurityPage() {
                   className="flex-1 h-12 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  {t.back}
+                  {t('back')}
                 </Button>
                 <Button
                   type="button"
                   onClick={() => void handleSubmit()}
                   disabled={isVerifying}
-                  className="flex-1 h-12 active-scale cursor-pointer"
+                  className="flex-2 h-12 cursor-pointer hover:bg-[var(--brand-primary-hover)]"
                 >
                   {isVerifying ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {t.verifying}
+                      {t('verifying')}
                     </>
                   ) : (
                     <>
-                      {t.continue}
+                      {t('continue')}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
                 </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+              </HStack>
+            </VStack>
+          </VStack>
+        </VStack>
   )
 }
 

@@ -1,41 +1,33 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useFormContext } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { CheckCircle, MapPin } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { successTranslations } from '@/locales/success'
-import type { WizardFormData } from '@/types/form'
+import { VStack, Button, H1, P } from '@/components/ui'
 
 function SuccessPage() {
-  const { watch } = useFormContext<WizardFormData>()
-  const language = watch('language')
-  const t = successTranslations[language]
+  const { t } = useTranslation('success')
 
   return (
-    <div className="step-page-centered">
-      <div className="step-container-sm">
-        <div className="step-card">
-          <div className="step-card-header">
-            <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 rounded-full border-4 border-[var(--brand-text)] flex items-center justify-center">
-                <CheckCircle className="w-10 h-10 text-[var(--brand-success)]" />
-              </div>
-            </div>
-            <h1 className="step-title">{t.title}</h1>
-            <p className="step-subtitle">{t.message}</p>
-          </div>
-          <div className="step-card-content">
-            <Button
-              asChild
-              className="w-full h-12 text-base active-scale"
-            >
-              <a href={t.link} target="_blank" rel="noopener noreferrer">
-                <MapPin className="w-4 h-4 mr-2" />
-                {t.button}
-              </a>
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className="step-card">
+      <VStack className="step-card-header" align='center' gap='6'>
+        <CheckCircle className="w-16 h-16 text-[var(--brand-success)]" />
+        <VStack gap='1' align='center'>
+          <H1 color='primary'>{t('title')}</H1>
+          <p className="step-subtitle">{t('message')}</p>
+        </VStack>
+      </VStack>
+      <VStack className="step-card-content">
+        <Button
+          asChild
+          className="w-full h-12 text-base active-scale"
+        >
+          <a href={t('link')} target="_blank" rel="noopener noreferrer">
+           <P color='white'> <MapPin className="w-4 h-4 mr-2" /> </P>
+            <P color='white'>
+              {t('button')}
+            </P>
+          </a>
+        </Button>
+      </VStack>
     </div>
   )
 }

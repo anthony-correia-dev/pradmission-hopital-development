@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
@@ -15,12 +16,16 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  test: {
+    globals: true,
+  },
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-error-boundary'],
           'forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'motion': ['motion'],
           'radix': [
             '@radix-ui/react-select',
             '@radix-ui/react-dialog',

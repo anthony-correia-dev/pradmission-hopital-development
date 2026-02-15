@@ -1,14 +1,20 @@
 export const landingTranslations = {
   fr: {
-    selectLanguage: 'Langue',
-    title: 'Bienvenue',
-    subtitle: "Veuillez remplir ce formulaire de préadmission pour préparer votre venue à l'hôpital de La Tour.",
-    button: 'Commencer ma préadmission',
+    chooseLanguage: 'Choisissez votre langue',
+    title: 'Accélérez votre prise en charge.',
+    subtitle: "Notre admission en ligne vous permet de préparer votre venue à l'Hôpital de La Tour.",
+    confidentiality: 'Vos données sont traitées de façon confidentielle.',
+    button: "Démarrer l'admission",
+    badgeProtected: 'Vos données sont protégées',
+    badgeTime: 'Seulement 5 minutes',
   },
   en: {
-    selectLanguage: 'Language',
-    title: 'Welcome',
-    subtitle: 'Please fill in this pre-admission form to prepare your visit to the Hôpital de La Tour.',
-    button: 'Start my pre-admission',
+    chooseLanguage: 'Choose your language',
+    title: 'Speed up your care.',
+    subtitle: 'Our online admission allows you to prepare your visit to La Tour Hospital.',
+    confidentiality: 'Your data is treated confidentially.',
+    button: 'Start online admission',
+    badgeProtected: 'Your data is protected',
+    badgeTime: 'Only 5 minutes',
   },
 } as const

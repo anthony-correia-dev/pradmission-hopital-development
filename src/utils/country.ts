@@ -1,4 +1,10 @@
+import nationalities from 'i18n-nationality'
+import enLocale from 'i18n-nationality/langs/en.json'
+import frLocale from 'i18n-nationality/langs/fr.json'
 import type { Language } from '@/types/form'
+
+nationalities.registerLocale(enLocale)
+nationalities.registerLocale(frLocale)
 
 interface Country {
   code: string
@@ -146,15 +152,44 @@ const COUNTRIES: Country[] = [
   { code: 'ZW', nameFr: 'Zimbabwe', nameEn: 'Zimbabwe' },
 ]
 
-export function getCountries(language: Language): { code: string; name: string }[] {
+export function getFlagEmoji(code: string): string {
+  return code
+    .toUpperCase()
+    .split('')
+    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+    .join('')
+}
+
+export function getCountries(language: Language): { code: string; name: string; flag: string }[] {
   const priority = ['CH', 'FR']
   const priorityCountries = COUNTRIES.filter((c) => priority.includes(c.code))
   const otherCountries = COUNTRIES.filter((c) => !priority.includes(c.code))
   const getName = (c: Country) => (language === 'fr' ? c.nameFr : c.nameEn)
+  const toEntry = (c: Country) => ({ code: c.code, name: getName(c), flag: getFlagEmoji(c.code) })
   return [
-    ...priorityCountries.map((c) => ({ code: c.code, name: getName(c) })),
-    ...otherCountries.map((c) => ({ code: c.code, name: getName(c) })).sort((a, b) => a.name.localeCompare(b.name)),
+    ...priorityCountries.map(toEntry),
+    ...otherCountries.map(toEntry).sort((a, b) => a.name.localeCompare(b.name)),
   ]
+}
+
+export function getNationalities(language: Language): { code: string; name: string; flag: string }[] {
+  const lang = language === 'fr' ? 'fr' : 'en'
+  const priority = ['CH', 'FR']
+  const allCodes = COUNTRIES.map((c) => c.code)
+
+  const entries = allCodes
+    .map((code) => ({
+      code,
+      name: nationalities.getName(code, lang) || code,
+      flag: getFlagEmoji(code),
+    }))
+
+  const priorityEntries = entries.filter((e) => priority.includes(e.code))
+  const otherEntries = entries
+    .filter((e) => !priority.includes(e.code))
+    .sort((a, b) => a.name.localeCompare(b.name))
+
+  return [...priorityEntries, ...otherEntries]
 }
 
 export function getCountryNameByCode(isoCode: string, language: Language): string {

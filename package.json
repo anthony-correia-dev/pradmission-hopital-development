@@ -10,7 +10,9 @@
     "build:test": "tsc -b --noCheck && vite build --mode test",
     "build:prod": "tsc -b --noCheck && vite build --mode production",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -24,12 +26,16 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "i18n-nationality": "^1.4.0",
+    "i18next": "^25.8.7",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.469.0",
+    "motion": "^12.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-error-boundary": "^5.0.0",
     "react-hook-form": "^7.54.2",
+    "react-i18next": "^16.5.4",
     "tailwind-merge": "^2.6.0",
     "zod": "^3.24.1"
   },
@@ -43,9 +49,12 @@
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.16",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "jsdom": "^28.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "~5.7.0",
     "typescript-eslint": "^8.18.0",
-    "vite": "^6.0.0"
+    "vite": "^6.0.0",
+    "vitest": "^4.0.18"
   }
 }

@@ -1,142 +1,197 @@
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Search } from 'lucide-react'
+import { ChevronDown, AlertCircle } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { getCountries } from '@/utils/country'
-import type { Language } from '@/types/form'
+
+interface Country {
+  code: string
+  name: string
+  flag?: string
+}
 
 interface CountryComboboxProps {
+  id: string
   value: string
   onChange: (value: string) => void
-  language: Language
+  countries: Country[]
   placeholder?: string
-  searchPlaceholder?: string
   error?: string
-  className?: string
+  required?: boolean
+  label: string
+  noResultsText?: string
+  withFlags?: boolean
 }
 
 export function CountryCombobox({
+  id,
   value,
   onChange,
-  language,
-  placeholder = 'Select...',
-  searchPlaceholder = 'Search...',
+  countries,
+  placeholder = '',
   error,
-  className,
+  required = false,
+  label,
+  noResultsText = 'Aucun résultat',
+  withFlags = false,
 }: CountryComboboxProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [search, setSearch] = useState('')
-  const [highlightedIndex, setHighlightedIndex] = useState(0)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
-  const listRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const countries = getCountries(language)
-  const filtered = search
-    ? countries.filter((c) =>
-        c.name.toLowerCase().includes(search.toLowerCase())
-      )
-    : countries
-
-  const selectedCountry = countries.find((c) => c.name === value)
+  const filteredCountries = countries.filter(country =>
+    country.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false)
-        setSearch('')
       }
     }
+
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   useEffect(() => {
-    if (isOpen) {
-      inputRef.current?.focus()
-      setHighlightedIndex(0)
+    if (!isOpen) {
+      setSearchTerm('')
+      setHighlightedIndex(-1)
     }
   }, [isOpen])
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setHighlightedIndex((i) => Math.min(i + 1, filtered.length - 1))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setHighlightedIndex((i) => Math.max(i - 1, 0))
-    } else if (e.key === 'Enter') {
-      e.preventDefault()
-      const item = filtered[highlightedIndex]
-      if (item) {
-        onChange(item.name)
-        setIsOpen(false)
-        setSearch('')
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+    setIsOpen(true)
+    setHighlightedIndex(-1)
+  }
+
+  const handleInputClick = () => {
+    setIsOpen(true)
+  }
+
+  const handleSelect = (country: Country) => {
+    onChange(country.name)
+    setSearchTerm('')
+    setIsOpen(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+        e.preventDefault()
+        setIsOpen(true)
       }
-    } else if (e.key === 'Escape') {
-      setIsOpen(false)
-      setSearch('')
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setHighlightedIndex(prev =>
+          prev < filteredCountries.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (highlightedIndex >= 0 && highlightedIndex < filteredCountries.length) {
+          const country = filteredCountries[highlightedIndex]
+          if (country) handleSelect(country)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setIsOpen(false)
+        break
     }
   }
 
-  return (
-    <div ref={containerRef} className={cn('relative', className)}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          'flex h-12 w-full items-center justify-between rounded-md border bg-white px-4 py-2 text-sm cursor-pointer',
-          error
-            ? 'border-[var(--brand-error)] focus:ring-[var(--brand-error)]'
-            : 'border-[var(--input)] focus:ring-[var(--ring)]',
-          'focus:outline-none focus:ring-2 focus:ring-offset-2'
-        )}
-      >
-        <span className={selectedCountry ? 'text-[var(--brand-text)]' : 'text-slate-400'}>
-          {selectedCountry?.name ?? placeholder}
-        </span>
-        <ChevronDown className="h-4 w-4 text-slate-400" />
-      </button>
+  useEffect(() => {
+    if (highlightedIndex >= 0 && dropdownRef.current) {
+      const highlightedElement = dropdownRef.current.children[highlightedIndex] as HTMLElement
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView({ block: 'nearest' })
+      }
+    }
+  }, [highlightedIndex])
 
+  const selectedCountry = countries.find((c) => c.name === value)
+  const displayValue = isOpen
+    ? searchTerm
+    : withFlags && selectedCountry?.flag
+      ? `${selectedCountry.flag} ${value}`
+      : value
+
+  return (
+    <div className="space-y-2">
+      <label htmlFor={id} className="text-sm font-medium text-[var(--brand-text)] leading-3">
+        {label}
+        {required && <span className="text-[var(--brand-error)] ml-0.5">*</span>}
+      </label>
+      <div className="relative">
+        <input
+          ref={inputRef}
+          id={id}
+          type="text"
+          value={displayValue}
+          onChange={handleInputChange}
+          onClick={handleInputClick}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          autoComplete="off"
+          className={cn(
+            "flex h-10 w-full rounded-md border border-[var(--input)] bg-[var(--background)] px-3 pr-10 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2",
+            error && 'border-[var(--brand-error)] focus-visible:ring-[var(--brand-error)]'
+          )}
+        />
+        <ChevronDown
+          className={cn(
+            "absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none transition-transform",
+            isOpen && 'rotate-180'
+          )}
+        />
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border bg-white shadow-lg">
-          <div className="flex items-center gap-2 border-b px-3 py-2">
-            <Search className="h-4 w-4 text-slate-400" />
-            <input
-              ref={inputRef}
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                setHighlightedIndex(0)
-              }}
-              onKeyDown={handleKeyDown}
-              placeholder={searchPlaceholder}
-              className="w-full border-none bg-transparent text-sm outline-none placeholder:text-slate-400"
-            />
-          </div>
-          <div ref={listRef} className="max-h-60 overflow-y-auto p-1">
-            {filtered.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-slate-500">No results</div>
-            ) : (
-              filtered.map((country, i) => (
-                <button
-                  key={country.code}
-                  type="button"
-                  onClick={() => {
-                    onChange(country.name)
-                    setIsOpen(false)
-                    setSearch('')
-                  }}
-                  className={cn(
-                    'w-full rounded-sm px-3 py-2 text-left text-sm cursor-pointer',
-                    i === highlightedIndex && 'bg-slate-100',
-                    country.name === value && 'font-medium text-[var(--brand-primary)]'
-                  )}
-                >
-                  {country.name}
-                </button>
-              ))
-            )}
-          </div>
+        <div
+          ref={dropdownRef}
+          className="absolute z-50 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
+        >
+          {filteredCountries.length > 0 ? (
+            filteredCountries.map((country, index) => (
+              <div
+                key={country.code}
+                onClick={() => handleSelect(country)}
+                className={cn(
+                  'px-4 py-2.5 cursor-pointer transition-colors',
+                  index === highlightedIndex
+                    ? 'bg-[var(--brand-primary)] text-white'
+                    : value === country.name
+                    ? 'bg-slate-100'
+                    : 'hover:bg-slate-50'
+                )}
+              >
+                {withFlags && country.flag ? `${country.flag} ${country.name}` : country.name}
+              </div>
+            ))
+          ) : (
+            <div className="px-4 py-2.5 text-slate-500 text-sm">{noResultsText}</div>
+          )}
+        </div>
+      )}
+      </div>
+      {error && (
+        <div className="form-error-inline-tight">
+          <AlertCircle className="form-error-icon" />
+          <span>{error}</span>
         </div>
       )}
     </div>

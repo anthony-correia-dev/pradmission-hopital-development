@@ -1,16 +1,13 @@
+import { useTranslation } from 'react-i18next'
 import { Loader2 } from 'lucide-react'
 
-const message = navigator.language.startsWith('fr')
-  ? 'Chargement...'
-  : 'Loading...'
-
 export function ValidationLoadingScreen() {
+  const { t } = useTranslation('loading')
+
   return (
-    <div className="step-page-centered">
-      <div className="step-container-sm text-center">
-        <Loader2 className="w-12 h-12 text-[var(--brand-primary)] animate-spin mx-auto mb-4" />
-        <p className="text-slate-600">{message}</p>
-      </div>
+    <div className="text-center">
+      <Loader2 className="w-12 h-12 text-[var(--brand-primary)] animate-spin mx-auto mb-4" />
+      <p className="text-slate-600">{t('short')}</p>
     </div>
   )
 }

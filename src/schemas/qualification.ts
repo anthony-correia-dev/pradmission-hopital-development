@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
 export function createQualificationSchema(
-  insurance: string,
-  _reason: string,
+  insurance: string | undefined,
+  _reason: string | undefined,
   t: {
     reasonRequired: string
     insuranceRequired: string

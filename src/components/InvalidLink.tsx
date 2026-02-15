@@ -1,58 +1,65 @@
-import { useState } from 'react'
-import { Globe, AlertTriangle, Mail } from 'lucide-react'
-import { invalidLinkTranslations } from '@/locales/invalidLink'
-import type { Language } from '@/types/form'
+import { useFormContext } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
+import { Globe, Mail, XCircle } from 'lucide-react'
+import { HStack, VStack, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, H1, P, Button } from '@/components/ui'
+import type { WizardFormData, Language } from '@/types/form'
 import logoHlt from '@/assets/images/logo-hlt.png'
 
 export function InvalidLink() {
-  const [language, setLanguage] = useState<Language>(() => {
-    const nav = navigator.language
-    return nav.startsWith('fr') ? 'fr' : 'en'
-  })
-
-  const t = invalidLinkTranslations[language]
+  const { setValue, watch } = useFormContext<WizardFormData>()
+  const language = watch('language')
+  const { t } = useTranslation('invalidLink')
 
   return (
-    <div className="step-page-centered">
-      <div className="step-container-sm">
-        <div className="step-card">
-          <div className="step-card-header">
-            <div className="flex justify-end mb-4">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-slate-500" />
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value as Language)}
-                  className="text-sm border-none bg-transparent cursor-pointer focus:outline-none"
-                >
-                  <option value="fr">FR</option>
-                  <option value="en">EN</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex justify-center mb-6">
-              <img src={logoHlt} alt="Hôpital de La Tour" className="h-12" />
-            </div>
-            <div className="step-icon">
-              <AlertTriangle className="w-8 h-8 text-[var(--brand-error)]" />
-            </div>
-            <h1 className="step-title">{t.title}</h1>
-            <p className="step-subtitle">{t.message}</p>
-          </div>
-          <div className="step-card-content">
-            <div className="text-center space-y-2">
-              <p className="text-sm font-medium text-[var(--brand-text)]">{t.contact}</p>
-              <a
-                href={t.emailLink}
-                className="inline-flex items-center gap-2 text-[var(--brand-primary)] hover:underline"
-              >
-                <Mail className="w-4 h-4" />
-                {t.emailAddress}
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="step-card">
+      <VStack className="step-card-header" gap='6'>
+
+        <HStack justify="center" className="mb-6">
+          <img src={logoHlt} alt="Hôpital de La Tour" className="h-16" />
+        </HStack>
+
+        <HStack justify="between" className="gap-2 mb-4">
+          <HStack gap='1'>
+            <Globe className="w-4 h-4 text-[var(--brand-primary)]" />
+            <P>{t('selectLanguage')}</P>
+          </HStack>
+          <Select
+            value={language}
+            onValueChange={(v) => setValue('language', v as Language)}
+          >
+            <SelectTrigger className="w-[140px] text-sm py-1.5">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="fr">Français</SelectItem>
+              <SelectItem value="en">English</SelectItem>
+            </SelectContent>
+          </Select>
+        </HStack>
+
+        <VStack gap='2'>
+          <HStack gap="2" align='center' justify='center'>
+            <XCircle className="w-6 h-6 text-error flex-shrink-0" />
+            <H1>{t('title')}</H1>
+          </HStack>
+
+          <VStack gap='1'>
+            <P color='muted' className='text-center text-base leading-relaxed'>{t('message')}</P>
+            <P color='muted-light' className="text-sm text-center">{t('contact')}</P>
+          </VStack>
+        </VStack>
+
+       <Button
+            variant="outline"
+            asChild
+            className="w-full h-14 gap-2"
+          >
+            <a href={t('emailLink')}>
+              <Mail className="w-4 h-4" />
+              {t('emailLabel')}: {t('emailAddress')}
+            </a>
+          </Button>
+      </VStack>
     </div>
   )
 }

@@ -1,0 +1,6 @@
+export { IdentitySection } from './IdentitySection'
+export { ContactSection } from './ContactSection'
+export { EmployerSection } from './EmployerSection'
+export { DoctorsSection } from './DoctorsSection'
+export { AccidentSection } from './AccidentSection'
+export { InsuranceSection } from './InsuranceSection'

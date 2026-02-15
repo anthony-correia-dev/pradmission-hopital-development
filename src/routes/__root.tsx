@@ -1,14 +1,16 @@
 import { createRootRoute, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+import { LazyMotion, domAnimation } from 'motion/react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { wizardSchema } from '@/schemas/wizard'
-import { ProgressIndicator } from '@/components/ProgressIndicator'
-import { InvalidLink } from '@/components/InvalidLink'
-import { ValidationLoadingScreen } from '@/components/ValidationLoadingScreen'
-import { useApi } from '@/hooks/useApi'
+import { wizardSchema } from '@/schemas'
+import { ProgressIndicator, InvalidLink, ValidationLoadingScreen } from '@/components'
+import { VStack } from '@/components/ui'
+import { useApi } from '@/hooks'
 import type { WizardFormData } from '@/types/form'
 import { DEFAULT_FORM_DATA } from '@/types/form'
+import { detectBrowserLanguage } from '@/utils'
 import { z } from 'zod'
 
 const searchSchema = z.object({
@@ -22,16 +24,66 @@ function extractPreadmissionId(): string {
   // Try search params
   const searchParams = new URLSearchParams(window.location.search)
   const fromSearch = searchParams.get('preadmissionId')
-  if (fromSearch) return fromSearch
+  if (fromSearch) {
+    sessionStorage.setItem('preadmissionId', fromSearch)
+    return fromSearch
+  }
 
   // Try hash params
   const hashParams = new URLSearchParams(window.location.hash.replace('#', ''))
   const fromHash = hashParams.get('preadmissionId')
-  if (fromHash) return fromHash
+  if (fromHash) {
+    sessionStorage.setItem('preadmissionId', fromHash)
+    return fromHash
+  }
 
   // Regex fallback
   const match = window.location.href.match(/preadmissionId=([^&]+)/)
-  return match?.[1] ?? ''
+  if (match?.[1]) {
+    sessionStorage.setItem('preadmissionId', match[1])
+    return match[1]
+  }
+
+  // Fallback to sessionStorage (survives HMR reloads)
+  return sessionStorage.getItem('preadmissionId') ?? ''
+}
+
+type LayoutMode = 'entry-centered' | 'form-scrollable' | 'completion-centered'
+
+const LAYOUT_MODES: Record<string, LayoutMode> = {
+  qualification: 'form-scrollable',
+  admin: 'form-scrollable',
+  success: 'completion-centered',
+}
+
+function EntryLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="step-page-centered" data-layout="entry">
+      <div className="step-container-sm mb-24">{children}</div>
+    </div>
+  )
+}
+
+function FormLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex-1" data-layout="form">
+      {children}
+    </div>
+  )
+}
+
+function CompletionLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <VStack grow align="center" justify="center" className="p-4" data-layout="completion">
+      <div className="step-container-sm">{children}</div>
+    </VStack>
+  )
+}
+
+const LAYOUTS: Record<LayoutMode, React.FC<{ children: React.ReactNode }>> = {
+  'entry-centered': EntryLayout,
+  'form-scrollable': FormLayout,
+  'completion-centered': CompletionLayout,
 }
 
 function RootComponent() {
@@ -42,9 +94,6 @@ function RootComponent() {
   const [linkState, setLinkState] = useState<'validating' | 'valid' | 'invalid'>('validating')
   const preadmissionId = useRef(extractPreadmissionId())
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  // Detect browser language
-  const browserLang = navigator.language.startsWith('fr') ? 'fr' : 'en'
 
   // Load saved form data from sessionStorage
   const savedData = (() => {
@@ -68,15 +117,23 @@ function RootComponent() {
     defaultValues: {
       ...DEFAULT_FORM_DATA,
       ...savedData,
-      language: savedData?.language ?? (browserLang as 'fr' | 'en'),
+      language: savedData?.language ?? detectBrowserLanguage(),
       preadmissionId: preadmissionId.current,
     },
     mode: 'onSubmit',
   })
 
+  const { i18n } = useTranslation()
   const language = rhfMethods.watch('language')
   const currentPath = location.pathname.replace('/', '') || 'landing'
   const showProgress = PROGRESS_STEPS.includes(currentPath)
+
+  // Sync i18next language with form language
+  useEffect(() => {
+    if (i18n.language !== language) {
+      i18n.changeLanguage(language)
+    }
+  }, [language, i18n])
 
   // Validate preadmission link on mount
   useEffect(() => {
@@ -127,28 +184,32 @@ function RootComponent() {
     }
   }, [location.pathname, navigate])
 
-  if (linkState === 'validating') {
-    return <ValidationLoadingScreen />
-  }
+  const layoutMode =
+    linkState === 'valid'
+      ? (LAYOUT_MODES[currentPath] ?? 'entry-centered')
+      : 'entry-centered'
 
-  if (linkState === 'invalid') {
-    return <InvalidLink />
-  }
+  const Layout = LAYOUTS[layoutMode]
+
+  const content =
+    linkState === 'validating' ? <ValidationLoadingScreen />
+    : linkState === 'invalid' ? <InvalidLink />
+    : <Outlet />
 
   return (
-    <FormProvider {...rhfMethods}>
-      <div
-        id="preadmission-app"
-        className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50 to-slate-100"
-      >
-        {showProgress && (
-          <ProgressIndicator currentStep={currentPath} language={language} />
-        )}
-        <div style={{ viewTransitionName: 'route-content' }}>
-          <Outlet />
+    <LazyMotion features={domAnimation} strict>
+      <FormProvider {...rhfMethods}>
+        <div
+          id="preadmission-app"
+          className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-sky-50 to-slate-100"
+        >
+          {showProgress && (
+            <ProgressIndicator currentStep={currentPath} />
+          )}
+          <Layout>{content}</Layout>
         </div>
-      </div>
-    </FormProvider>
+      </FormProvider>
+    </LazyMotion>
   )
 }
 

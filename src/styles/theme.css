@@ -23,7 +23,7 @@
   --secondary-foreground: oklch(0.205 0.015 285.823);
   --muted: oklch(0.97 0.001 106.424);
   --muted-foreground: oklch(0.556 0.016 285.938);
-  --accent: oklch(0.547 0.152 166.148);
+  --accent: oklch(0.765 0.177 163.22);
   --accent-foreground: oklch(0.205 0.015 285.823);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
@@ -72,4 +72,37 @@
 
   /* Font Family */
   --font-sans-serif: 'Simplon Norm', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* ========================================
+   TAILWIND v4 THEME REGISTRATION
+   ======================================== */
+@theme {
+  /* Brand */
+  --color-brand: #5BC2E7;
+  --color-brand-hover: #4ab0d4;
+  --color-brand-text: #101820;
+  --color-brand-error: #E30613;
+  --color-brand-success: #009664;
+
+  /* shadcn semantic */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }

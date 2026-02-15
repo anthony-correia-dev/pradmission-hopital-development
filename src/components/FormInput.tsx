@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/utils/cn'
 import { AlertCircle } from 'lucide-react'
+import { VStack } from './ui'
 
 interface FormInputProps extends React.ComponentProps<'input'> {
   label: string
@@ -16,10 +17,10 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
     const inputId = id ?? label.toLowerCase().replace(/\s+/g, '-')
 
     return (
-      <div className={cn('space-y-2', className)}>
-        <Label htmlFor={inputId} className="text-sm font-medium text-[var(--brand-text)]">
+      <VStack className={cn('space-y-2', className)}>
+        <Label htmlFor={inputId} className="text-sm font-medium text-[var(--brand-text)] leading-3">
           {label}
-          {props.required && <span className="text-[var(--brand-error)] ml-1">*</span>}
+          {props.required && <span className="text-[var(--brand-error)] ml-0.5">*</span>}
           {optional && (
             <span className="text-slate-400 font-normal ml-1">({optional})</span>
           )}
@@ -40,7 +41,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
             <span>{error}</span>
           </div>
         )}
-      </div>
+      </VStack>
     )
   }
 )
