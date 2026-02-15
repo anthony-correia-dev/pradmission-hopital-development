@@ -30,7 +30,7 @@ export const mockApi = {
     return { lastDigits: '1234' }
   },
 
-  async sendOtp(_id: string) {
+  async sendOtp(_id: string, _language?: string) {
     await delay(500)
     return { success: true }
   },

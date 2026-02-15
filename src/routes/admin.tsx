@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useFormContext } from 'react-hook-form'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { AnimatePresence, m } from 'motion/react'
 import { AlertTriangle, ArrowLeft, Loader2, Send, User, X } from 'lucide-react'
 import { HStack, VStack, Button, H1, P } from '@/components/ui'
@@ -32,6 +33,14 @@ function AdminPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showOcrBanner, setShowOcrBanner] = useState(true)
+
+  // Show OCR info toast on first arrival from loading page
+  useEffect(() => {
+    if (sessionStorage.getItem('ocr_completed') === 'true') {
+      sessionStorage.removeItem('ocr_completed')
+      toast.info(t('ocrInfoToast'), { duration: 3000 })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const refMap = useRef<Record<string, HTMLDivElement | null>>({})
   const setRef = (key: string) => (el: HTMLDivElement | null) => {
@@ -106,6 +115,8 @@ function AdminPage() {
     try {
       const formData = getValues()
       await api.submitPreadmission(formData)
+      sessionStorage.removeItem('wizard-form-data')
+      sessionStorage.removeItem('otp_sent')
       void navigate({ to: '/success' })
     } catch {
       setIsSubmitting(false)

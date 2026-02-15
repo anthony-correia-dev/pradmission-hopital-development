@@ -179,10 +179,11 @@ const prodApi = {
     )
   },
 
-  async sendOtp(id: string) {
+  async sendOtp(id: string, language?: string) {
     const triggerId = import.meta.env.VITE_OCR_SENDOTP_TRIGGER_ID as string
     return safeAjaxCloudFlow<{ success: boolean }>(triggerId, {
       number: id,
+      language: language ?? 'fr',
     })
   },
 

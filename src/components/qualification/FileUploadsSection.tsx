@@ -99,6 +99,13 @@ export function FileUploadsSection({
         required
       />
 
+      {/* CLARIFICATION NEEDED (Dev8): Insurance card is currently required for all swiss insurance.
+         PO requests it should NOT be mandatory for Swiss employer insurance (CERN, UN, diplomatic).
+         Need to clarify: what condition distinguishes "Swiss employer" from regular Swiss LAMal?
+         Possible solutions:
+         - Add a sub-option under swiss insurance (e.g. "employer scheme")
+         - Use the hasEmployer + reason === 'accident' combination
+         - Add a new insurance type for employer schemes */}
       <FileUploadZone
         ref={insuranceCardRef}
         file={insuranceCard}

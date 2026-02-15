@@ -91,6 +91,7 @@ function LoadingPage() {
           if (d.avsNumber) setValue('avsNumber', d.avsNumber)
           if (d.kvgCardNumber) setValue('cardNumber', d.kvgCardNumber)
           if (d.kvgInsuranceName) setValue('basicInsurance', d.kvgInsuranceName)
+          if (d.vvgCardNumber) setValue('complementaryInsurance', d.vvgCardNumber)
         }
       }
 
@@ -118,6 +119,8 @@ function LoadingPage() {
         setValue('ocrTimedOut', true)
       }
 
+      // Flag for admin page to show OCR info toast
+      sessionStorage.setItem('ocr_completed', 'true')
       void navigate({ to: '/admin' })
     }
 

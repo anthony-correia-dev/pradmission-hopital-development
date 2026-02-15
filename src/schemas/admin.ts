@@ -32,7 +32,7 @@ export function createAdminSchema(
     email: z
       .string()
       .min(1, t.required)
-      .email(t.invalidEmail),
+      .regex(/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/, t.invalidEmail),
 
     // Employer — conditional
     profession: hasEmployer

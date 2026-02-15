@@ -49,7 +49,8 @@ export const adminTranslations = {
     invalidCardNumber: 'Le numéro de carte doit contenir exactement 20 chiffres',
     invalidAvsNumber: 'Le numéro AVS doit contenir exactement 13 chiffres',
     optional: 'Optionnel',
-    noResults: 'Aucun résultat'
+    noResults: 'Aucun résultat',
+    ocrInfoToast: 'Vos données personnelles ont été pré-remplies à partir de vos documents. Veuillez vérifier et compléter les informations.',
   },
   en: {
     title: 'Administrative Information',
@@ -101,6 +102,7 @@ export const adminTranslations = {
     invalidCardNumber: 'Card number must contain exactly 20 digits',
     invalidAvsNumber: 'AHV number must contain exactly 13 digits',
     optional: 'Optional',
-    noResults: 'No results'
+    noResults: 'No results',
+    ocrInfoToast: 'Your personal data has been pre-filled from your documents. Please review and complete the information.',
   }
 } as const

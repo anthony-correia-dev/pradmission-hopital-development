@@ -12,6 +12,7 @@ import type { WizardFormData } from '@/types/form'
 import { DEFAULT_FORM_DATA } from '@/types/form'
 import { detectBrowserLanguage } from '@/utils'
 import { z } from 'zod'
+import { Toaster } from 'sonner'
 
 const searchSchema = z.object({
   preadmissionId: z.string().optional().catch(undefined),
@@ -207,6 +208,7 @@ function RootComponent() {
             <ProgressIndicator currentStep={currentPath} />
           )}
           <Layout>{content}</Layout>
+          <Toaster position="top-center" richColors />
         </main>
       </FormProvider>
     </LazyMotion>

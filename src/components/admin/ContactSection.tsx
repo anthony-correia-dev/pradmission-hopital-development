@@ -35,18 +35,20 @@ export function ContactSection({ errors, setErrors, setRef }: ContactSectionProp
           <FormInput
             label={t('npa')}
             value={watch('npa')}
-            onChange={(e) => setValue('npa', e.target.value.replace(/\D/g, ''))}
+            onChange={(e) => setValue('npa', e.target.value.replace(/\D/g, '').slice(0, 10))}
             error={errors.npa}
             required
+            maxLength={10}
           />
         </div>
         <div ref={setRef('city')}>
           <FormInput
             label={t('city')}
             value={watch('city')}
-            onChange={(e) => setValue('city', e.target.value)}
+            onChange={(e) => setValue('city', e.target.value.slice(0, 50))}
             error={errors.city}
             required
+            maxLength={50}
           />
         </div>
       </div>

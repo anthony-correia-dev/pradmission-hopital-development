@@ -11,7 +11,7 @@ export const securityTranslations = {
     futureDate: 'La date de naissance ne peut pas être dans le futur',
     verifying: 'Vérification...',
     invalidBirthDate: 'Date de naissance invalide',
-    wrongDate: 'La date de naissance ne correspond pas',
+    wrongDate: 'La date de naissance ne correspond pas à celle enregistrée dans votre dossier',
     connectionError: 'Erreur de connexion, veuillez réessayer'
   },
   en: {
@@ -26,7 +26,7 @@ export const securityTranslations = {
     futureDate: 'Date of birth cannot be in the future',
     verifying: 'Verifying...',
     invalidBirthDate: 'Invalid birth date',
-    wrongDate: 'The date of birth does not match',
+    wrongDate: 'The date of birth does not match the one in your file',
     connectionError: 'Connection error, please try again'
   }
 } as const

@@ -63,6 +63,7 @@ export function InsuranceSection({ errors, setRef, showAvs, showBasicInsurance, 
               error={errors.cardNumber}
               required
               inputClassName="form-input-mono"
+              placeholder="XXXXX XXXXX XXXXX XXXXX"
             />
           </m.div>
         )}
@@ -82,9 +83,11 @@ export function InsuranceSection({ errors, setRef, showAvs, showBasicInsurance, 
       </AnimatePresence>
       <FormInput
         label={t('complementaryInsurance')}
-        value={watch('complementaryInsurance')}
-        onChange={(e) => setValue('complementaryInsurance', e.target.value)}
+        value={formatCardNumber(watch('complementaryInsurance'))}
+        onChange={(e) => setValue('complementaryInsurance', e.target.value.replace(/\D/g, '').slice(0, 20))}
         optional={t('optional')}
+        inputClassName="form-input-mono"
+        placeholder="XXXXX XXXXX XXXXX XXXXX"
       />
     </div>
   )

@@ -39,5 +39,7 @@ export function formatAvsNumber(value: string): string {
 }
 
 export function formatCardNumber(value: string): string {
-  return value.replace(/\D/g, '').slice(0, 20)
+  const digits = value.replace(/\D/g, '').slice(0, 20)
+  // Format as groups of 5: 80756 01234 56789 01234
+  return digits.replace(/(\d{5})(?=\d)/g, '$1 ')
 }

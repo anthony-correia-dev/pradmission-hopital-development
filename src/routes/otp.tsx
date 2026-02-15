@@ -13,6 +13,7 @@ function OTPPage() {
   const navigate = useNavigate()
   const { setValue, watch } = useFormContext<WizardFormData>()
   const preadmissionId = watch('preadmissionId')
+  const language = watch('language')
   const { t } = useTranslation('otp')
   const api = useApi()
 
@@ -44,7 +45,7 @@ function OTPPage() {
 
     otpSentRef.current = true
     sessionStorage.setItem('otp_sent', 'true')
-    api.sendOtp(preadmissionId).catch(() => {})
+    api.sendOtp(preadmissionId, language).catch(() => {})
     setCooldown(TIMINGS.OTP_COOLDOWN_S)
   }, [preadmissionId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -63,7 +64,7 @@ function OTPPage() {
     if (isCoolingDown || isResending) return
     setIsResending(true)
     try {
-      await api.sendOtp(preadmissionId)
+      await api.sendOtp(preadmissionId, language)
       setCooldown(TIMINGS.OTP_COOLDOWN_S)
     } finally {
       setIsResending(false)
