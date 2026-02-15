@@ -41,6 +41,8 @@ export const DEFAULT_FORM_DATA = {
   cardNumber: '',
   policyNumber: '',
   complementaryInsurance: '',
+  ocrTimedOut: false,
+  insuranceCardError: '',
 }
 
 export type WizardFormData = typeof DEFAULT_FORM_DATA

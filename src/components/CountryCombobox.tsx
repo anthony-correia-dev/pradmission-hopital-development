@@ -77,7 +77,7 @@ export function CountryCombobox({
   }
 
   const handleSelect = (country: Country) => {
-    onChange(country.name)
+    onChange(country.code)
     setSearchTerm('')
     setIsOpen(false)
   }
@@ -125,11 +125,13 @@ export function CountryCombobox({
     }
   }, [highlightedIndex])
 
-  const selectedCountry = countries.find((c) => c.name === value)
+  const selectedCountry = countries.find((c) => c.code === value)
   const displayValue = isOpen
     ? searchTerm
-    : withFlags && selectedCountry?.flag
-      ? `${selectedCountry.flag} ${value}`
+    : selectedCountry
+      ? withFlags && selectedCountry.flag
+        ? `${selectedCountry.flag} ${selectedCountry.name}`
+        : selectedCountry.name
       : value
 
   return (
@@ -174,7 +176,7 @@ export function CountryCombobox({
                   'px-4 py-2.5 cursor-pointer transition-colors',
                   index === highlightedIndex
                     ? 'bg-[var(--brand-primary)] text-white'
-                    : value === country.name
+                    : value === country.code
                     ? 'bg-slate-100'
                     : 'hover:bg-slate-50'
                 )}

@@ -3,6 +3,17 @@ import type { WizardFormData } from '@/types/form'
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
+function getTestOverride(key: string): string | null {
+  try { return sessionStorage.getItem(`__test_${key}`) } catch { return null }
+}
+
+function getMockOcrDelay(): number {
+  if (getTestOverride('ocr_timeout') === 'true') return 15000
+  if (import.meta.env.VITE_MOCK_OCR_TIMEOUT === 'true') return 15000
+  const custom = getTestOverride('ocr_delay') ?? import.meta.env.VITE_MOCK_OCR_DELAY_MS
+  return custom ? Number(custom) : 2000
+}
+
 export const mockApi = {
   async validatePreadmissionLink(id: string) {
     await delay(800)
@@ -33,23 +44,25 @@ export const mockApi = {
     _file: string,
     type: 'identity' | 'insurance'
   ): Promise<MappedIdentityData | MappedInsuranceData> {
-    await delay(150)
+    await delay(getMockOcrDelay())
     if (type === 'identity') {
       return {
         lastName: 'Dupont',
         firstNames: 'Jean Pierre',
         firstName: 'Jean Pierre',
         gender: 'male',
-        nationality: 'Swizerland',
+        nationality: 'CH',
       }
     }
+    const notCovered = getTestOverride('ocr_not_covered') === 'true'
+      || import.meta.env.VITE_MOCK_OCR_NOT_COVERED === 'true'
     return {
       street: 'Rue du Lac 15',
       city: 'Geneve',
       zipCode: '1200',
       country: 'CH',
       avsNumber: '756.1234.5678.90',
-      kvgCardNumber: '80756012345678901234',
+      kvgCardNumber: notCovered ? 'not_covered' : '80756012345678901234',
       kvgInsuranceName: 'CSS Assurance',
       vvgCardNumber: '80756098765432109876',
     }

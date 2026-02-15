@@ -39,6 +39,8 @@ export const wizardSchema = z.object({
   cardNumber: z.string(),
   policyNumber: z.string(),
   complementaryInsurance: z.string(),
+  ocrTimedOut: z.boolean(),
+  insuranceCardError: z.string(),
 })
 
 export type WizardSchema = z.infer<typeof wizardSchema>

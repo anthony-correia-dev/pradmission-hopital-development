@@ -11,6 +11,7 @@ import { invalidLinkTranslations } from '@/locales/invalidLink'
 import { loadingTranslations } from '@/locales/loading'
 import { errorFallbackTranslations } from '@/locales/errorFallback'
 import { progressTranslations } from '@/locales/progress'
+import { notFoundTranslations } from '@/locales/notFound'
 
 const resources = {
   fr: {
@@ -24,6 +25,7 @@ const resources = {
     loading: loadingTranslations.fr,
     errorFallback: errorFallbackTranslations.fr,
     progress: progressTranslations.fr,
+    notFound: notFoundTranslations.fr,
   },
   en: {
     landing: landingTranslations.en,
@@ -36,6 +38,7 @@ const resources = {
     loading: loadingTranslations.en,
     errorFallback: errorFallbackTranslations.en,
     progress: progressTranslations.en,
+    notFound: notFoundTranslations.en,
   },
 } as const
 

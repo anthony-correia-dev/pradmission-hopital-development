@@ -21,7 +21,7 @@ function ErrorFallback({ error }: { error: Error }) {
   const { t } = useTranslation('errorFallback')
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-[100dvh] flex items-center justify-center p-4">
       <div className="text-center space-y-4">
         <h1 className="text-2xl font-bold text-slate-800">
           {t('title')}

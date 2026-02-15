@@ -16,7 +16,7 @@ let cloudFlowConfig: CloudFlowConfig | null = null
 
 function isDevMode(): boolean {
   const host = window.location.hostname
-  return host === 'localhost' || host === '127.0.0.1'
+  return host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')
 }
 
 // ---------- CSRF Token ----------

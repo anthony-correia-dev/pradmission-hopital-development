@@ -3,7 +3,7 @@ import { useFormContext } from 'react-hook-form'
 import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, m } from 'motion/react'
-import { ArrowLeft, Loader2, Send, User } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Loader2, Send, User, X } from 'lucide-react'
 import { HStack, VStack, Button, H1, P } from '@/components/ui'
 import { createAdminSchema } from '@/schemas'
 import { useApi } from '@/hooks'
@@ -20,15 +20,18 @@ import {
 
 function AdminPage() {
   const navigate = useNavigate()
-  const { watch, getValues } = useFormContext<WizardFormData>()
+  const { watch, getValues, setValue } = useFormContext<WizardFormData>()
   const reason = watch('reason')
   const insurance = watch('insurance')
   const hasEmployer = watch('hasEmployer')
+  const ocrTimedOut = watch('ocrTimedOut')
   const { t } = useTranslation('admin')
+  const { t: tLoading } = useTranslation('loading')
   const api = useApi()
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showOcrBanner, setShowOcrBanner] = useState(true)
 
   const refMap = useRef<Record<string, HTMLDivElement | null>>({})
   const setRef = (key: string) => (el: HTMLDivElement | null) => {
@@ -43,6 +46,11 @@ function AdminPage() {
         break
       }
     }
+  }
+
+  function dismissOcrBanner() {
+    setShowOcrBanner(false)
+    setValue('ocrTimedOut', false)
   }
 
   async function handleSubmit() {
@@ -124,6 +132,20 @@ function AdminPage() {
             <P className="step-subtitle">{t('subtitle')}</P>
           </VStack>
           <VStack className="step-card-content gap-6">
+            {ocrTimedOut && showOcrBanner && (
+              <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800 flex-1">{tLoading('ocrTimeout')}</p>
+                <button
+                  type="button"
+                  onClick={dismissOcrBanner}
+                  className="text-amber-600 hover:text-amber-800 shrink-0 cursor-pointer"
+                  aria-label="Dismiss"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
             <IdentitySection errors={errors} setErrors={setErrors} setRef={setRef} />
             <ContactSection errors={errors} setErrors={setErrors} setRef={setRef} />
             <AnimatePresence>

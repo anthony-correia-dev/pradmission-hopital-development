@@ -132,10 +132,18 @@
     min-height: 100dvh;
     display: flex;
     justify-content: center;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  @media (min-width: 640px) {
+    .step-page {
+      padding-left: 1rem;
+      padding-right: 1rem;
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
   }
 
   .step-page-centered {
@@ -143,10 +151,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+    padding: 0.75rem;
+  }
+  @media (min-width: 640px) {
+    .step-page-centered {
+      padding: 1rem;
+    }
   }
 
   .step-container-sm {
@@ -165,21 +175,40 @@
 
   .step-card {
     background-color: white;
-    border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1), 0 0 0 1px rgb(241 245 249 / 0.5);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
     border: 1px solid rgb(241 245 249);
     padding: 0;
-    backdrop-filter: blur(4px);
+  }
+  @media (min-width: 640px) {
+    .step-card {
+      border-radius: 1rem;
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1), 0 0 0 1px rgb(241 245 249 / 0.5);
+      backdrop-filter: blur(4px);
+    }
   }
 
   .step-card-compact {
     background-color: white;
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    border-radius: 0.625rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     border: 1px solid rgb(241 245 249);
     padding: 0;
     position: relative;
     z-index: 10;
+  }
+  @media (min-width: 640px) {
+    .step-card-compact {
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    }
+  }
+
+  /* Reduce bottom margin on mobile so card sits closer to center */
+  @media (max-width: 639.99px) {
+    .step-page-centered > .step-container-sm {
+      margin-bottom: 0 !important;
+    }
   }
 
   .step-card-header {
@@ -214,7 +243,7 @@
   .step-icon {
     width: 4rem;
     height: 4rem;
-    background-color: rgb(91 194 231 / 0.1);
+    background-color: rgb(14 147 181 / 0.1);
     border-radius: 0.75rem;
     display: flex;
     align-items: center;
@@ -403,7 +432,7 @@
 
   .otp-slot:focus-within {
     border-color: var(--brand-primary);
-    box-shadow: 0 0 0 2px rgb(91 194 231 / 0.3);
+    box-shadow: 0 0 0 2px rgb(14 147 181 / 0.3);
   }
 
   /*

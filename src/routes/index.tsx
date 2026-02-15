@@ -16,7 +16,7 @@ function LandingPage() {
         <div className="step-card">
           <VStack className="step-card-header">
             <HStack justify="center" className="mb-8">
-              <img src={logoHlt} alt="Hôpital de La Tour" className="h-16" />
+              <img src={logoHlt} alt="Hôpital de La Tour" className="h-16" width="122" height="64" />
             </HStack>
 
             <HStack justify="between" className="mb-10">
@@ -28,7 +28,7 @@ function LandingPage() {
                 value={language}
                 onValueChange={(v) => setValue('language', v as Language)}
               >
-                <SelectTrigger className="w-[130px] h-9 text-sm">
+                <SelectTrigger className="w-[130px] h-9 text-sm" aria-label={t('chooseLanguage')}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -42,7 +42,7 @@ function LandingPage() {
               <H1>{t('title')}</H1>
              <VStack className="gap-1.5">
                <p className="step-subtitle !text-base">{t('subtitle')}</p>
-              <p className="text-sm text-slate-400 text-center">{t('confidentiality')}</p>
+              <p className="text-sm text-slate-500 text-center">{t('confidentiality')}</p>
              </VStack>
             </VStack>
           </VStack>
@@ -55,7 +55,7 @@ function LandingPage() {
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
 
-            <HStack justify="between" className="gap-8 mt-6 text-xs text-slate-400 mx-4">
+            <HStack justify="between" className="gap-8 mt-6 text-xs text-slate-500 mx-4">
               <HStack className="gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-accent" />
                 <P size='xs' color='muted'>{t('badgeProtected')}</P>

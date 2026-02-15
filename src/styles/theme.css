@@ -4,8 +4,8 @@
 
 :root {
   /* Brand Colors */
-  --brand-primary: #5BC2E7;
-  --brand-primary-hover: #4ab0d4;
+  --brand-primary: #0E93B5;
+  --brand-primary-hover: #0C7F9E;
   --brand-text: #101820;
   --brand-error: #E30613;
   --brand-success: #009664;
@@ -17,7 +17,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.738 0.106 219.737);
+  --primary: oklch(0.596 0.107 220);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.97 0.001 106.424);
   --secondary-foreground: oklch(0.205 0.015 285.823);
@@ -29,7 +29,7 @@
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0.004 286.32);
   --input: oklch(0.922 0.004 286.32);
-  --ring: oklch(0.738 0.106 219.737);
+  --ring: oklch(0.596 0.107 220);
   --radius: 0.625rem;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -79,8 +79,8 @@
    ======================================== */
 @theme {
   /* Brand */
-  --color-brand: #5BC2E7;
-  --color-brand-hover: #4ab0d4;
+  --color-brand: #0E93B5;
+  --color-brand-hover: #0C7F9E;
   --color-brand-text: #101820;
   --color-brand-error: #E30613;
   --color-brand-success: #009664;

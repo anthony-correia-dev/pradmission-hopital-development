@@ -5,7 +5,7 @@ import { LazyMotion, domAnimation } from 'motion/react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { wizardSchema } from '@/schemas'
-import { ProgressIndicator, InvalidLink, ValidationLoadingScreen } from '@/components'
+import { ProgressIndicator, InvalidLink, NotFound, ValidationLoadingScreen } from '@/components'
 import { VStack } from '@/components/ui'
 import { useApi } from '@/hooks'
 import type { WizardFormData } from '@/types/form'
@@ -199,15 +199,15 @@ function RootComponent() {
   return (
     <LazyMotion features={domAnimation} strict>
       <FormProvider {...rhfMethods}>
-        <div
+        <main
           id="preadmission-app"
-          className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-sky-50 to-slate-100"
+          className="min-h-[100dvh] flex flex-col bg-gradient-to-br from-slate-50 via-sky-50 to-slate-100"
         >
           {showProgress && (
             <ProgressIndicator currentStep={currentPath} />
           )}
           <Layout>{content}</Layout>
-        </div>
+        </main>
       </FormProvider>
     </LazyMotion>
   )
@@ -216,4 +216,5 @@ function RootComponent() {
 export const Route = createRootRoute({
   validateSearch: searchSchema,
   component: RootComponent,
+  notFoundComponent: NotFound,
 })

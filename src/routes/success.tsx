@@ -11,7 +11,7 @@ function SuccessPage() {
       <VStack className="step-card-header" align='center' gap='6'>
         <CheckCircle className="w-16 h-16 text-[var(--brand-success)]" />
         <VStack gap='1' align='center'>
-          <H1 color='primary'>{t('title')}</H1>
+          <H1 color='primary' className='text-center'>{t('title')}</H1>
           <p className="step-subtitle">{t('message')}</p>
         </VStack>
       </VStack>
