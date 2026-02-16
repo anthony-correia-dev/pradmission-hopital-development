@@ -3,12 +3,12 @@ export const WIZARD_STEPS = ['landing', 'security', 'otp', 'qualification', 'loa
 export type WizardStep = typeof WIZARD_STEPS[number]
 
 export const WIZARD_STAGES: Record<string, number> = {
-  landing: 100000001,
-  security: 100000002,
-  otp: 100000003,
-  qualification: 100000004,
-  admin: 100000005,
-  success: 100000006,
+  landing: 100_000_001,
+  security: 100_000_002,
+  otp: 100_000_003,
+  qualification: 100_000_004,
+  admin: 100_000_005,
+  success: 100_000_006,
 }
 
 export const STEP_ORDER: Record<WizardStep, number> = {
