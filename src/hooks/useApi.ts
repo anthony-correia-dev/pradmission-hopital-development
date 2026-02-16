@@ -106,12 +106,19 @@ async function getCloudFlowConfig(): Promise<CloudFlowConfig> {
     return cloudFlowConfig
   }
 
-  const config = await safeAjax<CloudFlowConfig>(
+  const raw = await safeAjax<Record<string, string>>(
     API_ENDPOINTS.GET_FLOWS,
     'GET'
   )
-  cloudFlowConfig = config
-  return config
+  console.log('[getCloudFlowConfig] getflows response:', raw)
+  cloudFlowConfig = {
+    identityDoc: raw.identityDoc ?? raw.identitydoc ?? '',
+    insuranceDoc: raw.insuranceDoc ?? raw.insurancedoc ?? '',
+    submitflow: raw.submitflow ?? raw.submitFlow ?? '',
+    sendOtp: raw.sendOtp ?? raw.sendotp ?? '',
+    verifyOtp: raw.verifyOtp ?? raw.verifyotp ?? '',
+  }
+  return cloudFlowConfig
 }
 
 // ---------- OCR Mapping ----------
