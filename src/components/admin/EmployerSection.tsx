@@ -53,6 +53,7 @@ export function EmployerSection({ errors, setErrors, setRef }: EmployerSectionPr
           }}
           error={errors.employerAddress}
           required
+          maxLength={250}
         />
       </div>
     </div>

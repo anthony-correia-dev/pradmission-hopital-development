@@ -12,6 +12,7 @@ export function createAdminSchema(
     invalidAvs: string
     invalidCardNumber: string
     invalidDate: string
+    maxLength: string
   }
 ) {
   return z.object({
@@ -22,7 +23,7 @@ export function createAdminSchema(
     nationality: z.string().min(1, t.required),
 
     // Contact — always required
-    street: z.string().min(1, t.required),
+    street: z.string().min(1, t.required).max(250, t.maxLength),
     npa: z
       .string()
       .min(1, t.required)
@@ -42,7 +43,7 @@ export function createAdminSchema(
       ? z.string().min(1, t.required)
       : z.string().optional().default(''),
     employerAddress: hasEmployer
-      ? z.string().min(1, t.required)
+      ? z.string().min(1, t.required).max(250, t.maxLength)
       : z.string().optional().default(''),
 
     // Doctors — always optional
@@ -67,7 +68,7 @@ export function createAdminSchema(
           )
       : z.string().optional().default(''),
     basicInsurance:
-      reason === 'accident' || insurance === 'swiss' || insurance === 'international'
+      (reason === 'accident' && !hasEmployer) || insurance === 'swiss' || insurance === 'international'
         ? z.string().min(1, t.required)
         : z.string().optional().default(''),
     cardNumber:

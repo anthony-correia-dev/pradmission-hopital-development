@@ -70,6 +70,7 @@ function AdminPage() {
       invalidAvs: t('invalidAvs'),
       invalidCardNumber: t('invalidCardNumber'),
       invalidDate: t('invalidDate'),
+      maxLength: t('maxLength'),
     })
 
     const values = getValues()

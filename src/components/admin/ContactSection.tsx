@@ -31,6 +31,7 @@ export function ContactSection({ errors, setErrors, setRef }: ContactSectionProp
           }}
           error={errors.street}
           required
+          maxLength={250}
         />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
