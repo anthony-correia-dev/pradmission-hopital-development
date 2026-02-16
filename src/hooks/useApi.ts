@@ -81,11 +81,19 @@ async function safeAjaxCloudFlow<T>(
     body,
   })
 
-  const data = (await res.json()) as T | { json: string }
+  let data = (await res.json()) as
+    | T
+    | { json: string }
+    | { data: T; status: string }
 
-  // Handle double-wrapped responses
+  // Handle double-wrapped responses ({ json: "..." })
   if (data && typeof data === 'object' && 'json' in data && typeof data.json === 'string') {
-    return JSON.parse(data.json) as T
+    data = JSON.parse(data.json) as T | { data: T; status: string }
+  }
+
+  // Cloud flows wrap payload in { status, data }
+  if (data && typeof data === 'object' && 'data' in data && 'status' in data) {
+    return (data as { data: T }).data
   }
 
   return data as T
@@ -106,17 +114,17 @@ async function getCloudFlowConfig(): Promise<CloudFlowConfig> {
     return cloudFlowConfig
   }
 
-  const raw = await safeAjax<Record<string, string>>(
-    API_ENDPOINTS.GET_FLOWS,
-    'GET'
-  )
+  const raw = await safeAjax<{
+    data: Record<string, string>
+  }>(API_ENDPOINTS.GET_FLOWS, 'GET')
   console.log('[getCloudFlowConfig] getflows response:', raw)
+  const flows = raw.data
   cloudFlowConfig = {
-    identityDoc: raw.identityDoc ?? raw.identitydoc ?? '',
-    insuranceDoc: raw.insuranceDoc ?? raw.insurancedoc ?? '',
-    submitflow: raw.submitflow ?? raw.submitFlow ?? '',
-    sendOtp: raw.sendOtp ?? raw.sendotp ?? '',
-    verifyOtp: raw.verifyOtp ?? raw.verifyotp ?? '',
+    identityDoc: flows.identityDoc ?? flows.identitydoc ?? '',
+    insuranceDoc: flows.insuranceDoc ?? flows.insurancedoc ?? '',
+    submitflow: flows.submitflow ?? flows.submitFlow ?? '',
+    sendOtp: flows.sendOtp ?? flows.sendotp ?? '',
+    verifyOtp: flows.verifyOtp ?? flows.verifyotp ?? '',
   }
   return cloudFlowConfig
 }
