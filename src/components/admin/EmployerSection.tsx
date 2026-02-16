@@ -6,10 +6,11 @@ import type { WizardFormData } from '@/types/form'
 
 interface EmployerSectionProps {
   errors: Record<string, string>
+  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>
   setRef: (key: string) => (el: HTMLDivElement | null) => void
 }
 
-export function EmployerSection({ errors, setRef }: EmployerSectionProps) {
+export function EmployerSection({ errors, setErrors, setRef }: EmployerSectionProps) {
   const { setValue, watch } = useFormContext<WizardFormData>()
   const { t } = useTranslation('admin')
 
@@ -22,7 +23,10 @@ export function EmployerSection({ errors, setRef }: EmployerSectionProps) {
         <FormInput
           label={t('profession')}
           value={watch('profession')}
-          onChange={(e) => setValue('profession', e.target.value)}
+          onChange={(e) => {
+            setValue('profession', e.target.value)
+            setErrors((prev) => { const n = { ...prev }; delete n.profession; return n })
+          }}
           error={errors.profession}
           required
         />
@@ -31,7 +35,10 @@ export function EmployerSection({ errors, setRef }: EmployerSectionProps) {
         <FormInput
           label={t('employerName')}
           value={watch('employerName')}
-          onChange={(e) => setValue('employerName', e.target.value)}
+          onChange={(e) => {
+            setValue('employerName', e.target.value)
+            setErrors((prev) => { const n = { ...prev }; delete n.employerName; return n })
+          }}
           error={errors.employerName}
           required
         />
@@ -40,7 +47,10 @@ export function EmployerSection({ errors, setRef }: EmployerSectionProps) {
         <FormInput
           label={t('employerAddress')}
           value={watch('employerAddress')}
-          onChange={(e) => setValue('employerAddress', e.target.value)}
+          onChange={(e) => {
+            setValue('employerAddress', e.target.value)
+            setErrors((prev) => { const n = { ...prev }; delete n.employerAddress; return n })
+          }}
           error={errors.employerAddress}
           required
         />

@@ -162,7 +162,7 @@ function AdminPage() {
             <AnimatePresence>
               {!!showEmployer && (
                 <m.div key="employer" variants={slideVariants} initial="hidden" animate="visible" exit="exit">
-                  <EmployerSection errors={errors} setRef={setRef} />
+                  <EmployerSection errors={errors} setErrors={setErrors} setRef={setRef} />
                 </m.div>
               )}
             </AnimatePresence>
@@ -170,12 +170,13 @@ function AdminPage() {
             <AnimatePresence>
               {!!showAccident && (
                 <m.div key="accident" variants={slideVariants} initial="hidden" animate="visible" exit="exit">
-                  <AccidentSection errors={errors} setRef={setRef} />
+                  <AccidentSection errors={errors} setErrors={setErrors} setRef={setRef} />
                 </m.div>
               )}
             </AnimatePresence>
             <InsuranceSection
               errors={errors}
+              setErrors={setErrors}
               setRef={setRef}
               showAvs={showAvs}
               showBasicInsurance={showBasicInsurance}

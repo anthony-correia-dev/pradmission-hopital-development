@@ -19,6 +19,8 @@ export interface CloudFlowConfig {
   identityDoc: string
   insuranceDoc: string
   submitflow: string
+  sendOtp: string
+  verifyOtp: string
 }
 
 export interface OCRIdentityResponse {

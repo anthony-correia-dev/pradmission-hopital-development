@@ -8,10 +8,11 @@ import type { WizardFormData } from '@/types/form'
 
 interface AccidentSectionProps {
   errors: Record<string, string>
+  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>
   setRef: (key: string) => (el: HTMLDivElement | null) => void
 }
 
-export function AccidentSection({ errors, setRef }: AccidentSectionProps) {
+export function AccidentSection({ errors, setErrors, setRef }: AccidentSectionProps) {
   const { setValue, watch } = useFormContext<WizardFormData>()
   const { t, i18n } = useTranslation('admin')
 
@@ -32,6 +33,7 @@ export function AccidentSection({ errors, setRef }: AccidentSectionProps) {
           onChange={(e) => {
             const formatted = formatDateInput(e.target.value)
             setAccidentDisplay(formatted)
+            setErrors((prev) => { const n = { ...prev }; delete n.accidentDate; return n })
             if (formatted.length === 10) {
               const iso = parseDisplayDate(formatted, { allowFuture: false })
               if (iso) setValue('accidentDate', iso)

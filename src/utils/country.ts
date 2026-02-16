@@ -152,27 +152,19 @@ const COUNTRIES: Country[] = [
   { code: 'ZW', nameFr: 'Zimbabwe', nameEn: 'Zimbabwe' },
 ]
 
-export function getFlagEmoji(code: string): string {
-  return code
-    .toUpperCase()
-    .split('')
-    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
-    .join('')
-}
-
-export function getCountries(language: Language): { code: string; name: string; flag: string }[] {
+export function getCountries(language: Language): { code: string; name: string }[] {
   const priority = ['CH', 'FR']
   const priorityCountries = COUNTRIES.filter((c) => priority.includes(c.code))
   const otherCountries = COUNTRIES.filter((c) => !priority.includes(c.code))
   const getName = (c: Country) => (language === 'fr' ? c.nameFr : c.nameEn)
-  const toEntry = (c: Country) => ({ code: c.code, name: getName(c), flag: getFlagEmoji(c.code) })
+  const toEntry = (c: Country) => ({ code: c.code, name: getName(c) })
   return [
     ...priorityCountries.map(toEntry),
     ...otherCountries.map(toEntry).sort((a, b) => a.name.localeCompare(b.name)),
   ]
 }
 
-export function getNationalities(language: Language): { code: string; name: string; flag: string }[] {
+export function getNationalities(language: Language): { code: string; name: string }[] {
   const lang = language === 'fr' ? 'fr' : 'en'
   const priority = ['CH', 'FR']
   const allCodes = COUNTRIES.map((c) => c.code)
@@ -181,7 +173,6 @@ export function getNationalities(language: Language): { code: string; name: stri
     .map((code) => ({
       code,
       name: nationalities.getName(code, lang) || code,
-      flag: getFlagEmoji(code),
     }))
 
   const priorityEntries = entries.filter((e) => priority.includes(e.code))

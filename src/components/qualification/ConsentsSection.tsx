@@ -47,7 +47,7 @@ export function ConsentsSection({ errors, setErrors, consentRef }: ConsentsSecti
             </Label>
           </div>
           {errors.consentNLPD && (
-            <div className="form-error-inline-tight ml-7 mt-2">
+            <div className="form-error-inline-tight mt-2">
               <AlertCircle className="form-error-icon" />
               <span>{errors.consentNLPD}</span>
             </div>

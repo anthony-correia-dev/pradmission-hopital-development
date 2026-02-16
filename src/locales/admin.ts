@@ -50,6 +50,7 @@ export const adminTranslations = {
     invalidAvsNumber: 'Le numéro AVS doit contenir exactement 13 chiffres',
     optional: 'Optionnel',
     noResults: 'Aucun résultat',
+    selectPlaceholder: '',
     ocrInfoToast: 'Vos données personnelles ont été pré-remplies à partir de vos documents. Veuillez vérifier et compléter les informations.',
   },
   en: {
@@ -103,6 +104,7 @@ export const adminTranslations = {
     invalidAvsNumber: 'AHV number must contain exactly 13 digits',
     optional: 'Optional',
     noResults: 'No results',
+    selectPlaceholder: '',
     ocrInfoToast: 'Your personal data has been pre-filled from your documents. Please review and complete the information.',
   }
 } as const

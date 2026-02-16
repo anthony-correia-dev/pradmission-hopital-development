@@ -5,7 +5,6 @@ import { cn } from '@/utils/cn'
 interface Country {
   code: string
   name: string
-  flag?: string
 }
 
 interface CountryComboboxProps {
@@ -129,9 +128,7 @@ export function CountryCombobox({
   const displayValue = isOpen
     ? searchTerm
     : selectedCountry
-      ? withFlags && selectedCountry.flag
-        ? `${selectedCountry.flag} ${selectedCountry.name}`
-        : selectedCountry.name
+      ? selectedCountry.name
       : value
 
   return (
@@ -141,21 +138,29 @@ export function CountryCombobox({
         {required && <span className="text-[var(--brand-error)] ml-0.5">*</span>}
       </label>
       <div className="relative">
-        <input
-          ref={inputRef}
-          id={id}
-          type="text"
-          value={displayValue}
-          onChange={handleInputChange}
-          onClick={handleInputClick}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          autoComplete="off"
+        <div
           className={cn(
-            "flex h-10 w-full rounded-md border border-[var(--input)] bg-[var(--background)] px-3 pr-10 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2",
-            error && 'border-[var(--brand-error)] focus-visible:ring-[var(--brand-error)]'
+            "flex items-center h-10 w-full rounded-md border border-[var(--input)] bg-[var(--background)] px-3 pr-10 text-sm",
+            "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[var(--ring)] has-[:focus-visible]:ring-offset-2",
+            error && 'border-[var(--brand-error)] has-[:focus-visible]:ring-[var(--brand-error)]'
           )}
-        />
+        >
+          {withFlags && !isOpen && selectedCountry && (
+            <span className={`fi fi-${selectedCountry.code.toLowerCase()} mr-2 shrink-0 text-base`} />
+          )}
+          <input
+            ref={inputRef}
+            id={id}
+            type="text"
+            value={displayValue}
+            onChange={handleInputChange}
+            onClick={handleInputClick}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            autoComplete="off"
+            className="w-full bg-transparent py-2 outline-none placeholder:text-slate-400"
+          />
+        </div>
         <ChevronDown
           className={cn(
             "absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none transition-transform",
@@ -173,7 +178,7 @@ export function CountryCombobox({
                 key={country.code}
                 onClick={() => handleSelect(country)}
                 className={cn(
-                  'px-4 py-2.5 cursor-pointer transition-colors',
+                  'px-4 py-2.5 cursor-pointer transition-colors flex items-center',
                   index === highlightedIndex
                     ? 'bg-[var(--brand-primary)] text-white'
                     : value === country.code
@@ -181,7 +186,10 @@ export function CountryCombobox({
                     : 'hover:bg-slate-50'
                 )}
               >
-                {withFlags && country.flag ? `${country.flag} ${country.name}` : country.name}
+                {withFlags && (
+                  <span className={`fi fi-${country.code.toLowerCase()} mr-2 shrink-0 text-base`} />
+                )}
+                {country.name}
               </div>
             ))
           ) : (

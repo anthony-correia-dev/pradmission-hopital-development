@@ -25,7 +25,10 @@ export function ContactSection({ errors, setErrors, setRef }: ContactSectionProp
         <FormInput
           label={t('street')}
           value={watch('street')}
-          onChange={(e) => setValue('street', e.target.value)}
+          onChange={(e) => {
+            setValue('street', e.target.value)
+            setErrors((prev) => { const n = { ...prev }; delete n.street; return n })
+          }}
           error={errors.street}
           required
         />
@@ -35,7 +38,10 @@ export function ContactSection({ errors, setErrors, setRef }: ContactSectionProp
           <FormInput
             label={t('npa')}
             value={watch('npa')}
-            onChange={(e) => setValue('npa', e.target.value.replace(/\D/g, '').slice(0, 10))}
+            onChange={(e) => {
+              setValue('npa', e.target.value.replace(/\D/g, '').slice(0, 10))
+              setErrors((prev) => { const n = { ...prev }; delete n.npa; return n })
+            }}
             error={errors.npa}
             required
             maxLength={10}
@@ -45,7 +51,10 @@ export function ContactSection({ errors, setErrors, setRef }: ContactSectionProp
           <FormInput
             label={t('city')}
             value={watch('city')}
-            onChange={(e) => setValue('city', e.target.value.slice(0, 50))}
+            onChange={(e) => {
+              setValue('city', e.target.value.slice(0, 50))
+              setErrors((prev) => { const n = { ...prev }; delete n.city; return n })
+            }}
             error={errors.city}
             required
             maxLength={50}
@@ -74,7 +83,10 @@ export function ContactSection({ errors, setErrors, setRef }: ContactSectionProp
           label={t('email')}
           type="email"
           value={watch('email')}
-          onChange={(e) => setValue('email', e.target.value)}
+          onChange={(e) => {
+            setValue('email', e.target.value)
+            setErrors((prev) => { const n = { ...prev }; delete n.email; return n })
+          }}
           error={errors.email}
           required
         />

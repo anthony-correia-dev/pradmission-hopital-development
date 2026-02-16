@@ -29,6 +29,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "flag-icons": "^7.5.0",
     "i18n-nationality": "^1.4.0",
     "i18next": "^25.8.7",
     "input-otp": "^1.4.2",

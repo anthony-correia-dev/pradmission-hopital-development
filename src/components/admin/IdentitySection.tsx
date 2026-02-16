@@ -27,7 +27,10 @@ export function IdentitySection({ errors, setErrors, setRef }: IdentitySectionPr
           <FormInput
             label={t('firstName')}
             value={watch('firstName')}
-            onChange={(e) => setValue('firstName', e.target.value)}
+            onChange={(e) => {
+              setValue('firstName', e.target.value)
+              setErrors((prev) => { const n = { ...prev }; delete n.firstName; return n })
+            }}
             error={errors.firstName}
             required
           />
@@ -36,7 +39,10 @@ export function IdentitySection({ errors, setErrors, setRef }: IdentitySectionPr
           <FormInput
             label={t('lastName')}
             value={watch('lastName')}
-            onChange={(e) => setValue('lastName', e.target.value)}
+            onChange={(e) => {
+              setValue('lastName', e.target.value)
+              setErrors((prev) => { const n = { ...prev }; delete n.lastName; return n })
+            }}
             error={errors.lastName}
             required
           />

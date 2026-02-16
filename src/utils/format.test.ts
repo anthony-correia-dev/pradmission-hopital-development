@@ -87,11 +87,11 @@ describe('formatAvsNumber', () => {
 })
 
 describe('formatCardNumber', () => {
-  it('keeps only digits', () => {
-    expect(formatCardNumber('1234-5678')).toBe('12345678')
+  it('keeps only digits and formats in groups of 5', () => {
+    expect(formatCardNumber('1234-5678')).toBe('12345 678')
   })
 
   it('limits to 20 digits', () => {
-    expect(formatCardNumber('123456789012345678901234')).toBe('12345678901234567890')
+    expect(formatCardNumber('123456789012345678901234')).toBe('12345 67890 12345 67890')
   })
 })

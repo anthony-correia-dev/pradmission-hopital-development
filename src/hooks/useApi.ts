@@ -100,6 +100,8 @@ async function getCloudFlowConfig(): Promise<CloudFlowConfig> {
       identityDoc: import.meta.env.VITE_OCR_IDENTITY_TRIGGER_ID ?? '',
       insuranceDoc: import.meta.env.VITE_OCR_INSURANCE_TRIGGER_ID ?? '',
       submitflow: '',
+      sendOtp: import.meta.env.VITE_OCR_SENDOTP_TRIGGER_ID ?? '',
+      verifyOtp: import.meta.env.VITE_OCR_VERIFYOTP_TRIGGER_ID ?? '',
     }
     return cloudFlowConfig
   }
@@ -180,17 +182,17 @@ const prodApi = {
   },
 
   async sendOtp(id: string, language?: string) {
-    const triggerId = import.meta.env.VITE_OCR_SENDOTP_TRIGGER_ID as string
-    return safeAjaxCloudFlow<{ success: boolean }>(triggerId, {
+    const config = await getCloudFlowConfig()
+    return safeAjaxCloudFlow<{ success: boolean }>(config.sendOtp, {
       number: id,
       language: language ?? 'fr',
     })
   },
 
   async verifyOTP(id: string, code: string) {
-    const triggerId = import.meta.env.VITE_OCR_VERIFYOTP_TRIGGER_ID as string
+    const config = await getCloudFlowConfig()
     const result = await safeAjaxCloudFlow<string | { isValid: boolean }>(
-      triggerId,
+      config.verifyOtp,
       { number: id, code }
     )
 

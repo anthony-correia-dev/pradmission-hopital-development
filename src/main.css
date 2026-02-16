@@ -1,50 +1,6 @@
 @import 'tailwindcss';
+@import 'flag-icons/css/flag-icons.min.css';
 @import './index.css';
-
-/* ========================================
-   TYPOGRAPHY BASE (shadcn-inspired, app-scaled)
-   ======================================== */
-@layer base {
-  #preadmission-app h1 {
-    font-size: 1.5rem;
-    line-height: 2rem;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-  }
-
-  #preadmission-app h2 {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-  }
-
-  #preadmission-app h3 {
-    font-size: 1.125rem;
-    line-height: 1.75rem;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-  }
-
-  #preadmission-app h4 {
-    font-size: 1rem;
-    line-height: 1.5rem;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-  }
-
-  #preadmission-app p {
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: var(--foreground);
-  }
-
-  #preadmission-app small {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    line-height: 1.25;
-  }
-}
 
 /* ========================================
    POWER PLATFORM ISOLATION
@@ -62,6 +18,7 @@
 #preadmission-app *::before,
 #preadmission-app *::after {
   box-sizing: border-box;
+  font-family: inherit;
 }
 
 #preadmission-app h1,
@@ -481,19 +438,3 @@ div[id="privateModeText"] {
   border-radius: var(--radius-md, 0.375rem) !important;
 }
 
-/* Protect step title/subtitle typography from host overrides */
-#preadmission-app .step-title {
-  font-size: 1.5rem !important;
-  line-height: 2rem !important;
-  font-weight: 700 !important;
-  text-align: center !important;
-  margin-bottom: 0.5rem !important;
-  color: var(--brand-text) !important;
-}
-
-#preadmission-app .step-subtitle {
-  font-size: 0.875rem !important;
-  line-height: 1.25rem !important;
-  text-align: center !important;
-  color: rgb(71 85 105) !important;
-}

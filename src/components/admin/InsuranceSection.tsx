@@ -9,6 +9,7 @@ import type { WizardFormData } from '@/types/form'
 
 interface InsuranceSectionProps {
   errors: Record<string, string>
+  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>
   setRef: (key: string) => (el: HTMLDivElement | null) => void
   showAvs: boolean
   showBasicInsurance: boolean
@@ -16,7 +17,7 @@ interface InsuranceSectionProps {
   showPolicyNumber: boolean
 }
 
-export function InsuranceSection({ errors, setRef, showAvs, showBasicInsurance, showCardNumber, showPolicyNumber }: InsuranceSectionProps) {
+export function InsuranceSection({ errors, setErrors, setRef, showAvs, showBasicInsurance, showCardNumber, showPolicyNumber }: InsuranceSectionProps) {
   const { setValue, watch } = useFormContext<WizardFormData>()
   const { t } = useTranslation('admin')
 
@@ -31,7 +32,10 @@ export function InsuranceSection({ errors, setRef, showAvs, showBasicInsurance, 
             <FormInput
               label={t('avsNumber')}
               value={formatAvsNumber(watch('avsNumber'))}
-              onChange={(e) => setValue('avsNumber', e.target.value.replace(/\D/g, '').slice(0, 13))}
+              onChange={(e) => {
+                setValue('avsNumber', e.target.value.replace(/\D/g, '').slice(0, 13))
+                setErrors((prev) => { const n = { ...prev }; delete n.avsNumber; return n })
+              }}
               error={errors.avsNumber}
               required
               inputClassName="form-input-mono"
@@ -46,7 +50,10 @@ export function InsuranceSection({ errors, setRef, showAvs, showBasicInsurance, 
             <FormInput
               label={t('basicInsurance')}
               value={watch('basicInsurance')}
-              onChange={(e) => setValue('basicInsurance', e.target.value)}
+              onChange={(e) => {
+                setValue('basicInsurance', e.target.value)
+                setErrors((prev) => { const n = { ...prev }; delete n.basicInsurance; return n })
+              }}
               error={errors.basicInsurance}
               required
             />
@@ -59,7 +66,10 @@ export function InsuranceSection({ errors, setRef, showAvs, showBasicInsurance, 
             <FormInput
               label={t('cardNumber')}
               value={formatCardNumber(watch('cardNumber'))}
-              onChange={(e) => setValue('cardNumber', e.target.value.replace(/\D/g, '').slice(0, 20))}
+              onChange={(e) => {
+                setValue('cardNumber', e.target.value.replace(/\D/g, '').slice(0, 20))
+                setErrors((prev) => { const n = { ...prev }; delete n.cardNumber; return n })
+              }}
               error={errors.cardNumber}
               required
               inputClassName="form-input-mono"
@@ -74,7 +84,10 @@ export function InsuranceSection({ errors, setRef, showAvs, showBasicInsurance, 
             <FormInput
               label={t('policyNumber')}
               value={watch('policyNumber')}
-              onChange={(e) => setValue('policyNumber', e.target.value)}
+              onChange={(e) => {
+                setValue('policyNumber', e.target.value)
+                setErrors((prev) => { const n = { ...prev }; delete n.policyNumber; return n })
+              }}
               error={errors.policyNumber}
               required
             />
