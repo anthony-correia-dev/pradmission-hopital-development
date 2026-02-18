@@ -99,6 +99,27 @@ async function safeAjaxCloudFlow<T>(
   return data as T
 }
 
+// ---------- Server Logic with Cloud Flow fallback ----------
+async function withServerLogicFallback<TServerLogic, TCloudFlow = TServerLogic>(
+  label: string,
+  serverLogicUrl: string,
+  payload: Record<string, unknown>,
+  cloudFlowTriggerId: string,
+  mapServerLogic: (data: TServerLogic) => TCloudFlow
+): Promise<TCloudFlow> {
+  console.log(`[${label}] Fetching via Server Logic...`)
+  try {
+    const result = await safeAjax<TServerLogic>(serverLogicUrl, 'POST', payload)
+    console.log(`[${label}] Server Logic success:`, result)
+    return mapServerLogic(result)
+  } catch (err) {
+    console.warn(`[${label}] Server Logic failed, falling back to Cloud Flow...`, err)
+    const result = await safeAjaxCloudFlow<TCloudFlow>(cloudFlowTriggerId, payload)
+    console.log(`[${label}] Cloud Flow fallback success:`, result)
+    return result
+  }
+}
+
 // ---------- Cloud Flow Config ----------
 async function getCloudFlowConfig(): Promise<CloudFlowConfig> {
   if (cloudFlowConfig) return cloudFlowConfig
@@ -198,23 +219,32 @@ const prodApi = {
 
   async sendOtp(id: string, language?: string) {
     const config = await getCloudFlowConfig()
-    return safeAjaxCloudFlow<{ success: boolean }>(config.sendOtp, {
-      number: id,
-      language: language ?? 'fr',
-    })
+    const payload = { number: id, language: language ?? 'fr' }
+    return withServerLogicFallback<
+      { status: string; last4Digits?: string },
+      { success: boolean }
+    >(
+      'sendOtp',
+      API_ENDPOINTS.SEND_OTP,
+      payload,
+      config.sendOtp,
+      (data) => ({ success: data.status === 'success' })
+    )
   },
 
   async verifyOTP(id: string, code: string) {
     const config = await getCloudFlowConfig()
-    const result = await safeAjaxCloudFlow<string | { isValid: boolean }>(
+    const payload = { number: id, code }
+    return withServerLogicFallback<
+      { isValid: boolean },
+      { isValid: boolean }
+    >(
+      'verifyOtp',
+      API_ENDPOINTS.VERIFY_OTP,
+      payload,
       config.verifyOtp,
-      { number: id, code }
+      (data) => ({ isValid: data.isValid })
     )
-
-    if (typeof result === 'string') {
-      return { isValid: result === 'True' }
-    }
-    return result
   },
 
   async extractDocumentData(

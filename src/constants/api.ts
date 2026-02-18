@@ -5,6 +5,8 @@ export const API_ENDPOINTS = {
   GET_PHONE: '/_api/serverlogics/getphone',
   GET_FLOWS: '/_api/serverlogics/getflows',
   CLOUD_FLOW: '/_api/cloudflow/v1.0/trigger',
+  SEND_OTP: '/_api/serverlogics/sendotp',
+  VERIFY_OTP: '/_api/serverlogics/verifyotp',
   CSRF_TOKEN: '/_layout/tokenhtml',
 } as const
 
