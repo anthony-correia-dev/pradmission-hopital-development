@@ -3,7 +3,8 @@ import { useFormContext } from 'react-hook-form'
 import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { m, type Variants } from 'motion/react'
-import { ClipboardList, ArrowRight, Loader2 } from 'lucide-react'
+import { ClipboardList, ArrowRight } from 'lucide-react'
+import { toast } from 'sonner'
 import { HStack, VStack, Button, H1, P } from '@/components/ui'
 import { createQualificationSchema } from '@/schemas'
 import type { WizardFormData } from '@/types/form'
@@ -59,7 +60,7 @@ function QualificationPage() {
     consentNLPD: consentRef,
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const schema = createQualificationSchema(insurance, reason, {
       reasonRequired: t('reasonRequired'),
       insuranceRequired: t('insuranceRequired'),
@@ -95,6 +96,13 @@ function QualificationPage() {
     }
 
     setErrors({})
+
+    // If OCR is still running, show a toast and give it 1s grace period
+    if (isProcessingId || isProcessingInsurance) {
+      toast.info(t('ocrRunning'), { duration: 1000 })
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+
     void navigate({ to: '/loading' })
   }
 
@@ -158,21 +166,11 @@ function QualificationPage() {
             <HStack className="step-actions">
               <Button
                 type="button"
-                onClick={handleSubmit}
-                disabled={isProcessingId || isProcessingInsurance}
+                onClick={() => void handleSubmit()}
                 className="flex-1 h-12 active-scale cursor-pointer"
               >
-                {isProcessingId || isProcessingInsurance ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {t('continue')}
-                  </>
-                ) : (
-                  <>
-                    {t('continue')}
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                {t('continue')}
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </HStack>
             </m.div>

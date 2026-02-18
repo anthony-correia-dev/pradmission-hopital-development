@@ -80,8 +80,7 @@ export async function fillQualificationAndContinue(page: Page, testName: string)
 
   await screenshotStep(page, testName, '07-qualification-filled')
 
-  // Wait for file processing to finish (button becomes enabled)
+  // Button is always enabled — click immediately
   const continueBtn = page.getByRole('button', { name: /continue|continuer/i })
-  await expect(continueBtn).toBeEnabled({ timeout: 10_000 })
   await continueBtn.click()
 }

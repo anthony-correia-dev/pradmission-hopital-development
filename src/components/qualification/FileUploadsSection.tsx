@@ -1,10 +1,12 @@
-import { useEffect } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { FileUploadZone } from '@/components/FileUploadZone'
+import { useApi } from '@/hooks'
 import { fileToBase64 } from '@/utils'
 import { FILE_LIMITS } from '@/constants/validation'
+import { TIMINGS } from '@/constants/ui'
 import type { WizardFormData } from '@/types/form'
+import type { MappedIdentityData, MappedInsuranceData } from '@/types/api'
 
 interface FileUploadsSectionProps {
   errors: Record<string, string>
@@ -26,24 +28,10 @@ export function FileUploadsSection({
   const { setValue, watch } = useFormContext<WizardFormData>()
   const { t } = useTranslation('qualification')
   const { t: tLoading } = useTranslation('loading')
+  const api = useApi()
   const insurance = watch('insurance')
   const identityCard = watch('identityCard')
   const insuranceCard = watch('insuranceCard')
-  const insuranceCardError = watch('insuranceCardError')
-
-  // Handle not_covered error from Loading page redirect
-  useEffect(() => {
-    if (insuranceCardError) {
-      setErrors((prev) => ({
-        ...prev,
-        insuranceCard: tLoading(insuranceCardError),
-      }))
-      setValue('insuranceCard', null)
-      setValue('insuranceCardBase64', '')
-      setValue('insuranceCardMimeType', '')
-      setValue('insuranceCardError', '')
-    }
-  }, [insuranceCardError]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleFileUpload(file: File, type: 'identity' | 'insurance') {
     if (file.size > FILE_LIMITS.MAX_SIZE_BYTES) {
@@ -76,9 +64,86 @@ export function FileUploadsSection({
         delete next[type === 'identity' ? 'identityCard' : 'insuranceCard']
         return next
       })
+
+      // Fire OCR with 8s timeout race
+      console.log(`[OCR] Fetching ${type} document...`)
+      const ocrPromise = api.extractDocumentData(base64, type)
+      const timeoutPromise = new Promise<'timeout'>((resolve) => {
+        setTimeout(() => resolve('timeout'), TIMINGS.OCR_TIMEOUT_MS)
+      })
+
+      const result = await Promise.race([
+        ocrPromise.then((data) => ({ kind: 'data' as const, data })),
+        timeoutPromise.then(() => ({ kind: 'timeout' as const })),
+      ])
+
+      if (result.kind === 'timeout') {
+        console.warn(`[OCR] ${type} document timed out`)
+        setValue('ocrTimedOut', true)
+        return
+      }
+
+      console.log(`[OCR] ${type} document result:`, result.data)
+
+      // Apply OCR results
+      if (type === 'identity') {
+        const d = result.data as MappedIdentityData
+        if (d.lastName) setValue('lastName', d.lastName)
+        if (d.firstName) setValue('firstName', d.firstName)
+        if (d.gender) setValue('gender', d.gender)
+        if (d.nationality) setValue('nationality', d.nationality)
+      } else {
+        const d = result.data as MappedInsuranceData
+        // Check not_covered
+        if (d.kvgCardNumber === 'not_covered' && insurance === 'swiss') {
+          setValue('insuranceCard', null)
+          setValue('insuranceCardBase64', '')
+          setValue('insuranceCardMimeType', '')
+          setErrors((prev) => ({
+            ...prev,
+            insuranceCard: tLoading('notCovered'),
+          }))
+          return
+        }
+        if (d.street) setValue('street', d.street)
+        if (d.city) setValue('city', d.city)
+        if (d.zipCode) setValue('npa', d.zipCode)
+        if (d.country) setValue('country', d.country)
+        if (d.avsNumber) setValue('avsNumber', d.avsNumber)
+        if (d.kvgCardNumber) setValue('cardNumber', d.kvgCardNumber)
+        if (d.kvgInsuranceName) setValue('basicInsurance', d.kvgInsuranceName)
+        if (d.vvgCardNumber) setValue('complementaryInsurance', d.vvgCardNumber)
+      }
+    } catch (err) {
+      console.error(`[OCR] ${type} document failed:`, err)
+      // Silent failure — user fills fields manually
     } finally {
       setter(false)
     }
+  }
+
+  function clearIdentityOcrFields() {
+    setValue('identityCard', null)
+    setValue('identityCardBase64', '')
+    setValue('identityCardMimeType', '')
+    setValue('lastName', '')
+    setValue('firstName', '')
+    setValue('gender', '')
+    setValue('nationality', '')
+  }
+
+  function clearInsuranceOcrFields() {
+    setValue('insuranceCard', null)
+    setValue('insuranceCardBase64', '')
+    setValue('insuranceCardMimeType', '')
+    setValue('street', '')
+    setValue('city', '')
+    setValue('npa', '')
+    setValue('country', '')
+    setValue('avsNumber', '')
+    setValue('cardNumber', '')
+    setValue('basicInsurance', '')
+    setValue('complementaryInsurance', '')
   }
 
   return (
@@ -88,13 +153,10 @@ export function FileUploadsSection({
         file={identityCard}
         isProcessing={isProcessingId}
         onFileSelect={(file) => void handleFileUpload(file, 'identity')}
-        onRemove={() => {
-          setValue('identityCard', null)
-          setValue('identityCardBase64', '')
-          setValue('identityCardMimeType', '')
-        }}
+        onRemove={clearIdentityOcrFields}
         label={t('identityCard')}
         uploadText={t('uploadText')}
+        processingText={t('processingDocument')}
         error={errors.identityCard}
         required
       />
@@ -111,13 +173,10 @@ export function FileUploadsSection({
         file={insuranceCard}
         isProcessing={isProcessingInsurance}
         onFileSelect={(file) => void handleFileUpload(file, 'insurance')}
-        onRemove={() => {
-          setValue('insuranceCard', null)
-          setValue('insuranceCardBase64', '')
-          setValue('insuranceCardMimeType', '')
-        }}
+        onRemove={clearInsuranceOcrFields}
         label={t('insuranceCard')}
         uploadText={t('uploadText')}
+        processingText={t('processingDocument')}
         error={errors.insuranceCard}
         required={insurance === 'swiss'}
         optional={insurance !== 'swiss' ? t('optional') : undefined}

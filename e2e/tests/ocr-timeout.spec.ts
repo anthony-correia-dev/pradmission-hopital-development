@@ -15,13 +15,11 @@ test.describe('OCR timeout — US-002: timeout banner on admin', () => {
     })
 
     // Fill qualification form and proceed
+    // Both file OCRs fire in background (fire-and-forget), button is never disabled
     await fillQualificationAndContinue(page, name)
 
-    // Loading page starts — OCR will timeout after 8s
+    // Should proceed through loading → admin
     await page.waitForURL('**/loading', { timeout: 5_000 })
-    await screenshotStep(page, name, '08-loading')
-
-    // Should auto-navigate to /admin after ~8s timeout + 2s min display
     await page.waitForURL('**/admin', { timeout: 20_000 })
 
     // Assert: amber warning banner is visible with timeout message
@@ -32,7 +30,7 @@ test.describe('OCR timeout — US-002: timeout banner on admin', () => {
     // Assert: identity fields are empty (OCR didn't return in time)
     await expect(page.getByLabel(/first name|prénom/i)).toHaveValue('')
 
-    await screenshotStep(page, name, '09-admin-with-banner')
+    await screenshotStep(page, name, '08-admin-with-banner')
 
     // Dismiss the banner
     await page.locator('[aria-label="Dismiss"]').click()
@@ -40,6 +38,6 @@ test.describe('OCR timeout — US-002: timeout banner on admin', () => {
     // Assert: banner disappears
     await expect(banner).not.toBeVisible()
 
-    await screenshotStep(page, name, '10-admin-banner-dismissed')
+    await screenshotStep(page, name, '09-admin-banner-dismissed')
   })
 })

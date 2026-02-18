@@ -52,6 +52,10 @@ export const qualificationTranslations = {
     // Misc
     optional: 'Optionnel',
 
+    // OCR processing
+    processingDocument: 'Analyse du document...',
+    ocrRunning: 'Analyse de vos documents en cours...',
+
     // File errors
     ocrFailed: 'La lecture automatique a échoué. Veuillez remplir les champs manuellement.',
     fileTooLarge: 'Le fichier est trop volumineux. Taille maximale: 10 MB',
@@ -117,6 +121,10 @@ export const qualificationTranslations = {
 
     // Misc
     optional: 'Optional',
+
+    // OCR processing
+    processingDocument: 'Analyzing document...',
+    ocrRunning: 'Analyzing your documents...',
 
     // File errors
     ocrFailed: 'Automatic reading failed. Please fill in the fields manually.',
