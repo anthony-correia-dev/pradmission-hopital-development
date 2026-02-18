@@ -255,23 +255,28 @@ const prodApi = {
     const triggerId =
       type === 'identity' ? config.identityDoc : config.insuranceDoc
     const docType = type === 'identity' ? 'identityid' : 'insuranceid'
+    const payload = { doc: docType, base64 }
+    const mapper = type === 'identity' ? mapCloudFlowResponse : mapInsuranceCloudFlowResponse
 
-    const raw = await safeAjaxCloudFlow<Record<string, string>>(triggerId, {
-      doc: docType,
-      base64,
-    })
-
-    if (type === 'identity') {
-      return mapCloudFlowResponse(raw)
-    }
-    return mapInsuranceCloudFlowResponse(raw)
+    return withServerLogicFallback<Record<string, string>, MappedIdentityData | MappedInsuranceData>(
+      `extractDocument:${type}`,
+      API_ENDPOINTS.EXTRACT_DOCUMENT,
+      payload,
+      triggerId,
+      (raw) => mapper(raw)
+    )
   },
 
   async submitPreadmission(formData: WizardFormData) {
     const config = await getCloudFlowConfig()
-    return safeAjaxCloudFlow<SubmitResponse>(config.submitflow, {
-      json: JSON.stringify(formData),
-    })
+    const payload = { json: JSON.stringify(formData) }
+    return withServerLogicFallback<SubmitResponse>(
+      'submit',
+      API_ENDPOINTS.SUBMIT,
+      payload,
+      config.submitflow,
+      (data) => data
+    )
   },
 }
 

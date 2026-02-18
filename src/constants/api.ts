@@ -7,6 +7,8 @@ export const API_ENDPOINTS = {
   CLOUD_FLOW: '/_api/cloudflow/v1.0/trigger',
   SEND_OTP: '/_api/serverlogics/sendotp',
   VERIFY_OTP: '/_api/serverlogics/verifyotp',
+  EXTRACT_DOCUMENT: '/_api/serverlogics/extractdocument',
+  SUBMIT: '/_api/serverlogics/submit',
   CSRF_TOKEN: '/_layout/tokenhtml',
 } as const
 
