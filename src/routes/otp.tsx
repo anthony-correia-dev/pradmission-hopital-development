@@ -45,7 +45,10 @@ function OTPPage() {
 
     otpSentRef.current = true
     sessionStorage.setItem('otp_sent', 'true')
-    api.sendOtp(preadmissionId, language).catch(() => {})
+    console.log('[OTP] Sending OTP...')
+    api.sendOtp(preadmissionId, language)
+      .then(() => console.log('[OTP] OTP sent successfully'))
+      .catch((err) => console.error('[OTP] Failed to send OTP:', err))
     setCooldown(TIMINGS.OTP_COOLDOWN_S)
   }, [preadmissionId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -64,7 +67,9 @@ function OTPPage() {
     if (isCoolingDown || isResending) return
     setIsResending(true)
     try {
+      console.log('[OTP] Resending OTP...')
       await api.sendOtp(preadmissionId, language)
+      console.log('[OTP] OTP resent successfully')
       setCooldown(TIMINGS.OTP_COOLDOWN_S)
     } finally {
       setIsResending(false)
@@ -80,7 +85,9 @@ function OTPPage() {
 
     setIsVerifying(true)
     try {
+      console.log('[OTP] Verifying OTP code...')
       const response = await api.verifyOTP(preadmissionId, code)
+      console.log('[OTP] Verify response:', response)
       if (response.isValid) {
         setValue('otpCode', code)
         void navigate({ to: '/qualification' })

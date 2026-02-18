@@ -28,15 +28,31 @@ function LoadingPage() {
     const ocrCalls: Promise<{ type: 'identity' | 'insurance'; data: MappedIdentityData | MappedInsuranceData }>[] = []
 
     if (identityCardBase64) {
+      console.log('[OCR] Fetching identity document...')
       ocrCalls.push(
         api.extractDocumentData(identityCardBase64, 'identity')
-          .then(data => ({ type: 'identity' as const, data }))
+          .then(data => {
+            console.log('[OCR] Identity document result:', data)
+            return { type: 'identity' as const, data }
+          })
+          .catch(err => {
+            console.error('[OCR] Identity document failed:', err)
+            throw err
+          })
       )
     }
     if (insuranceCardBase64) {
+      console.log('[OCR] Fetching insurance document...')
       ocrCalls.push(
         api.extractDocumentData(insuranceCardBase64, 'insurance')
-          .then(data => ({ type: 'insurance' as const, data }))
+          .then(data => {
+            console.log('[OCR] Insurance document result:', data)
+            return { type: 'insurance' as const, data }
+          })
+          .catch(err => {
+            console.error('[OCR] Insurance document failed:', err)
+            throw err
+          })
       )
     }
 
@@ -58,9 +74,11 @@ function LoadingPage() {
         ])
 
         if (raceResult.kind === 'results') {
+          console.log('[OCR] All documents processed')
           ocrResults = raceResult.results
+        } else {
+          console.warn('[OCR] Timeout reached, proceeding without OCR results')
         }
-        // If timeout, ocrResults stays empty - we proceed with whatever we have
       }
 
       if (cancelled) return

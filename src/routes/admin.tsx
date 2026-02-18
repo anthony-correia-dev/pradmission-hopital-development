@@ -115,7 +115,9 @@ function AdminPage() {
 
     try {
       const formData = getValues()
+      console.log('[Submit] Submitting preadmission...')
       await api.submitPreadmission(formData)
+      console.log('[Submit] Preadmission submitted successfully')
       sessionStorage.removeItem('wizard-form-data')
       sessionStorage.removeItem('otp_sent')
       void navigate({ to: '/success' })
