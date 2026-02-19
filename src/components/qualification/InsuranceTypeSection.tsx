@@ -1,7 +1,7 @@
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle, HelpCircle } from 'lucide-react'
-import { ChoiceButton } from '@/components/ui'
+import { ChoiceButton, Label } from '@/components/ui'
 import type { WizardFormData } from '@/types/form'
 
 interface InsuranceTypeSectionProps {
@@ -19,9 +19,9 @@ export function InsuranceTypeSection({ errors, setErrors, insuranceRef, onShowHe
   return (
     <div ref={insuranceRef} className="space-y-3">
       <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-[var(--brand-text)]">
+        <Label>
           {t('insuranceLabel')} <span className="text-[var(--brand-error)]">*</span>
-        </label>
+        </Label>
         <button
           type="button"
           onClick={onShowHelp}

@@ -21,6 +21,8 @@ function LoadingPage() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  console.log('LoadingPage rendered')
+
   return <LoadingScreen />
 }
 

@@ -1,11 +1,12 @@
 import { forwardRef } from 'react'
 import { cn } from '@/utils'
 
-type TextColor = 'primary' | 'error' | 'success' | 'muted' | 'muted-light' | 'white'
+type TextColor = 'primary' | 'accent' | 'error' | 'success' | 'muted' | 'muted-light' | 'white'
 type TextSize = 'xs' | 'sm' | 'md' | 'lg'
 
 const colorMap: Record<TextColor, string> = {
   primary: 'text-[var(--brand-text)]!',
+  accent: 'text-[var(--brand-primary)]!',
   error: 'text-[var(--brand-error)]!',
   success: 'text-[var(--brand-success)]!',
   muted: 'text-slate-600!',

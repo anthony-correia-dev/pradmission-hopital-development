@@ -146,20 +146,6 @@ function AdminPage() {
             <P className="step-subtitle">{t('subtitle')}</P>
           </VStack>
           <VStack className="step-card-content gap-6">
-            {ocrTimedOut && showOcrBanner && (
-              <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-800 flex-1">{tLoading('ocrTimeout')}</p>
-                <button
-                  type="button"
-                  onClick={dismissOcrBanner}
-                  className="text-amber-600 hover:text-amber-800 shrink-0 cursor-pointer"
-                  aria-label="Dismiss"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
             <IdentitySection errors={errors} setErrors={setErrors} setRef={setRef} />
             <ContactSection errors={errors} setErrors={setErrors} setRef={setRef} />
             <AnimatePresence>

@@ -5,7 +5,7 @@ import { LazyMotion, domAnimation } from 'motion/react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { wizardSchema } from '@/schemas'
-import { ProgressIndicator, InvalidLink, NotFound, ValidationLoadingScreen } from '@/components'
+import { ProgressIndicator, InvalidLink, NotFound, LoadingScreen } from '@/components'
 import { VStack } from '@/components/ui'
 import { useApi } from '@/hooks'
 import type { WizardFormData } from '@/types/form'
@@ -151,7 +151,7 @@ function RootComponent() {
       } catch {
         setLinkState('invalid')
       }
-    }, 2000) // Wait 2s for Power Pages initialization
+    }, 2_000) // Wait 2s for Power Pages initialization
 
     return () => clearTimeout(timer)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -193,7 +193,7 @@ function RootComponent() {
   const Layout = LAYOUTS[layoutMode]
 
   const content =
-    linkState === 'validating' ? <ValidationLoadingScreen />
+    linkState === 'validating' ? <LoadingScreen messageKey="short" />
     : linkState === 'invalid' ? <InvalidLink />
     : <Outlet />
 

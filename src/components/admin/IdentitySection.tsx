@@ -59,7 +59,7 @@ export function IdentitySection({ errors, setErrors, setRef }: IdentitySectionPr
             }}
           >
             <SelectTrigger className="form-input">
-              <SelectValue placeholder={t('selectGender')} />
+              <SelectValue placeholder={t('')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="male">{t('male')}</SelectItem>
