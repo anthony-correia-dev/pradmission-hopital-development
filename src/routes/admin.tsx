@@ -4,11 +4,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { AnimatePresence, m } from 'motion/react'
-import { AlertTriangle, ArrowLeft, Loader2, Send, User, X } from 'lucide-react'
+import { ArrowLeft, Loader2, Send, User } from 'lucide-react'
 import { HStack, VStack, Button, H1, P } from '@/components/ui'
 import { createAdminSchema } from '@/schemas'
 import { useApi } from '@/hooks'
-import { slideVariants } from '@/utils/motionVariants'
+import { getAnimationVariants, staggerContainerVariants, staggerItemVariants, employerSlideVariants } from '@/lib/animations'
 import type { WizardFormData } from '@/types/form'
 import {
   IdentitySection,
@@ -21,23 +21,20 @@ import {
 
 function AdminPage() {
   const navigate = useNavigate()
-  const { watch, getValues, setValue } = useFormContext<WizardFormData>()
+  const { watch, getValues } = useFormContext<WizardFormData>()
   const reason = watch('reason')
   const insurance = watch('insurance')
   const hasEmployer = watch('hasEmployer')
-  const ocrTimedOut = watch('ocrTimedOut')
   const { t } = useTranslation('admin')
-  const { t: tLoading } = useTranslation('loading')
   const api = useApi()
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showOcrBanner, setShowOcrBanner] = useState(true)
 
-  // Show OCR info toast on first arrival from loading page
+  // Show toast only when OCR actually prefilled data
   useEffect(() => {
-    if (sessionStorage.getItem('ocr_completed') === 'true') {
-      sessionStorage.removeItem('ocr_completed')
+    if (sessionStorage.getItem('ocr_prefilled') === 'true') {
+      sessionStorage.removeItem('ocr_prefilled')
       toast.info(t('ocrInfoToast'), { duration: 3000 })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -55,11 +52,6 @@ function AdminPage() {
         break
       }
     }
-  }
-
-  function dismissOcrBanner() {
-    setShowOcrBanner(false)
-    setValue('ocrTimedOut', false)
   }
 
   async function handleSubmit() {
@@ -134,77 +126,97 @@ function AdminPage() {
   const showCardNumber = reason === 'accident' || insurance === 'swiss'
   const showPolicyNumber = insurance === 'international'
 
+  const container = getAnimationVariants(staggerContainerVariants)
+  const item = getAnimationVariants(staggerItemVariants)
+
   return (
     <div className="step-page">
-      <div className="step-container-lg">
+      <m.div
+        className="step-container-lg"
+        variants={container}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="step-card-compact">
-          <VStack className="step-card-header" align='center'>
-            <div className="step-icon">
-              <User className="w-8 h-8 text-[var(--brand-primary)]" />
-            </div>
-            <H1>{t('title')}</H1>
-            <P className="step-subtitle">{t('subtitle')}</P>
-          </VStack>
+          <m.div variants={item}>
+            <VStack className="step-card-header" align='center'>
+              <div className="step-icon">
+                <User className="w-8 h-8 text-[var(--brand-primary)]" />
+              </div>
+              <H1>{t('title')}</H1>
+              <P className="step-subtitle">{t('subtitle')}</P>
+            </VStack>
+          </m.div>
           <VStack className="step-card-content gap-6">
-            <IdentitySection errors={errors} setErrors={setErrors} setRef={setRef} />
-            <ContactSection errors={errors} setErrors={setErrors} setRef={setRef} />
-            <AnimatePresence>
+            <m.div variants={item}>
+              <IdentitySection errors={errors} setErrors={setErrors} setRef={setRef} />
+            </m.div>
+            <m.div variants={item}>
+              <ContactSection errors={errors} setErrors={setErrors} setRef={setRef} />
+            </m.div>
+            <AnimatePresence mode="wait">
               {!!showEmployer && (
-                <m.div key="employer" variants={slideVariants} initial="hidden" animate="visible" exit="exit">
+                <m.div key="employer" variants={employerSlideVariants} initial="hidden" animate="visible" exit="exit">
                   <EmployerSection errors={errors} setErrors={setErrors} setRef={setRef} />
                 </m.div>
               )}
             </AnimatePresence>
-            <DoctorsSection />
-            <AnimatePresence>
+            <m.div variants={item}>
+              <DoctorsSection />
+            </m.div>
+            <AnimatePresence mode="wait">
               {!!showAccident && (
-                <m.div key="accident" variants={slideVariants} initial="hidden" animate="visible" exit="exit">
+                <m.div key="accident" variants={employerSlideVariants} initial="hidden" animate="visible" exit="exit">
                   <AccidentSection errors={errors} setErrors={setErrors} setRef={setRef} />
                 </m.div>
               )}
             </AnimatePresence>
-            <InsuranceSection
-              errors={errors}
-              setErrors={setErrors}
-              setRef={setRef}
-              showAvs={showAvs}
-              showBasicInsurance={showBasicInsurance}
-              showCardNumber={showCardNumber}
-              showPolicyNumber={showPolicyNumber}
-            />
+            <m.div variants={item}>
+              <InsuranceSection
+                errors={errors}
+                setErrors={setErrors}
+                setRef={setRef}
+                showAvs={showAvs}
+                showBasicInsurance={showBasicInsurance}
+                showCardNumber={showCardNumber}
+                showPolicyNumber={showPolicyNumber}
+              />
+            </m.div>
 
-            <HStack className="step-actions">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => void navigate({ to: '/qualification' })}
-                className="flex-1 h-12 cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                {t('back')}
-              </Button>
-              <Button
-                type="button"
-                onClick={() => void handleSubmit()}
-                disabled={isSubmitting}
-                className="flex-1 h-12 active-scale cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t('submitting')}
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    {t('continue')}
-                  </>
-                )}
-              </Button>
-            </HStack>
+            <m.div variants={item}>
+              <HStack className="step-actions">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void navigate({ to: '/qualification' })}
+                  className="flex-1 h-12 cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  {t('back')}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => void handleSubmit()}
+                  disabled={isSubmitting}
+                  className="flex-1 h-12 active-scale cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {t('submitting')}
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      {t('continue')}
+                    </>
+                  )}
+                </Button>
+              </HStack>
+            </m.div>
           </VStack>
         </div>
-      </div>
+      </m.div>
     </div>
   )
 }

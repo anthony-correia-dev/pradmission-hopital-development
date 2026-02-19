@@ -1,34 +1,45 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { m } from 'motion/react'
 import { CheckCircle, MapPin } from 'lucide-react'
 import { VStack, Button, H1, P } from '@/components/ui'
+import { getAnimationVariants, staggerContainerVariants, staggerItemVariants } from '@/lib/animations'
 
 function SuccessPage() {
   const { t } = useTranslation('success')
 
+  const container = getAnimationVariants(staggerContainerVariants)
+  const item = getAnimationVariants(staggerItemVariants)
+
   return (
-    <div className="step-card">
+    <m.div className="step-card" variants={container} initial="hidden" animate="visible">
       <VStack className="step-card-header" align='center' gap='6'>
-        <CheckCircle className="w-16 h-16 text-[var(--brand-success)]" />
-        <VStack gap='1' align='center'>
-          <H1 color='primary' className='text-center'>{t('title')}</H1>
-          <p className="step-subtitle">{t('message')}</p>
-        </VStack>
+        <m.div variants={item}>
+          <CheckCircle className="w-16 h-16 text-[var(--brand-success)]" />
+        </m.div>
+        <m.div variants={item}>
+          <VStack gap='1' align='center'>
+            <H1 color='primary' className='text-center'>{t('title')}</H1>
+            <p className="step-subtitle">{t('message')}</p>
+          </VStack>
+        </m.div>
       </VStack>
       <VStack className="step-card-content">
-        <Button
-          asChild
-          className="w-full h-12 text-base active-scale"
-        >
-          <a href={t('link')} target="_blank" rel="noopener noreferrer">
-           <P color='white'> <MapPin className="w-4 h-4 mr-2" /> </P>
-            <P color='white'>
-              {t('button')}
-            </P>
-          </a>
-        </Button>
+        <m.div variants={item}>
+          <Button
+            asChild
+            className="w-full h-12 text-base active-scale"
+          >
+            <a href={t('link')} target="_blank" rel="noopener noreferrer">
+             <P color='white'> <MapPin className="w-4 h-4 mr-2" /> </P>
+              <P color='white'>
+                {t('button')}
+              </P>
+            </a>
+          </Button>
+        </m.div>
       </VStack>
-    </div>
+    </m.div>
   )
 }
 

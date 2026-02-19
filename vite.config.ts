@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import { resolve } from 'path'
 
+const apiTarget = process.env.API_TARGET || 'http://localhost:3001'
+
 export default defineConfig({
   plugins: [
     TanStackRouterVite(),
@@ -14,6 +16,20 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    proxy: {
+      '/_api': {
+        target: apiTarget,
+        changeOrigin: true,
+        secure: false,
+      },
+      '/_layout': {
+        target: apiTarget,
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   test: {

@@ -8,16 +8,10 @@ import type {
   SubmitResponse,
 } from '@/types/api'
 import type { WizardFormData } from '@/types/form'
-import { mockApi } from './mockApi'
 
 // ---------- Module-level state ----------
 let csrfToken: string | null = null
 let cloudFlowConfig: CloudFlowConfig | null = null
-
-function isDevMode(): boolean {
-  const host = window.location.hostname
-  return host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')
-}
 
 // ---------- CSRF Token ----------
 async function fetchCsrfToken(): Promise<string> {
@@ -124,17 +118,6 @@ async function withServerLogicFallback<TServerLogic, TCloudFlow = TServerLogic>(
 async function getCloudFlowConfig(): Promise<CloudFlowConfig> {
   if (cloudFlowConfig) return cloudFlowConfig
 
-  if (isDevMode()) {
-    cloudFlowConfig = {
-      identityDoc: import.meta.env.VITE_OCR_IDENTITY_TRIGGER_ID ?? '',
-      insuranceDoc: import.meta.env.VITE_OCR_INSURANCE_TRIGGER_ID ?? '',
-      submitflow: '',
-      sendOtp: import.meta.env.VITE_OCR_SENDOTP_TRIGGER_ID ?? '',
-      verifyOtp: import.meta.env.VITE_OCR_VERIFYOTP_TRIGGER_ID ?? '',
-    }
-    return cloudFlowConfig
-  }
-
   const raw = await safeAjax<{
     data: Record<string, string>
   }>(API_ENDPOINTS.GET_FLOWS, 'GET')
@@ -190,8 +173,8 @@ function mapInsuranceCloudFlowResponse(raw: {
   }
 }
 
-// ---------- Production API ----------
-const prodApi = {
+// ---------- API ----------
+const api = {
   async validatePreadmissionLink(id: string) {
     return safeAjax<{ isValid: boolean }>(
       `${API_ENDPOINTS.VALIDATE_LINK}?preadmissionId=${id}`,
@@ -278,24 +261,20 @@ const prodApi = {
       (data) => data
     )
   },
-}
 
-// ---------- setStep (same for both) ----------
-async function setStep(id: string, step: string) {
-  const stageCode = WIZARD_STAGES[step]
-  if (stageCode === undefined) return
+  async setStep(id: string, step: string) {
+    const stageCode = WIZARD_STAGES[step]
+    if (stageCode === undefined) return
 
-  if (isDevMode()) return
-
-  await safeAjax(
-    `${API_ENDPOINTS.SET_STEP}?preadmissionId=${id}`,
-    'PUT',
-    { Stage: stageCode }
-  )
+    await safeAjax(
+      `${API_ENDPOINTS.SET_STEP}?preadmissionId=${id}`,
+      'PUT',
+      { Stage: stageCode }
+    )
+  },
 }
 
 // ---------- Exported hook ----------
 export function useApi() {
-  const api = isDevMode() ? mockApi : prodApi
-  return { ...api, setStep }
+  return api
 }

@@ -4,7 +4,7 @@ import { AnimatePresence, m } from 'motion/react'
 import { H3 } from '@/components/ui'
 import { FormInput } from '@/components'
 import { formatAvsNumber, formatCardNumber } from '@/utils'
-import { slideVariants } from '@/utils/motionVariants'
+import { employerSlideVariants } from '@/lib/animations'
 import type { WizardFormData } from '@/types/form'
 
 interface InsuranceSectionProps {
@@ -28,7 +28,7 @@ export function InsuranceSection({ errors, setErrors, setRef, showAvs, showBasic
       </div>
       <AnimatePresence>
         {showAvs && (
-          <m.div key="avs" variants={slideVariants} initial="hidden" animate="visible" exit="exit" ref={setRef('avsNumber')}>
+          <m.div key="avs" variants={employerSlideVariants} initial="hidden" animate="visible" exit="exit" ref={setRef('avsNumber')}>
             <FormInput
               label={t('avsNumber')}
               value={formatAvsNumber(watch('avsNumber'))}
@@ -46,7 +46,7 @@ export function InsuranceSection({ errors, setErrors, setRef, showAvs, showBasic
       </AnimatePresence>
       <AnimatePresence>
         {showBasicInsurance && (
-          <m.div key="basic-insurance" variants={slideVariants} initial="hidden" animate="visible" exit="exit" ref={setRef('basicInsurance')}>
+          <m.div key="basic-insurance" variants={employerSlideVariants} initial="hidden" animate="visible" exit="exit" ref={setRef('basicInsurance')}>
             <FormInput
               label={t('basicInsurance')}
               value={watch('basicInsurance')}
@@ -62,7 +62,7 @@ export function InsuranceSection({ errors, setErrors, setRef, showAvs, showBasic
       </AnimatePresence>
       <AnimatePresence>
         {showCardNumber && (
-          <m.div key="card-number" variants={slideVariants} initial="hidden" animate="visible" exit="exit" ref={setRef('cardNumber')}>
+          <m.div key="card-number" variants={employerSlideVariants} initial="hidden" animate="visible" exit="exit" ref={setRef('cardNumber')}>
             <FormInput
               label={t('cardNumber')}
               value={formatCardNumber(watch('cardNumber'))}
@@ -80,7 +80,7 @@ export function InsuranceSection({ errors, setErrors, setRef, showAvs, showBasic
       </AnimatePresence>
       <AnimatePresence>
         {showPolicyNumber && (
-          <m.div key="policy-number" variants={slideVariants} initial="hidden" animate="visible" exit="exit" ref={setRef('policyNumber')}>
+          <m.div key="policy-number" variants={employerSlideVariants} initial="hidden" animate="visible" exit="exit" ref={setRef('policyNumber')}>
             <FormInput
               label={t('policyNumber')}
               value={watch('policyNumber')}

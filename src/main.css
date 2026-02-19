@@ -12,6 +12,7 @@
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 #preadmission-app *,
@@ -436,5 +437,19 @@ div[id="privateModeText"] {
 /* Force rounding for choice buttons (Power Platform strips border-radius on buttons) */
 #preadmission-app .choice-btn {
   border-radius: var(--radius-md, 0.375rem) !important;
+}
+
+/* ========================================
+   REDUCED MOTION
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  #preadmission-app .active-scale {
+    transition: none;
+  }
+
+  #preadmission-app .active-scale:hover,
+  #preadmission-app .active-scale:active {
+    transform: none;
+  }
 }
 

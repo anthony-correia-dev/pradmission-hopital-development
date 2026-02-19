@@ -43,7 +43,9 @@ export function FileUploadsSection({
     }
 
     const setter = type === 'identity' ? setIsProcessingId : setIsProcessingInsurance
+    const storageKey = type === 'identity' ? 'ocr_pending_identity' : 'ocr_pending_insurance'
     setter(true)
+    sessionStorage.setItem(storageKey, 'true')
 
     try {
       const base64 = await fileToBase64(file)
@@ -79,7 +81,6 @@ export function FileUploadsSection({
 
       if (result.kind === 'timeout') {
         console.warn(`[OCR] ${type} document timed out`)
-        setValue('ocrTimedOut', true)
         return
       }
 
@@ -92,6 +93,7 @@ export function FileUploadsSection({
         if (d.firstName) setValue('firstName', d.firstName)
         if (d.gender) setValue('gender', d.gender)
         if (d.nationality) setValue('nationality', d.nationality)
+        if (d.lastName || d.firstName) sessionStorage.setItem('ocr_prefilled', 'true')
       } else {
         const d = result.data as MappedInsuranceData
         // Check not_covered
@@ -113,11 +115,13 @@ export function FileUploadsSection({
         if (d.kvgCardNumber) setValue('cardNumber', d.kvgCardNumber)
         if (d.kvgInsuranceName) setValue('basicInsurance', d.kvgInsuranceName)
         if (d.vvgCardNumber) setValue('complementaryInsurance', d.vvgCardNumber)
+        if (d.avsNumber || d.kvgCardNumber) sessionStorage.setItem('ocr_prefilled', 'true')
       }
     } catch (err) {
       console.error(`[OCR] ${type} document failed:`, err)
       // Silent failure — user fills fields manually
     } finally {
+      sessionStorage.removeItem(storageKey)
       setter(false)
     }
   }

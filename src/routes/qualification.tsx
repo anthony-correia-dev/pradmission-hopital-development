@@ -2,11 +2,11 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useFormContext } from 'react-hook-form'
 import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { m, type Variants } from 'motion/react'
+import { m } from 'motion/react'
 import { ClipboardList, ArrowRight } from 'lucide-react'
-import { toast } from 'sonner'
 import { HStack, VStack, Button, H1, P } from '@/components/ui'
 import { createQualificationSchema } from '@/schemas'
+import { getAnimationVariants, staggerContainerVariants, staggerItemVariants } from '@/lib/animations'
 import type { WizardFormData } from '@/types/form'
 import {
   ReasonSection,
@@ -15,19 +15,6 @@ import {
   ConsentsSection,
   InsuranceHelpDialog,
 } from '@/components/qualification'
-
-const staggerContainer: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.03 },
-  },
-}
-
-const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.2, ease: 'easeOut' } },
-}
 
 function QualificationPage() {
   const navigate = useNavigate()
@@ -97,29 +84,26 @@ function QualificationPage() {
 
     setErrors({})
 
-    // If OCR is still running, show a toast and give it 1s grace period
-    if (isProcessingId || isProcessingInsurance) {
-      toast.info(t('ocrRunning'), { duration: 1000 })
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-    }
-
     void navigate({ to: '/loading' })
   }
+
+  const container = getAnimationVariants(staggerContainerVariants)
+  const item = getAnimationVariants(staggerItemVariants)
 
   return (
     <div className="step-page">
       <m.div
         className="step-container-lg"
-        variants={staggerContainer}
+        variants={container}
         initial="hidden"
         animate="visible"
       >
         <div className="step-card-compact">
-          <m.div variants={fadeIn}>
+          <m.div variants={item}>
             <VStack className="step-card-header" align='center'>
-              <m.div className="step-icon" variants={fadeIn}>
+              <div className="step-icon">
                 <ClipboardList className="w-8 h-8 text-[var(--brand-primary)]" />
-              </m.div>
+              </div>
               <VStack align='center' gap='1'>
                 <H1>{t('title')}</H1>
                 <P className="step-subtitle">{t('subtitle')}</P>
@@ -127,52 +111,52 @@ function QualificationPage() {
             </VStack>
           </m.div>
           <VStack className="step-card-content gap-6">
-            <m.div variants={fadeIn}>
-            <ReasonSection
-              errors={errors}
-              setErrors={setErrors}
-              reasonRef={reasonRef}
-            />
+            <m.div variants={item}>
+              <ReasonSection
+                errors={errors}
+                setErrors={setErrors}
+                reasonRef={reasonRef}
+              />
             </m.div>
-            <m.div variants={fadeIn}>
-            <InsuranceTypeSection
-              errors={errors}
-              setErrors={setErrors}
-              insuranceRef={insuranceRef}
-              onShowHelp={() => setShowInsuranceHelp(true)}
-            />
+            <m.div variants={item}>
+              <InsuranceTypeSection
+                errors={errors}
+                setErrors={setErrors}
+                insuranceRef={insuranceRef}
+                onShowHelp={() => setShowInsuranceHelp(true)}
+              />
             </m.div>
-            <m.div variants={fadeIn}>
-            <FileUploadsSection
-              errors={errors}
-              setErrors={setErrors}
-              identityRef={identityRef}
-              insuranceCardRef={insuranceCardRef}
-              isProcessingId={isProcessingId}
-              setIsProcessingId={setIsProcessingId}
-              isProcessingInsurance={isProcessingInsurance}
-              setIsProcessingInsurance={setIsProcessingInsurance}
-            />
+            <m.div variants={item}>
+              <FileUploadsSection
+                errors={errors}
+                setErrors={setErrors}
+                identityRef={identityRef}
+                insuranceCardRef={insuranceCardRef}
+                isProcessingId={isProcessingId}
+                setIsProcessingId={setIsProcessingId}
+                isProcessingInsurance={isProcessingInsurance}
+                setIsProcessingInsurance={setIsProcessingInsurance}
+              />
             </m.div>
-            <m.div variants={fadeIn}>
-            <ConsentsSection
-              errors={errors}
-              setErrors={setErrors}
-              consentRef={consentRef}
-            />
+            <m.div variants={item}>
+              <ConsentsSection
+                errors={errors}
+                setErrors={setErrors}
+                consentRef={consentRef}
+              />
             </m.div>
 
-            <m.div variants={fadeIn}>
-            <HStack className="step-actions">
-              <Button
-                type="button"
-                onClick={() => void handleSubmit()}
-                className="flex-1 h-12 active-scale cursor-pointer"
-              >
-                {t('continue')}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </HStack>
+            <m.div variants={item}>
+              <HStack className="step-actions">
+                <Button
+                  type="button"
+                  onClick={() => void handleSubmit()}
+                  className="flex-1 h-12 active-scale cursor-pointer"
+                >
+                  {t('continue')}
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </HStack>
             </m.div>
           </VStack>
         </div>

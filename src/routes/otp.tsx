@@ -2,11 +2,13 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useFormContext } from 'react-hook-form'
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { m } from 'motion/react'
 import { ArrowLeft, ArrowRight, Loader2, AlertCircle, Shield } from 'lucide-react'
 import { HStack, VStack, Button, InputOTP, InputOTPGroup, InputOTPSlot, H1, P } from '@/components/ui'
 import { createOTPSchema } from '@/schemas'
 import { useApi } from '@/hooks'
 import { TIMINGS } from '@/constants/ui'
+import { getAnimationVariants, staggerContainerVariants, staggerItemVariants } from '@/lib/animations'
 import type { WizardFormData } from '@/types/form'
 
 function OTPPage() {
@@ -40,11 +42,18 @@ function OTPPage() {
   // Auto-send OTP on first mount
   useEffect(() => {
     if (otpSentRef.current) return
-    const sent = sessionStorage.getItem('otp_sent')
-    if (sent) return
+    const sentAt = sessionStorage.getItem('otp_sent')
+
+    if (sentAt) {
+      // Restore remaining cooldown from the stored timestamp
+      const elapsed = Math.floor((Date.now() - Number(sentAt)) / 1000)
+      const remaining = TIMINGS.OTP_COOLDOWN_S - elapsed
+      if (remaining > 0) setCooldown(remaining)
+      return
+    }
 
     otpSentRef.current = true
-    sessionStorage.setItem('otp_sent', 'true')
+    sessionStorage.setItem('otp_sent', String(Date.now()))
     console.log('[OTP] Sending OTP...')
     api.sendOtp(preadmissionId, language)
       .then(() => console.log('[OTP] OTP sent successfully'))
@@ -70,6 +79,7 @@ function OTPPage() {
       console.log('[OTP] Resending OTP...')
       await api.sendOtp(preadmissionId, language)
       console.log('[OTP] OTP resent successfully')
+      sessionStorage.setItem('otp_sent', String(Date.now()))
       setCooldown(TIMINGS.OTP_COOLDOWN_S)
     } finally {
       setIsResending(false)
@@ -101,21 +111,27 @@ function OTPPage() {
     }
   }
 
+  const container = getAnimationVariants(staggerContainerVariants)
+  const item = getAnimationVariants(staggerItemVariants)
+
   return (
-        <div className="step-card">
-          <VStack className="step-card-header" align='center'>
-            <div className="step-icon">
-              <Shield className="w-8 h-8 text-[var(--brand-primary)]" />
-            </div>
-            <VStack gap='1' align='center'>
-              <H1>{t('title')}</H1>
-            <P className="step-subtitle">{t('subtitle', { digits: lastDigits || '****' })}</P>
+        <m.div className="step-card" variants={container} initial="hidden" animate="visible">
+          <m.div variants={item}>
+            <VStack className="step-card-header" align='center'>
+              <div className="step-icon">
+                <Shield className="w-8 h-8 text-[var(--brand-primary)]" />
+              </div>
+              <VStack gap='1' align='center'>
+                <H1>{t('title')}</H1>
+              <P className="step-subtitle">{t('subtitle', { digits: lastDigits || '****' })}</P>
+              </VStack>
             </VStack>
-          </VStack>
-          <VStack className="step-card-content">
-            <VStack className="gap-4">
-              <HStack justify="center">
-                <InputOTP
+          </m.div>
+          <m.div variants={item}>
+            <VStack className="step-card-content">
+              <VStack className="gap-4">
+                <HStack justify="center">
+                  <InputOTP
                   value={code}
                   onChange={(val) => {
                     setCode(val)
@@ -190,9 +206,10 @@ function OTPPage() {
                   )}
                 </Button>
               </HStack>
+              </VStack>
             </VStack>
-          </VStack>
-        </div>
+          </m.div>
+        </m.div>
   )
 }
 

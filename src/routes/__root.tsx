@@ -1,7 +1,7 @@
 import { createRootRoute, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import React, { useEffect, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LazyMotion, domAnimation } from 'motion/react'
+import { LazyMotion, domAnimation, AnimatePresence, m } from 'motion/react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { wizardSchema } from '@/schemas'
@@ -11,6 +11,12 @@ import { useApi } from '@/hooks'
 import type { WizardFormData } from '@/types/form'
 import { DEFAULT_FORM_DATA } from '@/types/form'
 import { detectBrowserLanguage } from '@/utils'
+import {
+  getDirection,
+  getAnimationVariants,
+  pageSlideVariants,
+  pageSlideTransition,
+} from '@/lib/animations'
 import { z } from 'zod'
 import { Toaster } from 'sonner'
 
@@ -129,6 +135,21 @@ function RootComponent() {
   const currentPath = location.pathname.replace('/', '') || 'landing'
   const showProgress = PROGRESS_STEPS.includes(currentPath)
 
+  // Track navigation direction for page transitions
+  const prevPathRef = useRef(location.pathname)
+  const directionRef = useRef<1 | -1>(1)
+
+  // Track which layout mode is currently displayed (only updates on exit complete)
+  const initialLayout = linkState === 'valid' ? (LAYOUT_MODES[currentPath] ?? 'entry-centered') : 'entry-centered'
+  const [displayedLayoutMode, setDisplayedLayoutMode] = useState<LayoutMode>(initialLayout)
+
+  useEffect(() => {
+    if (prevPathRef.current !== location.pathname) {
+      directionRef.current = getDirection(prevPathRef.current, location.pathname)
+      prevPathRef.current = location.pathname
+    }
+  }, [location.pathname])
+
   // Sync i18next language with form language
   useEffect(() => {
     if (i18n.language !== language) {
@@ -185,29 +206,51 @@ function RootComponent() {
     }
   }, [location.pathname, navigate])
 
-  const layoutMode =
+  const targetLayoutMode =
     linkState === 'valid'
       ? (LAYOUT_MODES[currentPath] ?? 'entry-centered')
       : 'entry-centered'
 
-  const Layout = LAYOUTS[layoutMode]
+  // Use displayedLayoutMode for the wrapper so it doesn't switch during exit animation
+  const Layout = LAYOUTS[displayedLayoutMode]
 
   const content =
     linkState === 'validating' ? <LoadingScreen messageKey="short" />
     : linkState === 'invalid' ? <InvalidLink />
     : <Outlet />
 
+  const direction = directionRef.current
+  const animatedVariants = getAnimationVariants(pageSlideVariants)
+
   return (
     <LazyMotion features={domAnimation} strict>
       <FormProvider {...rhfMethods}>
         <main
           id="preadmission-app"
-          className="min-h-[100dvh] flex flex-col bg-gradient-to-br from-slate-50 via-sky-50 to-slate-100"
+          className="min-h-[100dvh] flex flex-col bg-gradient-to-br from-slate-50 via-sky-50 to-slate-100 overflow-x-hidden"
         >
           {showProgress && (
             <ProgressIndicator currentStep={currentPath} />
           )}
-          <Layout>{content}</Layout>
+          <Layout>
+            <AnimatePresence
+              mode="wait"
+              custom={direction}
+              onExitComplete={() => setDisplayedLayoutMode(targetLayoutMode)}
+            >
+              <m.div
+                key={location.pathname}
+                custom={direction}
+                variants={animatedVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={pageSlideTransition}
+              >
+                {content}
+              </m.div>
+            </AnimatePresence>
+          </Layout>
           <Toaster position="top-center" richColors />
         </main>
       </FormProvider>

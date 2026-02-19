@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { AnimatePresence, m } from 'motion/react'
 import { AlertCircle } from 'lucide-react'
 import { ChoiceButton } from '@/components/ui'
-import { slideVariants } from '@/utils/motionVariants'
+import { employerSlideVariants } from '@/lib/animations'
 import type { WizardFormData } from '@/types/form'
 
 interface ReasonSectionProps {
@@ -52,7 +52,7 @@ export function ReasonSection({ errors, setErrors, reasonRef }: ReasonSectionPro
         {reason === 'accident' && (
           <m.div
             key="has-employer"
-            variants={slideVariants}
+            variants={employerSlideVariants}
             initial="hidden"
             animate="visible"
             exit="exit"

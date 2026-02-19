@@ -38,7 +38,7 @@ export function InsuranceTypeSection({ errors, setErrors, insuranceRef, onShowHe
             selected={insurance === ins}
             onClick={() => {
               setValue('insurance', ins)
-              setErrors((prev) => { const n = { ...prev }; delete n.insurance; return n })
+              setErrors((prev) => { const n = { ...prev }; delete n.insurance; delete n.insuranceCard; return n })
             }}
             sm
             className="min-w-[120px]"
