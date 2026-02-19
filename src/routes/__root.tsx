@@ -15,7 +15,7 @@ import {
   getDirection,
   getAnimationVariants,
   pageSlideVariants,
-  pageSlideTransition,
+  glassBlurVariants,
 } from '@/lib/animations'
 import { z } from 'zod'
 import { Toaster } from 'sonner'
@@ -135,20 +135,18 @@ function RootComponent() {
   const currentPath = location.pathname.replace('/', '') || 'landing'
   const showProgress = PROGRESS_STEPS.includes(currentPath)
 
-  // Track navigation direction for page transitions
+  // Track navigation direction synchronously (must run during render, not in an effect)
   const prevPathRef = useRef(location.pathname)
   const directionRef = useRef<1 | -1>(1)
+
+  if (prevPathRef.current !== location.pathname) {
+    directionRef.current = getDirection(prevPathRef.current, location.pathname)
+    prevPathRef.current = location.pathname
+  }
 
   // Track which layout mode is currently displayed (only updates on exit complete)
   const initialLayout = linkState === 'valid' ? (LAYOUT_MODES[currentPath] ?? 'entry-centered') : 'entry-centered'
   const [displayedLayoutMode, setDisplayedLayoutMode] = useState<LayoutMode>(initialLayout)
-
-  useEffect(() => {
-    if (prevPathRef.current !== location.pathname) {
-      directionRef.current = getDirection(prevPathRef.current, location.pathname)
-      prevPathRef.current = location.pathname
-    }
-  }, [location.pathname])
 
   // Sync i18next language with form language
   useEffect(() => {
@@ -220,7 +218,8 @@ function RootComponent() {
     : <Outlet />
 
   const direction = directionRef.current
-  const animatedVariants = getAnimationVariants(pageSlideVariants)
+  const useBlur = location.pathname === '/' || location.pathname === '/loading'
+  const variants = getAnimationVariants(useBlur ? glassBlurVariants : pageSlideVariants)
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -241,11 +240,10 @@ function RootComponent() {
               <m.div
                 key={location.pathname}
                 custom={direction}
-                variants={animatedVariants}
-                initial="enter"
-                animate="center"
+                variants={variants}
+                initial="initial"
+                animate="animate"
                 exit="exit"
-                transition={pageSlideTransition}
               >
                 {content}
               </m.div>

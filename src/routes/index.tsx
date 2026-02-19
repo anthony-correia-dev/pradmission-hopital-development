@@ -28,7 +28,7 @@ function LandingPage() {
 
             <m.div variants={item}>
               <HStack justify="between" className="mb-10">
-                <HStack className="gap-2">
+                <HStack className="gap-2.5">
                   <Globe className="w-4 h-4 text-[var(--brand-primary)]" />
                   <span className="text-sm text-slate-500 leading-none">{t('chooseLanguage')}</span>
                 </HStack>

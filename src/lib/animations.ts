@@ -20,25 +20,45 @@ export function getDirection(from: string, to: string): 1 | -1 {
   return toIndex >= fromIndex ? 1 : -1
 }
 
-// ── A. Page Slide Transition ─────────────────────────────
+// ── A. Directional Page Slide (custom = direction: 1 | -1) ─
+// Enter: slide in from direction * 100%
+// Exit:  fade out only (no slide) — prevents "yoyo" effect
 export const pageSlideVariants: Variants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 100 : -100,
+  initial: (direction: number) => ({
+    x: `${direction * 100}%`,
     opacity: 0,
   }),
-  center: {
+  animate: {
     x: 0,
     opacity: 1,
+    transition: {
+      x: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] },
+      opacity: { duration: 0.2, ease: 'easeOut' },
+    },
   },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 100 : -100,
+  exit: {
     opacity: 0,
-  }),
+    transition: { duration: 0.1, ease: 'linear' },
+  },
 }
 
-export const pageSlideTransition: Transition = {
-  x: { type: 'spring', stiffness: 100, damping: 20 },
-  opacity: { duration: 0.3 },
+// ── A2. Glass Blur (landing + loading pages) ───────────────
+export const glassBlurVariants: Variants = {
+  initial: { opacity: 0, filter: 'blur(20px)', scale: 1.05 },
+  animate: {
+    opacity: 1,
+    filter: 'blur(0px)',
+    scale: 1,
+    transition: {
+      scale: { type: 'spring', stiffness: 200, damping: 20 },
+      filter: { duration: 0.3, ease: 'linear' },
+      opacity: { duration: 0.3 },
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.1, ease: 'linear' },
+  },
 }
 
 // ── B. Container Stagger ─────────────────────────────────
@@ -106,7 +126,7 @@ export const sectionSlideVariants: Variants = {
 }
 
 // ── G. Page Fade (legacy) ────────────────────────────────
-export const pageVariants: Variants = {
+export const pageFadeVariants: Variants = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
   exit: { opacity: 0 },
