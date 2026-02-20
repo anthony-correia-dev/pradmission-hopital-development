@@ -119,6 +119,7 @@
 
   .step-container-sm {
     width: 100%;
+    max-width: 28rem;
     margin-left: auto;
     margin-right: auto;
   }

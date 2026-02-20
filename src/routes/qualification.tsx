@@ -98,15 +98,15 @@ function QualificationPage() {
         initial="hidden"
         animate="visible"
       >
-        <div className="step-card-compact">
+        <div className="step-card-compact p-2">
           <m.div variants={item}>
             <VStack className="step-card-header" align='center'>
-              <div className="step-icon">
-                <ClipboardList className="w-8 h-8 text-[var(--brand-primary)]" />
+              <div className="step-icon !bg-primary">
+                <ClipboardList className="w-8 h-8 text-white" />
               </div>
-              <VStack align='center' gap='1'>
+              <VStack align='center' gap='2'>
                 <H1>{t('title')}</H1>
-                <P className="step-subtitle">{t('subtitle')}</P>
+                <P className="step-subtitle" color='muted-light'>{t('subtitle')}</P>
               </VStack>
             </VStack>
           </m.div>
