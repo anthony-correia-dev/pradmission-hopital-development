@@ -34,9 +34,11 @@ function OTPPage() {
 
   // Fetch phone last digits
   useEffect(() => {
+    let cancelled = false
     api.getPhoneLastDigits(preadmissionId).then((res) => {
-      setLastDigits(res.lastDigits)
+      if (!cancelled) setLastDigits(res.lastDigits)
     }).catch(() => {})
+    return () => { cancelled = true }
   }, [preadmissionId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-send OTP on first mount

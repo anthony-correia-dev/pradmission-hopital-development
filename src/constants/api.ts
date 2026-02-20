@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   VERIFY_OTP: '/_api/serverlogics/verifyotp',
   EXTRACT_DOCUMENT: '/_api/serverlogics/extractdocument',
   SUBMIT: '/_api/serverlogics/submit',
+  GET_DOCTORS: '/_api/serverlogics/getdoctors',
   CSRF_TOKEN: '/_layout/tokenhtml',
 } as const
 

@@ -1,8 +1,39 @@
+import { readFileSync } from 'node:fs'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Hono } from 'hono'
 import { wrapResponse, getOcrScenario, delay, shouldFail } from '../helpers.js'
 import { getIdentityOcr, getInsuranceOcr } from '../data.js'
 
+// Load doctor CSV once at startup
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const csvPath = resolve(__dirname, '../../../src/assets/documents/list_med.csv')
+const doctorList: { id: string; name: string }[] = readFileSync(csvPath, 'utf-8')
+  .split('\n')
+  .slice(1)
+  .map((line) => {
+    const [name, id] = line.split(';').map((s) => s.trim())
+    return name && id ? { id, name } : null
+  })
+  .filter((d): d is { id: string; name: string } => d !== null)
+
 const serverLogics = new Hono()
+
+/**
+ * GET /getdoctors — Search doctors by name
+ */
+serverLogics.get('/getdoctors', (c) => {
+  const q = (c.req.query('q') ?? '').trim().toLowerCase()
+  const limit = Math.min(Number(c.req.query('limit') ?? 50), 100)
+  if (!q) {
+    console.log(`[getdoctors] empty query → 0 results`)
+    return c.json(wrapResponse({ doctors: [], total: 0 }))
+  }
+  const matches = doctorList.filter((d) => d.name.toLowerCase().includes(q))
+  const page = matches.slice(0, limit)
+  console.log(`[getdoctors] q="${q}" → ${page.length}/${matches.length} results`)
+  return c.json(wrapResponse({ doctors: page, total: matches.length }))
+})
 
 /**
  * GET /getpread — Validate preadmission link

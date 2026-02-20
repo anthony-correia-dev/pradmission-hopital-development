@@ -6,6 +6,7 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.3.0",
     "@hono/node-server": "^1.14.0",
     "hono": "^4.7.0"
   },

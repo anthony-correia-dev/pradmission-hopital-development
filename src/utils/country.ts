@@ -188,3 +188,45 @@ export function getCountryNameByCode(isoCode: string, language: Language): strin
   if (!country) return isoCode
   return language === 'fr' ? country.nameFr : country.nameEn
 }
+
+/** ISO 3166-1 alpha-2 → alpha-3 lookup for OCR results */
+const ALPHA2_TO_ALPHA3: Record<string, string> = {
+  CH: 'CHE', FR: 'FRA', AF: 'AFG', ZA: 'ZAF', AL: 'ALB', DZ: 'DZA', DE: 'DEU',
+  AD: 'AND', AO: 'AGO', SA: 'SAU', AR: 'ARG', AM: 'ARM', AU: 'AUS', AT: 'AUT',
+  AZ: 'AZE', BE: 'BEL', BJ: 'BEN', BY: 'BLR', BO: 'BOL', BA: 'BIH', BW: 'BWA',
+  BR: 'BRA', BG: 'BGR', BF: 'BFA', BI: 'BDI', KH: 'KHM', CM: 'CMR', CA: 'CAN',
+  CL: 'CHL', CN: 'CHN', CY: 'CYP', CO: 'COL', KR: 'KOR', CR: 'CRI', CI: 'CIV',
+  HR: 'HRV', CU: 'CUB', DK: 'DNK', EG: 'EGY', AE: 'ARE', EC: 'ECU', ES: 'ESP',
+  EE: 'EST', US: 'USA', ET: 'ETH', FI: 'FIN', GA: 'GAB', GE: 'GEO', GH: 'GHA',
+  GR: 'GRC', GT: 'GTM', GN: 'GIN', HT: 'HTI', HN: 'HND', HU: 'HUN', IN: 'IND',
+  ID: 'IDN', IQ: 'IRQ', IR: 'IRN', IE: 'IRL', IS: 'ISL', IL: 'ISR', IT: 'ITA',
+  JM: 'JAM', JP: 'JPN', JO: 'JOR', KZ: 'KAZ', KE: 'KEN', XK: 'UNK', KW: 'KWT',
+  LV: 'LVA', LB: 'LBN', LR: 'LBR', LY: 'LBY', LI: 'LIE', LT: 'LTU', LU: 'LUX',
+  MK: 'MKD', MG: 'MDG', MY: 'MYS', ML: 'MLI', MT: 'MLT', MA: 'MAR', MX: 'MEX',
+  MD: 'MDA', MC: 'MCO', MN: 'MNG', ME: 'MNE', MZ: 'MOZ', MM: 'MMR', NA: 'NAM',
+  NP: 'NPL', NI: 'NIC', NE: 'NER', NG: 'NGA', NO: 'NOR', NZ: 'NZL', OM: 'OMN',
+  UG: 'UGA', UZ: 'UZB', PK: 'PAK', PA: 'PAN', PY: 'PRY', NL: 'NLD', PE: 'PER',
+  PH: 'PHL', PL: 'POL', PT: 'PRT', QA: 'QAT', CZ: 'CZE', RO: 'ROU', GB: 'GBR',
+  RU: 'RUS', RW: 'RWA', SN: 'SEN', RS: 'SRB', SG: 'SGP', SK: 'SVK', SI: 'SVN',
+  SO: 'SOM', SD: 'SDN', LK: 'LKA', SE: 'SWE', SY: 'SYR', TZ: 'TZA', TD: 'TCD',
+  TH: 'THA', TG: 'TGO', TN: 'TUN', TR: 'TUR', UA: 'UKR', UY: 'URY', VE: 'VEN',
+  VN: 'VNM', YE: 'YEM', ZM: 'ZMB', ZW: 'ZWE',
+}
+
+/** Reverse lookup: alpha-3 → alpha-2 (for flag-icons CSS classes) */
+const ALPHA3_TO_ALPHA2: Record<string, string> = Object.fromEntries(
+  Object.entries(ALPHA2_TO_ALPHA3).map(([a2, a3]) => [a3, a2])
+)
+
+/** Normalize a nationality code to alpha-3. Accepts alpha-2 or alpha-3 input. */
+export function normalizeNationality(code: string): string {
+  const upper = code.trim().toUpperCase()
+  if (upper.length === 2) return ALPHA2_TO_ALPHA3[upper] ?? ''
+  if (upper.length === 3 && COUNTRIES.some((c) => c.code === upper)) return upper
+  return ''
+}
+
+/** Convert alpha-3 code to alpha-2 for flag-icons CSS classes. */
+export function toAlpha2(alpha3: string): string {
+  return ALPHA3_TO_ALPHA2[alpha3.toUpperCase()] ?? ''
+}

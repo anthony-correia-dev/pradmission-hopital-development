@@ -1,6 +1,7 @@
 import { API_ENDPOINTS } from '@/constants/api'
 import { WIZARD_STAGES } from '@/constants/wizard'
 import { capitalizeName, capitalizeFirstNames } from '@/utils/format'
+import { normalizeNationality } from '@/utils/country'
 import type {
   MappedIdentityData,
   MappedInsuranceData,
@@ -134,6 +135,13 @@ async function getCloudFlowConfig(): Promise<CloudFlowConfig> {
 }
 
 // ---------- OCR Mapping ----------
+function mapGender(raw: string): string {
+  const v = raw.trim().toLowerCase()
+  if (['m', 'male', 'masculin', 'homme', 'männlich'].includes(v)) return 'male'
+  if (['f', 'female', 'féminin', 'feminin', 'femme', 'weiblich'].includes(v)) return 'female'
+  return ''
+}
+
 function mapCloudFlowResponse(raw: {
   last_name?: string
   first_names?: string
@@ -146,8 +154,8 @@ function mapCloudFlowResponse(raw: {
     lastName,
     firstNames,
     firstName: firstNames,
-    gender: raw.gender ?? '',
-    nationality: raw.nationality ?? '',
+    gender: mapGender(raw.gender ?? ''),
+    nationality: normalizeNationality(raw.nationality ?? ''),
   }
 }
 
@@ -165,7 +173,7 @@ function mapInsuranceCloudFlowResponse(raw: {
     street: raw.rue ?? '',
     city: capitalizeName(raw.ville ?? ''),
     zipCode: raw.zip ?? '',
-    country: raw.country ?? '',
+    country: normalizeNationality(raw.country ?? ''),
     avsNumber: raw.avs ?? '',
     kvgCardNumber: raw.kvg_carte_no ?? '',
     kvgInsuranceName: capitalizeName(raw.kvg_insurance ?? ''),
@@ -273,6 +281,13 @@ const api = {
       payload,
       config.submitflow,
       (data) => data
+    )
+  },
+
+  async searchDoctors(query: string, limit = 50) {
+    return safeAjax<{ doctors: { id: string; name: string }[]; total: number }>(
+      `${API_ENDPOINTS.GET_DOCTORS}?q=${encodeURIComponent(query)}&limit=${limit}`,
+      'GET'
     )
   },
 

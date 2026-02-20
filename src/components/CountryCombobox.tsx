@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, AlertCircle } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { toAlpha2 } from '@/utils/country'
 
 interface Country {
   code: string
@@ -146,7 +147,7 @@ export function CountryCombobox({
           )}
         >
           {withFlags && !isOpen && selectedCountry && (
-            <span className={`fi fi-${selectedCountry.code.toLowerCase()} mr-2 shrink-0 text-base`} />
+            <span className={`fi fi-${toAlpha2(selectedCountry.code).toLowerCase()} mr-2 shrink-0 text-base`} />
           )}
           <input
             ref={inputRef}
@@ -187,7 +188,7 @@ export function CountryCombobox({
                 )}
               >
                 {withFlags && (
-                  <span className={`fi fi-${country.code.toLowerCase()} mr-2 shrink-0 text-base`} />
+                  <span className={`fi fi-${toAlpha2(country.code).toLowerCase()} mr-2 shrink-0 text-base`} />
                 )}
                 {country.name}
               </div>

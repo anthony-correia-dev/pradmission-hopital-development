@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { m } from 'motion/react'
-import { CheckCircle, MapPin } from 'lucide-react'
+import { Check, CheckCircle, MapPin } from 'lucide-react'
 import { VStack, Button, H1, P } from '@/components/ui'
 import { getAnimationVariants, staggerContainerVariants, staggerItemVariants } from '@/lib/animations'
 
@@ -15,11 +15,13 @@ function SuccessPage() {
     <m.div className="step-card" variants={container} initial="hidden" animate="visible">
       <VStack className="step-card-header" align='center' gap='6'>
         <m.div variants={item}>
-          <CheckCircle className="w-16 h-16 text-[var(--brand-success)]" />
+          <div className='p-4 border-4 border-[var(--brand-success)] rounded-full'>
+            <Check className="w-16 h-16 text-[var(--brand-success)]" />
+          </div>
         </m.div>
         <m.div variants={item}>
           <VStack gap='1' align='center'>
-            <H1 color='primary' className='text-center'>{t('title')}</H1>
+            <H1 color='primary' className='text-center!' style={{fontSize:'24px'}}>{t('title')}</H1>
             <p className="step-subtitle">{t('message')}</p>
           </VStack>
         </m.div>
