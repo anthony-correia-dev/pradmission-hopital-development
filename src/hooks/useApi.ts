@@ -241,13 +241,27 @@ const api = {
     const payload = { doc: docType, base64 }
     const mapper = type === 'identity' ? mapCloudFlowResponse : mapInsuranceCloudFlowResponse
 
-    return withServerLogicFallback<Record<string, string>, MappedIdentityData | MappedInsuranceData>(
+    // Server Logic wraps OCR result in { status, data }, Cloud Flow is already
+    // unwrapped by safeAjaxCloudFlow — both paths return raw snake_case fields,
+    // then we apply the mapper once at the end.
+    const raw = await withServerLogicFallback<
+      Record<string, unknown>,
+      Record<string, string>
+    >(
       `extractDocument:${type}`,
       API_ENDPOINTS.EXTRACT_DOCUMENT,
       payload,
       triggerId,
-      (raw) => mapper(raw)
+      (result) => {
+        // Production wraps in { status, data }, mock returns flat fields
+        const fields = result.data && typeof result.data === 'object'
+          ? result.data as Record<string, string>
+          : result as unknown as Record<string, string>
+        return fields
+      }
     )
+
+    return mapper(raw)
   },
 
   async submitPreadmission(formData: WizardFormData) {

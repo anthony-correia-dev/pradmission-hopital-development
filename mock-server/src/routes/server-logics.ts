@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { wrapResponse, getOcrScenario, delay, shouldFail } from '../helpers.js'
-import { IDENTITY_OCR, INSURANCE_OCR } from '../data.js'
+import { getIdentityOcr, getInsuranceOcr } from '../data.js'
 
 const serverLogics = new Hono()
 
@@ -99,8 +99,9 @@ serverLogics.post('/extractdocument', async (c) => {
     return c.json({ success: false, data: JSON.stringify({ error: 'OCR extraction failed' }) })
   }
 
-  const data = docType === 'identity' ? IDENTITY_OCR[scenario] : INSURANCE_OCR[scenario]
-  return c.json(wrapResponse(data))
+  const data = docType === 'identity' ? getIdentityOcr(scenario) : getInsuranceOcr(scenario)
+  // Match production format: Server Logic wraps OCR result in { status, data }
+  return c.json(wrapResponse({ status: 'success', data }))
 })
 
 /**
