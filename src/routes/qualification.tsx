@@ -110,7 +110,7 @@ function QualificationPage() {
               </VStack>
             </VStack>
           </m.div>
-          <VStack className="step-card-content gap-6">
+          <VStack className="step-card-content gap-10">
             <m.div variants={item}>
               <ReasonSection
                 errors={errors}

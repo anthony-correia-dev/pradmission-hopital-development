@@ -133,7 +133,7 @@ export function CountryCombobox({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="text-sm font-medium text-[var(--brand-text)] leading-3">
+      <label htmlFor={id} className="text-sm text-[var(--brand-text)] leading-3 !font-normal">
         {label}
         {required && <span className="text-[var(--brand-error)] ml-0.5">*</span>}
       </label>

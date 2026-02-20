@@ -78,64 +78,69 @@ function SecurityPage() {
   const item = getAnimationVariants(staggerItemVariants)
 
   return (
-        <m.div variants={container} initial="hidden" animate="visible">
-          <VStack className="step-card" gap='4'>
-            <m.div variants={item}>
-              <VStack className="step-card-header" align='center'>
-                <div className="step-icon">
-                  <Calendar className="w-8 h-8 text-[var(--brand-primary)]" />
-                </div>
-                <H1>{t('title')}</H1>
-                <p className="step-subtitle">{t('subtitle')}</p>
-              </VStack>
-            </m.div>
-            <m.div variants={item}>
-              <VStack className="step-card-content">
-                <VStack className="gap-4">
-                  <FormInput
-                    label={t('label')}
-                    value={displayDate}
-                    onChange={handleDateChange}
-                    placeholder={t('placeholder')}
-                    error={error}
-                    required
-                    inputClassName="form-input-mono"
-                  />
-
-                  <HStack className="step-actions">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => void navigate({ to: '/' })}
-                      className="flex-1 h-12 cursor-pointer"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      {t('back')}
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => void handleSubmit()}
-                      disabled={isVerifying}
-                      className="flex-2 h-12 cursor-pointer hover:bg-[var(--brand-primary-hover)]"
-                    >
-                      {isVerifying ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          {t('verifying')}
-                        </>
-                      ) : (
-                        <>
-                          {t('continue')}
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </>
-                      )}
-                    </Button>
-                  </HStack>
-                </VStack>
-              </VStack>
-            </m.div>
+    <m.div variants={container} initial="hidden" animate="visible">
+      <VStack className="step-card" gap='4'>
+        <m.div variants={item}>
+          <VStack className="step-card-header" align='center'>
+            <div className="step-icon">
+              <Calendar className="w-8 h-8 text-[var(--brand-primary)]" />
+            </div>
+            <VStack gap='1.5' align='center'>
+              <H1>{t('title')}</H1>
+              <p className="step-subtitle">{t('subtitle')}</p>
+            </VStack>
           </VStack>
         </m.div>
+        <m.div variants={item}>
+          <VStack className="step-card-content">
+            <VStack className="gap-4">
+              <FormInput
+                label={t('label')}
+                value={displayDate}
+                onChange={handleDateChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void handleSubmit()
+                }}
+                placeholder={t('placeholder')}
+                error={error}
+                required
+                inputClassName="form-input-mono"
+              />
+
+              <HStack className="step-actions">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void navigate({ to: '/' })}
+                  className="flex-1 h-12 cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  {t('back')}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => void handleSubmit()}
+                  disabled={isVerifying}
+                  className="flex-2 h-12 cursor-pointer hover:bg-[var(--brand-primary-hover)]"
+                >
+                  {isVerifying ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {t('verifying')}
+                    </>
+                  ) : (
+                    <>
+                      {t('continue')}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </HStack>
+            </VStack>
+          </VStack>
+        </m.div>
+      </VStack>
+    </m.div>
   )
 }
 

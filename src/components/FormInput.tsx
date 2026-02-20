@@ -18,7 +18,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
 
     return (
       <VStack className={cn('space-y-2', className)}>
-        <Label htmlFor={inputId} className="text-sm font-medium text-[var(--brand-text)] leading-3">
+        <Label htmlFor={inputId} className="text-sm !font-normal text-[var(--brand-text)] leading-3">
           {label}
           {props.required && <span className="text-[var(--brand-error)] ml-0.5">*</span>}
           {optional && (

@@ -1,6 +1,7 @@
 import { forwardRef, useState } from 'react'
 import { Upload, Loader2, CheckCircle, X, AlertCircle } from 'lucide-react'
 import { ACCEPTED_FILE_EXTENSIONS } from '@/constants/validation'
+import { VStack } from './ui'
 
 interface FileUploadZoneProps {
   file: File | null
@@ -44,7 +45,8 @@ const FileUploadZone = forwardRef<HTMLDivElement, FileUploadZoneProps>(
 
     return (
       <div ref={ref} className="space-y-2">
-        <label className="text-sm font-medium text-[var(--brand-text)]">
+        <VStack gap='2'>
+          <label className="text-sm font-medium text-[var(--brand-text)]">
           {label} {required && <span className="text-[var(--brand-error)]">*</span>}
           {optional && <span className="text-slate-500 text-xs ml-2">({optional})</span>}
         </label>
@@ -96,6 +98,7 @@ const FileUploadZone = forwardRef<HTMLDivElement, FileUploadZoneProps>(
             />
           </label>
         )}
+        </VStack>
         {error && (
           <div className="form-error-inline-tight">
             <AlertCircle className="form-error-icon" />

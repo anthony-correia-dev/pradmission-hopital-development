@@ -129,7 +129,7 @@ export function DoctorCombobox({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="text-sm font-medium text-[var(--brand-text)] leading-3">
+      <label htmlFor={id} className="text-sm !font-normal text-[var(--brand-text)] leading-3">
         {label}
         {optional && <span className="text-slate-400 font-normal ml-1">({optional})</span>}
       </label>

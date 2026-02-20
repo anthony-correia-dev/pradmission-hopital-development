@@ -21,16 +21,16 @@ function LandingPage() {
         <m.div className="step-card" variants={container} initial="hidden" animate="visible">
           <VStack className="step-card-header">
             <m.div variants={item}>
-              <HStack justify="center" className="mb-8">
+              <HStack justify="center" className="mb-6">
                 <img src={logoHlt} alt="Hôpital de La Tour" className="h-16" width="122" height="64" />
               </HStack>
             </m.div>
 
             <m.div variants={item}>
-              <HStack justify="between" className="mb-10">
-                <HStack className="gap-2.5">
+              <HStack justify="between" className="mb-8">
+                <HStack className="gap-1.5">
                   <Globe className="w-4 h-4 text-[var(--brand-primary)]" />
-                  <span className="text-sm text-slate-500 leading-none">{t('chooseLanguage')}</span>
+                  <P size='sm' className='leading-none !mt-0.5'>{t('chooseLanguage')}</P>
                 </HStack>
                 <Select
                   value={language}
@@ -48,7 +48,7 @@ function LandingPage() {
             </m.div>
 
             <m.div variants={item}>
-              <VStack align="center" className="text-center gap-3">
+              <VStack align="center" className="text-center gap-4">
                 <H1>{t('title')}</H1>
                <VStack className="gap-1.5">
                  <p className="step-subtitle !text-base">{t('subtitle')}</p>

@@ -66,7 +66,7 @@ const LAYOUT_MODES: Record<string, LayoutMode> = {
 function EntryLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="step-page-centered" data-layout="entry">
-      <div className="step-container-sm mb-24">{children}</div>
+      <div className="step-container-sm mb-32">{children}</div>
     </div>
   )
 }
@@ -226,7 +226,7 @@ function RootComponent() {
       <FormProvider {...rhfMethods}>
         <main
           id="preadmission-app"
-          className="min-h-[100dvh] flex flex-col bg-gradient-to-br from-slate-50 via-sky-50 to-slate-100 overflow-x-hidden"
+          className="min-h-[100dvh] flex flex-col bg-gradient-to-br from-slate-50 via-sky-50 to-slate-200 overflow-x-hidden"
         >
           {showProgress && (
             <ProgressIndicator currentStep={currentPath} />

@@ -22,7 +22,7 @@ export function IdentitySection({ errors, setErrors, setRef }: IdentitySectionPr
       <div className="form-section-header">
         <H3>{t('identity')}</H3>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div ref={setRef('firstName')}>
           <FormInput
             label={t('firstName')}
@@ -48,7 +48,7 @@ export function IdentitySection({ errors, setErrors, setRef }: IdentitySectionPr
           />
         </div>
         <div ref={setRef('gender')} className="space-y-2">
-          <Label className="text-sm font-medium text-[var(--brand-text)]">
+          <Label className="text-sm text-[var(--brand-text)] !font-normal">
             {t('gender')} <span className="text-[var(--brand-error)]">*</span>
           </Label>
           <Select

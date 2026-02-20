@@ -2,7 +2,7 @@ import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, m } from 'motion/react'
 import { AlertCircle } from 'lucide-react'
-import { ChoiceButton } from '@/components/ui'
+import { ChoiceButton, VStack } from '@/components/ui'
 import { employerSlideVariants } from '@/lib/animations'
 import type { WizardFormData } from '@/types/form'
 
@@ -22,7 +22,8 @@ export function ReasonSection({ errors, setErrors, reasonRef }: ReasonSectionPro
     <div className="space-y-6">
       {/* Reason */}
       <div ref={reasonRef} className="space-y-3">
-        <label className="text-sm font-medium text-[var(--brand-text)]">
+        <VStack gap='2'>
+          <label className="text-sm font-medium text-[var(--brand-text)]">
           {t('reasonLabel')} <span className="text-[var(--brand-error)]">*</span>
         </label>
         <div className="flex gap-3">
@@ -39,6 +40,7 @@ export function ReasonSection({ errors, setErrors, reasonRef }: ReasonSectionPro
             </ChoiceButton>
           ))}
         </div>
+        </VStack>
         {errors.reason && (
           <div className="form-error-inline-tight">
             <AlertCircle className="form-error-icon" />

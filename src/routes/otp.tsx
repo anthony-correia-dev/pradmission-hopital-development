@@ -123,7 +123,7 @@ function OTPPage() {
               </div>
               <VStack gap='1' align='center'>
                 <H1>{t('title')}</H1>
-              <P className="step-subtitle">{t('subtitle', { digits: lastDigits || '****' })}</P>
+              <P className="step-subtitle" color='muted-light'>{t('subtitle', { digits: lastDigits || '****' })}</P>
               </VStack>
             </VStack>
           </m.div>
@@ -138,6 +138,9 @@ function OTPPage() {
                     setError('')
                   }}
                   maxLength={6}
+                  onKeyDown={(e) => {
+                  if (e.key === 'Enter') void handleSubmit()
+                }}
                 >
                   <InputOTPGroup className="gap-1 sm:gap-2">
                     {Array.from({ length: 6 }).map((_, i) => (

@@ -1,7 +1,7 @@
 import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle } from 'lucide-react'
-import { Checkbox, Label } from '@/components/ui'
+import { Checkbox, Label, VStack } from '@/components/ui'
 import type { WizardFormData } from '@/types/form'
 
 interface ConsentsSectionProps {
@@ -18,7 +18,8 @@ export function ConsentsSection({ errors, setErrors, consentRef }: ConsentsSecti
 
   return (
     <div ref={consentRef} className="space-y-3">
-      <label className="text-sm font-semibold text-[var(--brand-text)]">
+     <VStack gap='2'>
+       <label className="text-sm font-semibold text-[var(--brand-text)]">
         {t('consentsLabel')}
       </label>
       <div className="space-y-3">
@@ -32,7 +33,7 @@ export function ConsentsSection({ errors, setErrors, consentRef }: ConsentsSecti
                 setErrors((prev) => { const n = { ...prev }; delete n.consentNLPD; return n })
               }}
             />
-            <Label htmlFor="consentNLPD" className="text-sm leading-5 cursor-pointer">
+            <Label htmlFor="consentNLPD" className="text-sm leading-5 cursor-pointer font-normal!">
               {t('consentNLPDPrefix')}
               <a
                 href={t('privacyPolicyUrl')}
@@ -61,7 +62,7 @@ export function ConsentsSection({ errors, setErrors, consentRef }: ConsentsSecti
               checked={consentMarketing}
               onCheckedChange={(checked) => setValue('consentMarketing', checked === true)}
             />
-            <Label htmlFor="consentMarketing" className="text-sm leading-5 cursor-pointer flex-1">
+            <Label htmlFor="consentMarketing" className="text-sm leading-5 cursor-pointer flex-1 font-normal!">
               {t('consentMarketing')}
             </Label>
             <span className="text-xs text-[var(--muted-foreground)] whitespace-nowrap self-center">
@@ -70,6 +71,7 @@ export function ConsentsSection({ errors, setErrors, consentRef }: ConsentsSecti
           </div>
         </div>
       </div>
+     </VStack>
     </div>
   )
 }
