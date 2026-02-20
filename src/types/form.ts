@@ -5,8 +5,6 @@ export type WizardStep = 'landing' | 'security' | 'otp' | 'qualification' | 'loa
 export const DEFAULT_FORM_DATA = {
   language: 'fr' as Language,
   preadmissionId: '',
-  birthDate: '',
-  otpCode: '',
   reason: 'illness' as 'illness' | 'accident' | undefined,
   insurance: 'swiss' as 'swiss' | 'international' | 'auto' | undefined,
   hasEmployer: false,
