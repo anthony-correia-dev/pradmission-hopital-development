@@ -35,7 +35,7 @@ export const qualificationTranslations = {
     consentsLabel: 'Consentements',
     consentNLPDPrefix: 'J\'accepte la ',
     consentNLPDLink: 'Politique de confidentialité',
-    privacyPolicyUrl: 'https://www.la-tour.ch/fr/informations-generales/politique-de-confidentialite',
+    privacyPolicyUrl: 'https://www.la-tour.ch/fr/informations-generales/politique-de-confidentialite-patients',
     consentMarketing: 'J\'aimerais être informé des services ou offres complémentaires de l\'Hôpital de La Tour en lien avec mon parcours de soins et mes besoins.',
 
     // Buttons
@@ -105,7 +105,7 @@ export const qualificationTranslations = {
     consentsLabel: 'Consents',
     consentNLPDPrefix: 'I accept the ',
     consentNLPDLink: 'Privacy policy',
-    privacyPolicyUrl: 'https://www.la-tour.ch/en/general-information/privacy-policy',
+    privacyPolicyUrl: 'https://www.la-tour.ch/en/patient-privacy-policy',
     consentMarketing: 'I would like to be informed about any additional services or offerings at Hôpital de La Tour that relate to my care pathway and needs.',
 
     // Buttons
