@@ -120,10 +120,11 @@ function AdminPage() {
 
   const showEmployer = reason === 'accident' && hasEmployer
   const showAccident = reason === 'accident'
-  const showAvs = insurance === 'swiss'
+  const isAutoPayeur = insurance === 'auto'
+  const showAvs = insurance === 'swiss' || isAutoPayeur
   const showBasicInsurance =
-    reason === 'accident' || insurance === 'swiss' || insurance === 'international'
-  const showCardNumber = reason === 'accident' || insurance === 'swiss'
+    reason === 'accident' || insurance === 'swiss' || insurance === 'international' || isAutoPayeur
+  const showCardNumber = reason === 'accident' || insurance === 'swiss' || isAutoPayeur
   const showPolicyNumber = insurance === 'international'
 
   const container = getAnimationVariants(staggerContainerVariants)
@@ -180,6 +181,7 @@ function AdminPage() {
                 showBasicInsurance={showBasicInsurance}
                 showCardNumber={showCardNumber}
                 showPolicyNumber={showPolicyNumber}
+                isAutoPayeur={isAutoPayeur}
               />
             </m.div>
 
