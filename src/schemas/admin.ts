@@ -15,6 +15,9 @@ export function createAdminSchema(
     maxLength: string
   }
 ) {
+  // Employer fields are required only for accident + hasEmployer, optional otherwise
+  const employerRequired = reason === 'accident' && hasEmployer
+
   return z.object({
     // Identity — always required
     firstName: z.string().min(1, t.required),
@@ -35,14 +38,14 @@ export function createAdminSchema(
       .min(1, t.required)
       .regex(/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/, t.invalidEmail),
 
-    // Employer — conditional
-    profession: hasEmployer
+    // Employer — conditional: required for accident+employer, optional for illness
+    profession: employerRequired
       ? z.string().min(1, t.required)
       : z.string().optional().default(''),
-    employerName: hasEmployer
+    employerName: employerRequired
       ? z.string().min(1, t.required)
       : z.string().optional().default(''),
-    employerAddress: hasEmployer
+    employerAddress: employerRequired
       ? z.string().min(1, t.required).max(250, t.maxLength)
       : z.string().optional().default(''),
 

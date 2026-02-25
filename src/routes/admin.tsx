@@ -119,7 +119,8 @@ function AdminPage() {
     }
   }
 
-  const showEmployer = reason === 'accident' && hasEmployer
+  // Employer: always visible, required only for accident + hasEmployer
+  const employerRequired = reason === 'accident' && hasEmployer
   const showAccident = reason === 'accident'
   const isAutoPayeur = insurance === 'auto'
   const showAvs = insurance === 'swiss' || insurance === 'international' || isAutoPayeur
@@ -156,13 +157,9 @@ function AdminPage() {
             <m.div variants={item}>
               <ContactSection errors={errors} setErrors={setErrors} setRef={setRef} />
             </m.div>
-            <AnimatePresence mode="wait">
-              {!!showEmployer && (
-                <m.div key="employer" variants={employerSlideVariants} initial="hidden" animate="visible" exit="exit">
-                  <EmployerSection errors={errors} setErrors={setErrors} setRef={setRef} />
-                </m.div>
-              )}
-            </AnimatePresence>
+            <m.div variants={item}>
+              <EmployerSection errors={errors} setErrors={setErrors} setRef={setRef} employerRequired={employerRequired} />
+            </m.div>
             <m.div variants={item}>
               <DoctorsSection />
             </m.div>

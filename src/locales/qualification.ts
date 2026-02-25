@@ -47,7 +47,7 @@ export const qualificationTranslations = {
     insuranceRequired: 'Veuillez sélectionner un type d\'assurance',
     identityCardRequired: 'La carte d\'identité est obligatoire',
     insuranceCardRequired: 'La carte d\'assurance est obligatoire',
-    consentNLPDRequired: 'Le consentement nLPD est obligatoire',
+    consentNLPDRequired: 'Le consentement est obligatoire',
 
     // Misc
     optional: 'Optionnel',
@@ -117,7 +117,7 @@ export const qualificationTranslations = {
     insuranceRequired: 'Please select an insurance type',
     identityCardRequired: 'Identity card is required',
     insuranceCardRequired: 'Insurance card is required',
-    consentNLPDRequired: 'Data protection consent is required',
+    consentNLPDRequired: 'Consent is required',
 
     // Misc
     optional: 'Optional',

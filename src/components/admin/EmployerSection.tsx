@@ -8,9 +8,10 @@ interface EmployerSectionProps {
   errors: Record<string, string>
   setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>
   setRef: (key: string) => (el: HTMLDivElement | null) => void
+  employerRequired: boolean
 }
 
-export function EmployerSection({ errors, setErrors, setRef }: EmployerSectionProps) {
+export function EmployerSection({ errors, setErrors, setRef, employerRequired }: EmployerSectionProps) {
   const { setValue, watch } = useFormContext<WizardFormData>()
   const { t } = useTranslation('admin')
 
@@ -28,7 +29,8 @@ export function EmployerSection({ errors, setErrors, setRef }: EmployerSectionPr
             setErrors((prev) => { const n = { ...prev }; delete n.profession; return n })
           }}
           error={errors.profession}
-          required
+          required={employerRequired}
+          optional={!employerRequired ? t('optional') : undefined}
         />
       </div>
       <div ref={setRef('employerName')}>
@@ -40,7 +42,8 @@ export function EmployerSection({ errors, setErrors, setRef }: EmployerSectionPr
             setErrors((prev) => { const n = { ...prev }; delete n.employerName; return n })
           }}
           error={errors.employerName}
-          required
+          required={employerRequired}
+          optional={!employerRequired ? t('optional') : undefined}
         />
       </div>
       <div ref={setRef('employerAddress')}>
@@ -52,7 +55,8 @@ export function EmployerSection({ errors, setErrors, setRef }: EmployerSectionPr
             setErrors((prev) => { const n = { ...prev }; delete n.employerAddress; return n })
           }}
           error={errors.employerAddress}
-          required
+          required={employerRequired}
+          optional={!employerRequired ? t('optional') : undefined}
           maxLength={250}
         />
       </div>

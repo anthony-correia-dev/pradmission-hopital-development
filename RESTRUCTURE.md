@@ -168,7 +168,7 @@ interface FormData {
   country: string                     // Country name
   email: string
 
-  // Admin step — Employer (conditional on hasEmployer)
+  // Admin step — Employer (always visible)
   profession: string
   employerName: string
   employerAddress: string
@@ -235,9 +235,9 @@ insuranceCard: File | optional            — Required ONLY when insurance === '
 | city | Yes | |
 | country | Yes | |
 | email | Yes, valid email | |
-| profession | | Required if `hasEmployer === true` |
-| employerName | | Required if `hasEmployer === true` |
-| employerAddress | | Required if `hasEmployer === true` |
+| profession | | Required if `reason === 'accident'` AND `hasEmployer === true`, optional otherwise |
+| employerName | | Required if `reason === 'accident'` AND `hasEmployer === true`, optional otherwise |
+| employerAddress | | Required if `reason === 'accident'` AND `hasEmployer === true`, optional otherwise |
 | referringDoctor | Optional | |
 | generalPractitioner | Optional | |
 | accidentDate | | Required if `reason === 'accident'`, must be valid date |
@@ -294,7 +294,7 @@ Combines all fields in one Zod schema with `superRefine` for cross-field validat
 #### Admin
 - **Identity section**: firstName, lastName, gender (Select), nationality (CountryCombobox)
 - **Contact section**: street, npa, city, country (CountryCombobox), email
-- **Employer section** (conditional: `reason === 'accident' && hasEmployer`): profession, employerName, employerAddress
+- **Employer section** (always visible): profession, employerName, employerAddress — fields are **required** if `reason === 'accident' && hasEmployer`, **optional** otherwise
 - **Doctors section**: referringDoctor (DoctorCombobox), generalPractitioner (DoctorCombobox) — both optional
 - **Accident section** (conditional: `reason === 'accident'`): accidentDate (DD.MM.YYYY), accidentInsurance, claimNumber
 - **Insurance section**: avsNumber (formatted XXX.XXXX.XXXX.XX), basicInsurance, cardNumber (20 digits), policyNumber, complementaryInsurance — conditional fields based on insurance type
