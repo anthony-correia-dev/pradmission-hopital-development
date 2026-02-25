@@ -2,7 +2,7 @@ import { useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { FileUploadZone } from '@/components/FileUploadZone'
 import { useApi } from '@/hooks'
-import { fileToBase64 } from '@/utils'
+import { fileToBase64, isValidFileType } from '@/utils'
 import { FILE_LIMITS } from '@/constants/validation'
 import { TIMINGS } from '@/constants/ui'
 import type { WizardFormData } from '@/types/form'
@@ -34,11 +34,20 @@ export function FileUploadsSection({
   const insuranceCard = watch('insuranceCard')
 
   async function handleFileUpload(file: File, type: 'identity' | 'insurance') {
-    if (file.size > FILE_LIMITS.MAX_SIZE_BYTES) {
-      setErrors((prev) => ({
-        ...prev,
-        [type === 'identity' ? 'identityCard' : 'insuranceCard']: t('fileTooLarge'),
-      }))
+    const fieldKey = type === 'identity' ? 'identityCard' : 'insuranceCard'
+    const tooLarge = file.size > FILE_LIMITS.MAX_SIZE_BYTES
+    const invalidFormat = !isValidFileType(file)
+
+    if (tooLarge && invalidFormat) {
+      setErrors((prev) => ({ ...prev, [fieldKey]: t('fileTooLargeAndInvalidFormat') }))
+      return
+    }
+    if (tooLarge) {
+      setErrors((prev) => ({ ...prev, [fieldKey]: t('fileTooLarge') }))
+      return
+    }
+    if (invalidFormat) {
+      setErrors((prev) => ({ ...prev, [fieldKey]: t('invalidFileFormat') }))
       return
     }
 

@@ -1,7 +1,7 @@
 export { cn } from './cn'
 export { formatDateInput, parseDisplayDate, formatDisplayDate, isValidDate, isValidDisplayDate } from './date'
 export { capitalizeName, capitalizeFirstNames, extractFirstName, formatAvsNumber, formatCardNumber } from './format'
-export { fileToBase64 } from './file'
+export { fileToBase64, isValidFileType } from './file'
 export { getCountries, getNationalities, getCountryNameByCode } from './country'
 export { detectBrowserLanguage } from './language'
 export { getPhoneCodes, formatPhoneNumber } from './phone'

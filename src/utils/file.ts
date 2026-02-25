@@ -1,4 +1,5 @@
 import imageCompression from 'browser-image-compression'
+import { ACCEPTED_FILE_FORMATS, ACCEPTED_FILE_EXTENSIONS } from '@/constants/validation'
 
 const COMPRESSION_OPTIONS = {
   maxSizeMB: 1,
@@ -31,4 +32,15 @@ export async function fileToBase64(file: File): Promise<string> {
     return readAsBase64(compressed)
   }
   return readAsBase64(file)
+}
+
+export function isValidFileType(file: File): boolean {
+  // Check MIME type
+  const mimeValid = (ACCEPTED_FILE_FORMATS as readonly string[]).includes(file.type)
+  if (mimeValid) return true
+
+  // Fallback: check extension (some browsers report empty MIME for .heic/.heif)
+  const extensions = ACCEPTED_FILE_EXTENSIONS.split(',')
+  const fileName = file.name.toLowerCase()
+  return extensions.some((ext) => fileName.endsWith(ext))
 }
