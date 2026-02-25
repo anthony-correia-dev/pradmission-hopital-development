@@ -77,11 +77,11 @@ export function createAdminSchema(
             )
         : z.string().optional().default(''),
     basicInsurance:
-      (reason === 'accident' && !hasEmployer) || insurance === 'swiss' || insurance === 'international'
+      reason === 'accident' || insurance === 'swiss' || insurance === 'international'
         ? z.string().min(1, t.required)
         : z.string().optional().default(''),
     cardNumber:
-      reason === 'accident' || insurance === 'swiss'
+      (reason === 'accident' || insurance === 'swiss') && insurance !== 'international'
         ? z
             .string()
             .min(1, t.required)
@@ -93,6 +93,7 @@ export function createAdminSchema(
     policyNumber: insurance === 'international'
       ? z.string().min(1, t.required)
       : z.string().optional().default(''),
+    complementaryInsuranceName: z.string().optional().default(''),
     complementaryInsurance: z.string().optional().default(''),
   })
 }

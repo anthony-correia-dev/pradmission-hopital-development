@@ -38,6 +38,7 @@ export const DEFAULT_FORM_DATA = {
   basicInsurance: '',
   cardNumber: '',
   policyNumber: '',
+  complementaryInsuranceName: '',
   complementaryInsurance: '',
   ocrTimedOut: false,
 }

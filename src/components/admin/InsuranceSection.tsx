@@ -103,6 +103,12 @@ export function InsuranceSection({ errors, setErrors, setRef, showAvs, showBasic
         )}
       </AnimatePresence>
       <FormInput
+        label={t('complementaryInsuranceName')}
+        value={watch('complementaryInsuranceName')}
+        onChange={(e) => setValue('complementaryInsuranceName', e.target.value)}
+        optional={t('optional')}
+      />
+      <FormInput
         label={t('complementaryInsurance')}
         value={formatCardNumber(watch('complementaryInsurance'))}
         onChange={(e) => setValue('complementaryInsurance', e.target.value.replace(/\D/g, '').slice(0, 20))}

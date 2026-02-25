@@ -114,7 +114,10 @@ export function FileUploadsSection({
         if (d.avsNumber) setValue('avsNumber', d.avsNumber)
         if (d.kvgCardNumber) setValue('cardNumber', d.kvgCardNumber)
         if (d.kvgInsuranceName) setValue('basicInsurance', d.kvgInsuranceName)
-        if (d.vvgCardNumber) setValue('complementaryInsurance', d.vvgCardNumber)
+        if (d.vvgCardNumber) {
+          setValue('complementaryInsurance', d.vvgCardNumber)
+          if (d.kvgInsuranceName) setValue('complementaryInsuranceName', d.kvgInsuranceName)
+        }
         if (d.avsNumber || d.kvgCardNumber) sessionStorage.setItem('ocr_prefilled', 'true')
       }
     } catch (err) {
@@ -147,6 +150,7 @@ export function FileUploadsSection({
     setValue('avsNumber', '')
     setValue('cardNumber', '')
     setValue('basicInsurance', '')
+    setValue('complementaryInsuranceName', '')
     setValue('complementaryInsurance', '')
   }
 

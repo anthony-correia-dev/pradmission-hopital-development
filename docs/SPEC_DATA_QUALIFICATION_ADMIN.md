@@ -49,7 +49,8 @@ Les données suivantes sont extraites automatiquement et pré-remplies dans la p
 | `avsNumber` | `avsNumber` | Numéro AVS (13 chiffres) |
 | `kvgInsuranceName` | `basicInsurance` | Nom de l'assurance de base LAMal |
 | `kvgCardNumber` | `cardNumber` | Numéro de carte d'assurance |
-| `vvgCardNumber` | `complementaryInsurance` | Assurance complémentaire LCA |
+| `vvgCardNumber` | `complementaryInsurance` | N° carte assurance complémentaire LCA |
+| `kvgInsuranceName` *(si vvgCardNumber présent)* | `complementaryInsuranceName` | Nom de l'assurance complémentaire (même assureur par défaut) |
 
 ---
 

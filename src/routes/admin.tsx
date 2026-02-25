@@ -88,6 +88,7 @@ function AdminPage() {
       basicInsurance: values.basicInsurance,
       cardNumber: values.cardNumber,
       policyNumber: values.policyNumber,
+      complementaryInsuranceName: values.complementaryInsuranceName,
       complementaryInsurance: values.complementaryInsurance,
     })
 
@@ -124,7 +125,7 @@ function AdminPage() {
   const showAvs = insurance === 'swiss' || insurance === 'international' || isAutoPayeur
   const showBasicInsurance =
     reason === 'accident' || insurance === 'swiss' || insurance === 'international' || isAutoPayeur
-  const showCardNumber = reason === 'accident' || insurance === 'swiss' || isAutoPayeur
+  const showCardNumber = (reason === 'accident' || insurance === 'swiss' || isAutoPayeur) && insurance !== 'international'
   const showPolicyNumber = insurance === 'international'
 
   const container = getAnimationVariants(staggerContainerVariants)
