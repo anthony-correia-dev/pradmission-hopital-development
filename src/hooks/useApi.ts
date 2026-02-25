@@ -1,7 +1,7 @@
 import { API_ENDPOINTS } from '@/constants/api'
 import { WIZARD_STAGES } from '@/constants/wizard'
 import { capitalizeName, capitalizeFirstNames } from '@/utils/format'
-import { normalizeNationality } from '@/utils/country'
+import { normalizeNationality, toAlpha2 } from '@/utils/country'
 import type {
   MappedIdentityData,
   MappedInsuranceData,
@@ -274,7 +274,13 @@ const api = {
 
   async submitPreadmission(formData: WizardFormData) {
     const config = await getCloudFlowConfig()
-    const payload = { json: JSON.stringify(formData) }
+    const payload = {
+      json: JSON.stringify({
+        ...formData,
+        country: toAlpha2(formData.country),
+        nationality: toAlpha2(formData.nationality),
+      }),
+    }
     return withServerLogicFallback<SubmitResponse>(
       'submit',
       API_ENDPOINTS.SUBMIT,

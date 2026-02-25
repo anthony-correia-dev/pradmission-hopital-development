@@ -16,11 +16,15 @@ interface InsuranceSectionProps {
   showCardNumber: boolean
   showPolicyNumber: boolean
   isAutoPayeur: boolean
+  insurance: string | undefined
 }
 
-export function InsuranceSection({ errors, setErrors, setRef, showAvs, showBasicInsurance, showCardNumber, showPolicyNumber, isAutoPayeur }: InsuranceSectionProps) {
+export function InsuranceSection({ errors, setErrors, setRef, showAvs, showBasicInsurance, showCardNumber, showPolicyNumber, isAutoPayeur, insurance }: InsuranceSectionProps) {
   const { setValue, watch } = useFormContext<WizardFormData>()
   const { t } = useTranslation('admin')
+
+  const avsRequired = insurance === 'swiss'
+  const avsOptional = !avsRequired
 
   return (
     <div className="space-y-4">
@@ -38,8 +42,8 @@ export function InsuranceSection({ errors, setErrors, setRef, showAvs, showBasic
                 setErrors((prev) => { const n = { ...prev }; delete n.avsNumber; return n })
               }}
               error={errors.avsNumber}
-              required={!isAutoPayeur}
-              optional={isAutoPayeur ? t('optional') : undefined}
+              required={avsRequired}
+              optional={avsOptional ? t('optional') : undefined}
               inputClassName="form-input-mono"
               placeholder="XXX.XXXX.XXXX.XX"
             />

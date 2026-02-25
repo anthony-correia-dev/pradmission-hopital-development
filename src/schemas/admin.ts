@@ -66,7 +66,16 @@ export function createAdminSchema(
             (val) => val.replace(/\D/g, '').length === 13,
             t.invalidAvs
           )
-      : z.string().optional().default(''),
+      : insurance === 'auto' || insurance === 'international'
+        ? z
+            .string()
+            .optional()
+            .default('')
+            .refine(
+              (val) => !val || val.replace(/\D/g, '').length === 13,
+              t.invalidAvs
+            )
+        : z.string().optional().default(''),
     basicInsurance:
       (reason === 'accident' && !hasEmployer) || insurance === 'swiss' || insurance === 'international'
         ? z.string().min(1, t.required)

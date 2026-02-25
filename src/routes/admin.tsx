@@ -121,7 +121,7 @@ function AdminPage() {
   const showEmployer = reason === 'accident' && hasEmployer
   const showAccident = reason === 'accident'
   const isAutoPayeur = insurance === 'auto'
-  const showAvs = insurance === 'swiss' || isAutoPayeur
+  const showAvs = insurance === 'swiss' || insurance === 'international' || isAutoPayeur
   const showBasicInsurance =
     reason === 'accident' || insurance === 'swiss' || insurance === 'international' || isAutoPayeur
   const showCardNumber = reason === 'accident' || insurance === 'swiss' || isAutoPayeur
@@ -182,6 +182,7 @@ function AdminPage() {
                 showCardNumber={showCardNumber}
                 showPolicyNumber={showPolicyNumber}
                 isAutoPayeur={isAutoPayeur}
+                insurance={insurance}
               />
             </m.div>
 
