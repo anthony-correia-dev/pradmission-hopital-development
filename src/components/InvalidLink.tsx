@@ -1,79 +1,65 @@
-/**
- * Composant InvalidLink - Page d'erreur pour lien invalide/expiré
- * @module components/InvalidLink
- */
-
-import { XCircle, Mail, Globe } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { invalidLinkTranslations } from '@/locales'
+import { useFormContext } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
+import { Globe, Mail, XCircle } from 'lucide-react'
+import { HStack, VStack, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, H1, P, Button } from '@/components/ui'
+import type { WizardFormData, Language } from '@/types/form'
 import logoHlt from '@/assets/images/logo-hlt.png'
 
-interface InvalidLinkProps {
-  language: 'fr' | 'en'
-  onLanguageChange: (lang: 'fr' | 'en') => void
-}
-
-export function InvalidLink({ language, onLanguageChange }: InvalidLinkProps) {
-  const t = invalidLinkTranslations[language]
+export function InvalidLink() {
+  const { setValue, watch } = useFormContext<WizardFormData>()
+  const language = watch('language')
+  const { t } = useTranslation('invalidLink')
 
   return (
-    <div className="min-h-screen flex justify-center px-4 py-8">
-      <div className="w-full max-w-md mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 px-6 sm:px-8 pt-6 sm:pt-8 pb-6 sm:pb-8 backdrop-blur-sm">
-          {/* Logo */}
-          <div className="text-center mb-6">
-            <div className="mx-auto mb-6 flex items-center justify-center">
-              <img src={logoHlt} alt="Hôpital La Tour" className="h-16 w-auto" />
-            </div>
-          </div>
+    <div className="step-card">
+      <VStack className="step-card-header" gap='6'>
 
-          {/* Language selector */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between gap-4">
-              <label className="flex items-center gap-2 text-sm font-medium text-brand-text">
-                <Globe className="w-4 h-4 text-brand-primary" />
-                {t.selectLanguage}
-              </label>
-              <Select value={language} onValueChange={(value) => onLanguageChange(value as 'fr' | 'en')}>
-                <SelectTrigger className="h-12 w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fr">Français</SelectItem>
-                  <SelectItem value="en">English</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        <HStack justify="center" className="mb-6">
+          <img src={logoHlt} alt="Hôpital de La Tour" className="h-16" />
+        </HStack>
 
-          {/* Titre avec icône d'erreur */}
-          <div className="text-center mb-6">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <XCircle className="w-6 h-6 text-brand-error flex-shrink-0" />
-              <h1 className="text-2xl font-bold text-brand-text">{t.title}</h1>
-            </div>
-            <p className="text-base text-slate-600 mb-4 leading-relaxed">
-              {t.message}
-            </p>
-            <p className="text-sm text-slate-500">
-              {t.contact}
-            </p>
-          </div>
+        <HStack justify="between" className="gap-2 mb-4">
+          <HStack gap='1'>
+            <Globe className="w-4 h-4 text-[var(--brand-primary)]" />
+            <P>{t('selectLanguage')}</P>
+          </HStack>
+          <Select
+            value={language}
+            onValueChange={(v) => setValue('language', v as Language)}
+          >
+            <SelectTrigger className="w-[140px] text-sm py-1.5">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="fr">Français</SelectItem>
+              <SelectItem value="en">English</SelectItem>
+            </SelectContent>
+          </Select>
+        </HStack>
 
-          {/* Email Button */}
-          <Button
+        <VStack gap='2'>
+          <HStack gap="2" align='center' justify='center'>
+            <XCircle className="w-6 h-6 text-error flex-shrink-0" />
+            <H1>{t('title')}</H1>
+          </HStack>
+
+          <VStack gap='1'>
+            <P color='muted' className='text-center text-base leading-relaxed'>{t('message')}</P>
+            <P color='muted-light' className="text-sm text-center">{t('contact')}</P>
+          </VStack>
+        </VStack>
+
+       <Button
             variant="outline"
             asChild
             className="w-full h-14 gap-2"
           >
-            <a href={t.emailLink}>
+            <a href={t('emailLink')}>
               <Mail className="w-4 h-4" />
-              {t.emailLabel}: {t.emailAddress}
+              {t('emailLabel')}: {t('emailAddress')}
             </a>
           </Button>
-        </div>
-      </div>
+      </VStack>
     </div>
   )
 }

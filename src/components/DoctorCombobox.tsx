@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, AlertCircle } from 'lucide-react'
-import csvData from '@/assets/documents/list_med.csv?raw'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { ChevronDown, Loader2 } from 'lucide-react'
+import { cn } from '@/utils/cn'
+import { useApi } from '@/hooks/useApi'
 
 interface Doctor {
+  id: string
   name: string
 }
 
@@ -10,62 +12,63 @@ interface DoctorComboboxProps {
   id: string
   value: string
   onChange: (value: string) => void
-  placeholder?: string
-  error?: string
-  required?: boolean
   label: string
+  placeholder?: string
   noResultsText?: string
-  optionalText?: string
+  optional?: string
 }
 
 export function DoctorCombobox({
   id,
   value,
   onChange,
-  placeholder = '',
-  error,
-  required = false,
   label,
+  placeholder = '',
   noResultsText = 'Aucun résultat',
-  optionalText
+  optional,
 }: DoctorComboboxProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [results, setResults] = useState<Doctor[]>([])
+  const [loading, setLoading] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
-  const [doctors, setDoctors] = useState<Doctor[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
+  const api = useApi()
+
+  const searchDoctors = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setResults([])
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    try {
+      const data = await api.searchDoctors(query)
+      setResults(data.doctors)
+    } catch {
+      setResults([])
+    } finally {
+      setLoading(false)
+    }
+  }, [api])
 
   useEffect(() => {
-    const loadDoctors = () => {
-      try {
-        const lines = csvData.split('\n').filter(line => line.trim())
-        const doctorList: Doctor[] = lines.slice(1).map(line => {
-          const parts = line.split(';')
-          const name = parts[0]?.trim() || ''
-          return { name }
-        }).filter(doc => doc.name)
-        
-        const sortedDoctors = doctorList.sort((a, b) => {
-          return a.name.localeCompare(b.name, 'fr', { 
-            sensitivity: 'base',
-            ignorePunctuation: true,
-            numeric: true
-          })
-        })
-        
-        setDoctors(sortedDoctors)
-      } catch (error) {
-        console.error('Error loading doctors:', error)
-      }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!searchTerm.trim()) {
+      setResults([])
+      setLoading(false)
+      return
     }
-    loadDoctors()
-  }, [])
-
-  const searchValue = searchTerm || value
-  const filteredDoctors = doctors.filter(doctor =>
-    doctor.name.toLowerCase().includes(searchValue.toLowerCase())
-  )
+    setLoading(true)
+    debounceRef.current = setTimeout(() => {
+      void searchDoctors(searchTerm)
+    }, 300)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [searchTerm, searchDoctors])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -91,18 +94,13 @@ export function DoctorCombobox({
   }, [isOpen])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    onChange(newValue)
-    setSearchTerm(newValue)
-    setIsOpen(newValue.length >= 3)
+    setSearchTerm(e.target.value)
+    setIsOpen(true)
     setHighlightedIndex(-1)
   }
 
   const handleInputClick = () => {
-    if (value.length >= 3) {
-      setSearchTerm(value)
-      setIsOpen(true)
-    }
+    setIsOpen(true)
   }
 
   const handleSelect = (doctor: Doctor) => {
@@ -124,7 +122,7 @@ export function DoctorCombobox({
       case 'ArrowDown':
         e.preventDefault()
         setHighlightedIndex(prev =>
-          prev < filteredDoctors.length - 1 ? prev + 1 : prev
+          prev < results.length - 1 ? prev + 1 : prev
         )
         break
       case 'ArrowUp':
@@ -133,8 +131,9 @@ export function DoctorCombobox({
         break
       case 'Enter':
         e.preventDefault()
-        if (highlightedIndex >= 0 && highlightedIndex < filteredDoctors.length) {
-          handleSelect(filteredDoctors[highlightedIndex])
+        if (highlightedIndex >= 0 && highlightedIndex < results.length) {
+          const doctor = results[highlightedIndex]
+          if (doctor) handleSelect(doctor)
         }
         break
       case 'Escape':
@@ -153,12 +152,14 @@ export function DoctorCombobox({
     }
   }, [highlightedIndex])
 
-  const displayValue = searchTerm || value
+  const displayValue = isOpen ? searchTerm : value
+  const showDropdown = isOpen && searchTerm.trim().length > 0
 
   return (
-    <div className="relative">
-      <label htmlFor={id} className="block text-sm font-medium text-brand-text mb-2">
-        {label} {required ? <span className="text-brand-error">*</span> : optionalText && <span className="text-slate-500 text-xs">({optionalText})</span>}
+    <div className="space-y-2">
+      <label htmlFor={id} className="text-sm !font-normal text-[var(--brand-text)] leading-3">
+        {label}
+        {optional && <span className="text-slate-400 font-normal ml-1">({optional})</span>}
       </label>
       <div className="relative">
         <input
@@ -171,50 +172,51 @@ export function DoctorCombobox({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           autoComplete="off"
-          className={`w-full h-12 px-4 pr-10 rounded-md border transition-all ${
-            error
-              ? 'border-brand-error focus:ring-2 focus:ring-brand-error focus:border-transparent'
-              : 'border-slate-300 focus:ring-2 focus:ring-brand-primary focus:border-transparent'
-          }`}
+          className="flex h-10 w-full rounded-md border border-[var(--input)] bg-[var(--background)] px-3 pr-10 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2"
         />
-        <ChevronDown
-          className={`absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none transition-transform ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-        />
-      </div>
-      {isOpen && searchValue.length >= 3 && (
-        <div
-          ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
-        >
-          {filteredDoctors.length > 0 ? (
-            filteredDoctors.slice(0, 50).map((doctor, index) => (
-              <div
-                key={index}
-                onClick={() => handleSelect(doctor)}
-                className={`px-4 py-2.5 cursor-pointer transition-colors ${
-                  index === highlightedIndex
-                    ? 'bg-brand-primary text-white'
-                    : value === doctor.name
-                    ? 'bg-slate-100'
-                    : 'hover:bg-slate-50'
-                }`}
-              >
-                {doctor.name}
+        {loading ? (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 animate-spin" />
+        ) : (
+          <ChevronDown
+            className={cn(
+              "absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none transition-transform",
+              isOpen && 'rotate-180'
+            )}
+          />
+        )}
+        {showDropdown && (
+          <div
+            ref={dropdownRef}
+            className="absolute z-50 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
+          >
+            {loading ? (
+              <div className="px-4 py-2.5 text-slate-500 text-sm flex items-center gap-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Recherche...
               </div>
-            ))
-          ) : (
-            <div className="px-4 py-2.5 text-slate-500 text-sm">{noResultsText}</div>
-          )}
-        </div>
-      )}
-      {error && (
-        <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-          <AlertCircle className="w-4 h-4" />
-          <span>{error}</span>
-        </div>
-      )}
+            ) : results.length > 0 ? (
+              results.map((doctor, index) => (
+                <div
+                  key={doctor.id}
+                  onClick={() => handleSelect(doctor)}
+                  className={cn(
+                    'px-4 py-2.5 cursor-pointer transition-colors text-sm',
+                    index === highlightedIndex
+                      ? 'bg-[var(--brand-primary)] text-white'
+                      : value === doctor.name
+                      ? 'bg-slate-100'
+                      : 'hover:bg-slate-50'
+                  )}
+                >
+                  {doctor.name}
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-2.5 text-slate-500 text-sm">{noResultsText}</div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

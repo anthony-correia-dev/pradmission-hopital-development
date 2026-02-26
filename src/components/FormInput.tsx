@@ -1,43 +1,50 @@
-import { forwardRef, InputHTMLAttributes } from 'react'
+import { forwardRef } from 'react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/utils/cn'
 import { AlertCircle } from 'lucide-react'
+import { VStack } from './ui'
 
-interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface FormInputProps extends React.ComponentProps<'input'> {
   label: string
   error?: string
-  required?: boolean
-  optionalText?: string
+  optional?: string
+  inputClassName?: string
 }
 
-export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
-  ({ label, error, required, optionalText, className = '', ...props }, ref) => {
+const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
+  ({ label, error, optional, className, inputClassName, id, ...props }, ref) => {
+    const inputId = id ?? label.toLowerCase().replace(/\s+/g, '-')
+
     return (
-      <div>
-        <label htmlFor={props.id} className="block text-sm font-medium text-brand-text mb-2">
-          {label}{' '}
-          {required ? (
-            <span className="text-brand-error">*</span>
-          ) : optionalText ? (
-            <span className="text-slate-500 text-xs">({optionalText})</span>
-          ) : null}
-        </label>
-        <input
+      <VStack className={cn('space-y-2', className)}>
+        <Label htmlFor={inputId} className="text-sm !font-normal text-[var(--brand-text)] leading-3">
+          {label}
+          {props.required && <span className="text-[var(--brand-error)] ml-0.5">*</span>}
+          {optional && (
+            <span className="text-slate-400 font-normal ml-1">({optional})</span>
+          )}
+        </Label>
+        <Input
           ref={ref}
-          className={`w-full h-12 px-4 rounded-md border transition-all ${
-            error
-              ? 'border-brand-error focus:ring-2 focus:ring-brand-error focus:border-transparent'
-              : 'border-slate-300 focus:ring-2 focus:ring-brand-primary focus:border-transparent'
-          } ${className}`}
+          id={inputId}
+          className={cn(
+            'form-input',
+            error && 'border-[var(--brand-error)] focus-visible:ring-[var(--brand-error)]',
+            inputClassName
+          )}
           {...props}
         />
         {error && (
-          <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-            <AlertCircle className="w-4 h-4" />
+          <div className="form-error-inline-tight">
+            <AlertCircle className="form-error-icon" />
             <span>{error}</span>
           </div>
         )}
-      </div>
+      </VStack>
     )
   }
 )
-
 FormInput.displayName = 'FormInput'
+
+export { FormInput }

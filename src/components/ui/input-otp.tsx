@@ -1,16 +1,14 @@
-"use client"
-
-import { ComponentProps, useContext } from "react"
+import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
-import MinusIcon from "lucide-react/dist/esm/icons/minus"
+import { MinusIcon } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils/index"
 
 function InputOTP({
   className,
   containerClassName,
   ...props
-}: ComponentProps<typeof OTPInput> & {
+}: React.ComponentProps<typeof OTPInput> & {
   containerClassName?: string
 }) {
   return (
@@ -26,7 +24,7 @@ function InputOTP({
   )
 }
 
-function InputOTPGroup({ className, ...props }: ComponentProps<"div">) {
+function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="input-otp-group"
@@ -40,10 +38,10 @@ function InputOTPSlot({
   index,
   className,
   ...props
-}: ComponentProps<"div"> & {
+}: React.ComponentProps<"div"> & {
   index: number
 }) {
-  const inputOTPContext = useContext(OTPInputContext)
+  const inputOTPContext = React.useContext(OTPInputContext)
   const { char, hasFakeCaret, isActive } = inputOTPContext?.slots[index] ?? {}
 
   return (
@@ -51,8 +49,7 @@ function InputOTPSlot({
       data-slot="input-otp-slot"
       data-active={isActive}
       className={cn(
-        // Keep structural/interaction styles here; let consumers control size (h/w/text/radius) via className.
-        "data-[active=true]:border-ring data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:ring-destructive/20 dark:data-[active=true]:aria-invalid:ring-destructive/40 aria-invalid:border-destructive data-[active=true]:aria-invalid:border-destructive dark:bg-input/30 border-input relative flex items-center justify-center border-y border-r shadow-xs transition-all outline-none data-[active=true]:z-10 data-[active=true]:ring-[3px]",
+        "border-input relative flex items-center justify-center border rounded-lg text-lg font-semibold transition-all outline-none data-[active=true]:border-[var(--brand-primary)] data-[active=true]:ring-2 data-[active=true]:ring-[var(--brand-primary)]/30 data-[active=true]:z-10",
         className
       )}
       {...props}
@@ -67,7 +64,7 @@ function InputOTPSlot({
   )
 }
 
-function InputOTPSeparator({ ...props }: ComponentProps<"div">) {
+function InputOTPSeparator({ ...props }: React.ComponentProps<"div">) {
   return (
     <div data-slot="input-otp-separator" role="separator" {...props}>
       <MinusIcon />

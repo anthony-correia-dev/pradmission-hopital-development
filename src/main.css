@@ -1,205 +1,398 @@
-/* stylelint-disable at-rule-no-unknown */
-/* eslint-disable */
-@import 'tailwindcss' important;
-
-@import './styles/theme.css';
+@import 'tailwindcss';
+@import 'flag-icons/css/flag-icons.min.css';
 @import './index.css';
-@import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
-@config '../tailwind.config.js';
-
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
+/* ========================================
+   POWER PLATFORM ISOLATION
+   ======================================== */
+#preadmission-app {
+  all: initial;
+  font-family: var(--font-sans-serif);
+  color: var(--brand-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-:root {
-  --background: oklch(0.988 0.002 264.542);
-  --foreground: oklch(0.195 0.016 264.542);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.195 0.016 264.542);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.195 0.016 264.542);
-  --primary: oklch(0.738 0.106 219.737);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0.002 264.542);
-  --secondary-foreground: oklch(0.195 0.016 264.542);
-  --muted: oklch(0.97 0.002 264.542);
-  --muted-foreground: oklch(0.556 0.012 264.542);
-  --accent: oklch(0.547 0.152 166.148);
-  --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.922 0.002 264.542);
-  --input: oklch(0.922 0.002 264.542);
-  --ring: oklch(0.738 0.106 219.737);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+#preadmission-app *,
+#preadmission-app *::before,
+#preadmission-app *::after {
+  box-sizing: border-box;
+  font-family: 'Simplon Norm';
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-
-  @keyframes accordion-down {
-    from {
-      height: 0;
-    }
-
-    to {
-      height: var(--radix-accordion-content-height);
-    }
-  }
-
-  @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height);
-    }
-
-    to {
-      height: 0;
-    }
-  }
+#preadmission-app h1,
+#preadmission-app h2,
+#preadmission-app h3,
+#preadmission-app h4,
+#preadmission-app h5,
+#preadmission-app h6,
+#preadmission-app p,
+#preadmission-app ul,
+#preadmission-app ol,
+#preadmission-app dl,
+#preadmission-app blockquote,
+#preadmission-app figure {
+  margin: 0;
+  padding: 0;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
+#preadmission-app ul,
+#preadmission-app ol {
+  list-style: none;
+}
 
-  body {
-    @apply bg-background text-foreground;
-  }
-  
-  /* Cacher la bannière "This site is private" de Power Platform */
-  #privateModeText,
-  .private-mode-banner,
-  div[id="privateModeText"] {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    overflow: hidden !important;
+#preadmission-app a {
+  color: inherit;
+  text-decoration: none;
+}
+
+#preadmission-app img,
+#preadmission-app svg {
+  display: block;
+  max-width: 100%;
+}
+
+#preadmission-app input,
+#preadmission-app select,
+#preadmission-app textarea {
+  font: inherit;
+  color: inherit;
+}
+
+#preadmission-app button {
+  font: inherit;
+}
+
+#preadmission-app button {
+  cursor: pointer;
+}
+
+.private-mode-banner {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* ========================================
+   COMPONENT CLASSES
+   ======================================== */
+@layer utilities {
+  .text-error {
+    color: var(--brand-error);
   }
 }
 
 @layer components {
-  /* Generic step layout primitives (reusable across wizard steps) */
   .step-page {
-    /* Use dynamic viewport height for better mobile keyboard behavior */
-    @apply min-h-[100dvh] flex justify-center px-4 py-8;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  @media (min-width: 640px) {
+    .step-page {
+      padding-left: 1rem;
+      padding-right: 1rem;
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
+  }
+
+  .step-page-centered {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+  }
+  @media (min-width: 640px) {
+    .step-page-centered {
+      padding: 1rem;
+    }
   }
 
   .step-container-sm {
-    @apply w-full max-w-md mx-auto;
+    width: 100%;
+    max-width: 28rem;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .step-container-lg {
-    @apply w-full max-w-2xl mx-auto;
+    width: 100%;
+    max-width: 42rem;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .step-card {
     @apply bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-0 backdrop-blur-sm;
   }
+  @media (min-width: 640px) {
+    .step-card {
+      border-radius: 1rem;
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1), 0 0 0 1px rgb(241 245 249 / 0.5);
+      backdrop-filter: blur(4px);
+    }
+  }
+
+  .step-card-compact {
+    background-color: white;
+    border-radius: 0.625rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    border: 1px solid rgb(241 245 249);
+    padding: 0;
+    position: relative;
+    z-index: 10;
+  }
+  @media (min-width: 640px) {
+    .step-card-compact {
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    }
+  }
+
+  /* Reduce bottom margin on mobile so card sits closer to center */
+  @media (max-width: 639.99px) {
+    .step-page-centered > .step-container-sm {
+      margin-bottom: 0 !important;
+    }
+  }
 
   .step-card-header {
-    @apply px-6 sm:px-8 pt-6 sm:pt-8 pb-4;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .step-card-header {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      padding-top: 2rem;
+    }
   }
 
   .step-card-content {
-    @apply px-6 sm:px-8 pb-6 sm:pb-8;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .step-card-content {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      padding-bottom: 2rem;
+    }
   }
 
   .step-icon {
-    @apply w-16 h-16 bg-brand-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4;
+    width: 4rem;
+    height: 4rem;
+    background-color: rgb(14 147 181 / 0.1);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
   }
 
   .step-title {
-    @apply text-2xl font-bold text-brand-text text-center mb-2;
+    font-size: 1.5rem !important;
+    line-height: 2rem;
+    font-weight: 700;
+    color: var(--brand-text);
+    text-align: center;
+    margin-bottom: 0.5rem;
   }
 
   .step-subtitle {
-    @apply text-sm text-slate-600 text-center;
+    font-size: 0.9rem;
+    line-height: 1.25rem;
+    color: rgb(71 85 105);
+    text-align: center;
   }
 
   .step-actions {
-    @apply flex gap-3 pt-4;
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 1rem;
+  }
+
+  .step-header-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .step-header-stack--tight {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .form-error-inline {
-    @apply flex items-center gap-2 mt-2 text-brand-error text-sm;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    color: var(--brand-error);
+    font-size: 0.875rem;
   }
 
-  /* OTP specific */
+  .form-error-inline-tight {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    color: var(--brand-error);
+    font-size: 0.875rem;
+    line-height: 1rem;
+  }
+
+  .form-error-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+
+  .form-input {
+    width: 100%;
+    height: 3rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .form-input-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  .form-section-header {
+    padding: 1rem;
+    background-color: rgb(248 250 252);
+    border-radius: 0.5rem;
+  }
+
+  .form-section-title {
+    font-weight: 600;
+    color: var(--brand-text);
+  }
+
+  .active-scale {
+    transition: all 150ms;
+  }
+
+  .active-scale:hover {
+    transform: scale(1.02);
+  }
+
+  .active-scale:active {
+    transform: scale(0.98);
+  }
+
+  .choice-btn {
+    height: 3.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    border-radius: 0.375rem !important;
+    font-weight: 500;
+    transition: all 150ms;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transform: none !important;
+  }
+
+  .choice-btn:hover {
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  }
+
+  .choice-btn--selected {
+    background-color: var(--brand-primary) !important;
+    color: white !important;
+    border-color: var(--brand-primary);
+  }
+
+  .choice-btn--unselected {
+    border-color: rgb(203 213 225);
+    color: rgb(51 65 85);
+    background-color: white !important;
+  }
+
+  .choice-btn--unselected:hover {
+    border-color: var(--brand-primary);
+  }
+
+  .choice-btn--sm {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Make icons inherit text color inside choice buttons */
+  .choice-btn svg,
+  .choice-btn [data-icon],
+  .choice-btn .lucide {
+    color: currentColor !important;
+  }
+
   .otp-group {
-    /* Allow slightly tighter gap on very small screens, scale up on sm+ */
-    @apply gap-1 sm:gap-2;
+    gap: 0.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .otp-group {
+      gap: 0.5rem;
+    }
   }
 
   .otp-slot {
-    /* Responsive sizing: small phones -> compact, sm/md -> larger */
-    @apply h-12 w-10 text-xl font-semibold;
-    @apply sm:h-14 sm:w-12 sm:text-2xl;
-    @apply md:h-16 md:w-14 md:text-3xl;
+    height: 3.25rem;
+    width: 2.75rem;
+    border: 2px solid var(--border);
+    border-radius: 0.5rem;
+    font-size: 1.875rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 150ms;
+  }
 
-    /* Restore previous shadcn slot visuals */
-    @apply border-input dark:bg-input/30 bg-transparent border-y border-r shadow-xs;
-    @apply first:rounded-l-md first:border-l last:rounded-r-md;
-    @apply transition-all outline-none;
+  @media (min-width: 640px) {
+    .otp-slot {
+      height: 3.5rem;
+      width: 3rem;
+      font-size: 2.125rem;
+    }
+  }
 
-    /* Active/focus visuals consistent with previous component */
-    @apply data-[active=true]:z-10 data-[active=true]:ring-[3px];
+  @media (min-width: 768px) {
+    .otp-slot {
+      height: 4rem;
+      width: 3.5rem;
+      font-size: 2.375rem;
+    }
+  }
 
-    /* Brand overrides */
-    @apply data-[active=true]:border-brand-primary data-[active=true]:ring-brand-primary/50;
-    @apply aria-invalid:border-brand-error aria-invalid:data-[active=true]:border-brand-error aria-invalid:data-[active=true]:ring-brand-error/50;
+  .otp-slot:focus-within {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px rgb(14 147 181 / 0.3);
   }
 
   /*
     input-otp internal input overlay styles
-    We target the actual <input> rendered by the `input-otp` library inside our wrapper.
-    This keeps the typing layer transparent and lets the visible slots be styled separately.
+    Target the actual <input> rendered by input-otp inside our wrapper.
+    Keeps the typing layer transparent; visible slots are styled separately.
   */
   [data-slot="input-otp"] input {
     position: absolute;
@@ -222,111 +415,37 @@
     font-family: monospace;
     font-variant-numeric: tabular-nums;
   }
-
-  /* Centered variant used by steps that want vertical centering */
-  .step-page-centered {
-    @apply min-h-[100dvh] flex items-center justify-center px-4 py-4;
-  }
-
-  /* Compact card variant (used by Admin currently) */
-  .step-card-compact {
-    @apply bg-white rounded-xl shadow-sm border border-slate-100 p-0 relative z-10;
-  }
-
-  /* Section header block used in Admin (and potentially others) */
-  .form-section-header {
-    @apply p-4 bg-slate-50 rounded-lg;
-  }
-
-  .form-section-title {
-    @apply font-semibold text-brand-text;
-  }
-
-  /* Error UI primitives */
-  .form-error-inline-tight {
-    @apply flex items-center gap-2 mt-1 text-brand-error text-sm;
-  }
-
-  .form-error-icon {
-    @apply w-4 h-4 flex-shrink-0;
-  }
-
-  /* Common input sizing */
-  .form-input {
-    @apply w-full h-12 px-4;
-  }
-
-  .form-input-mono {
-    @apply font-mono tracking-wider;
-  }
-
-  /* Consistent active scale helper */
-  .active-scale {
-    @apply hover:scale-[1.02] active:scale-[0.98] transition-all;
-  }
-
-  /* Qualification/choice button primitives */
-  .choice-btn {
-    @apply h-14 px-6 rounded-md font-medium transition-all relative overflow-hidden;
-    /* Avoid border clipping when buttons are adjacent in a grid */
-    @apply hover:shadow-sm;
-    transform: none !important;
-  }
-
-  .choice-btn--selected {
-    @apply bg-brand-primary text-white border border-brand-primary;
-    background-color: var(--brand-primary) !important;
-    color: white !important;
-  }
-
-  .choice-btn--unselected {
-    @apply border border-slate-300 text-slate-700 bg-white hover:border-brand-primary;
-    background-color: white !important;
-  }
-
-  .choice-btn--sm {
-    @apply px-4 text-sm;
-  }
-
-  /* Make icons inherit text color inside choice buttons */
-  .choice-btn svg,
-  .choice-btn [data-icon],
-  .choice-btn .lucide {
-    color: currentColor !important;
-  }
-
-  /* Step header spacing (use instead of ad-hoc mb-*) */
-  .step-header-stack {
-    @apply flex flex-col gap-3;
-  }
-
-  .step-header-stack--tight {
-    @apply flex flex-col gap-2;
-  }
 }
 
-/*
-  Power Platform isolation: force rounding for choice buttons only.
-  Power Platform host styles can strip border-radius on buttons; we scope this fix to #preadmission-app
-  and only to our choice buttons to avoid affecting other controls.
-*/
+/* ========================================
+   POWER PLATFORM OVERRIDES
+   ======================================== */
+
+/* Hide private mode banner */
+#privateModeText,
+div[id="privateModeText"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Force rounding for choice buttons (Power Platform strips border-radius on buttons) */
 #preadmission-app .choice-btn {
-  border-radius: var(--radius-md) !important;
+  border-radius: var(--radius-md, 0.375rem) !important;
 }
 
-/* Power Platform: protect step title/subtitle typography from host overrides */
-#preadmission-app .step-title {
-  font-size: 1.5rem !important; /* text-2xl */
-  line-height: 2rem !important;
-  font-weight: 700 !important;
-  text-align: center !important;
-  margin-bottom: 0.5rem !important;
-  color: var(--brand-text) !important;
+/* ========================================
+   REDUCED MOTION
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  #preadmission-app .active-scale {
+    transition: none;
+  }
+
+  #preadmission-app .active-scale:hover,
+  #preadmission-app .active-scale:active {
+    transform: none;
+  }
 }
 
-#preadmission-app .step-subtitle {
-  font-size: 0.875rem !important; /* text-sm */
-  line-height: 1.25rem !important;
-  text-align: center !important;
-  color: rgb(71 85 105) !important; /* slate-600 */
-}

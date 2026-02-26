@@ -1,15 +1,12 @@
-/**
- * Traductions pour l'écran de chargement
- * @module locales/loading
- */
-
 export const loadingTranslations = {
   fr: {
-    message: 'Veuillez patienter, vos documents sont en cours de traitement'
+    short: 'Chargement...',
+    message: 'Veuillez patienter, nous préparons votre formulaire',
+    notCovered: 'Cette carte ne couvre pas l\'assurance de base obligatoire (LAMal). Veuillez télécharger une autre carte d\'assurance.',
   },
   en: {
-    message: 'Please wait, your documents are being processed'
-  }
+    short: 'Loading...',
+    message: 'Please wait, we are preparing your form',
+    notCovered: 'This card does not cover mandatory basic insurance (LAMal). Please upload another insurance card.',
+  },
 } as const
-
-export type LoadingTranslations = typeof loadingTranslations.fr

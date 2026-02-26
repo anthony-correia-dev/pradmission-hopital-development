@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, AlertCircle } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/utils/cn'
+import { toAlpha2 } from '@/utils/country'
 
 interface Country {
   code: string
@@ -17,6 +18,7 @@ interface CountryComboboxProps {
   required?: boolean
   label: string
   noResultsText?: string
+  withFlags?: boolean
 }
 
 export function CountryCombobox({
@@ -28,7 +30,8 @@ export function CountryCombobox({
   error,
   required = false,
   label,
-  noResultsText = 'Aucun résultat'
+  noResultsText = 'Aucun résultat',
+  withFlags = false,
 }: CountryComboboxProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -74,7 +77,7 @@ export function CountryCombobox({
   }
 
   const handleSelect = (country: Country) => {
-    onChange(country.name)
+    onChange(country.code)
     setSearchTerm('')
     setIsOpen(false)
   }
@@ -102,7 +105,8 @@ export function CountryCombobox({
       case 'Enter':
         e.preventDefault()
         if (highlightedIndex >= 0 && highlightedIndex < filteredCountries.length) {
-          handleSelect(filteredCountries[highlightedIndex])
+          const country = filteredCountries[highlightedIndex]
+          if (country) handleSelect(country)
         }
         break
       case 'Escape':
@@ -121,39 +125,49 @@ export function CountryCombobox({
     }
   }, [highlightedIndex])
 
-  const displayValue = isOpen ? searchTerm : value
+  const selectedCountry = countries.find((c) => c.code === value)
+  const displayValue = isOpen
+    ? searchTerm
+    : selectedCountry
+      ? selectedCountry.name
+      : value
 
   return (
-    <div className="relative">
-      <label htmlFor={id} className="block text-sm font-medium text-brand-text mb-2">
-        {label} {required && <span className="text-brand-error">*</span>}
+    <div className="space-y-2">
+      <label htmlFor={id} className="text-sm text-[var(--brand-text)] leading-3 !font-normal">
+        {label}
+        {required && <span className="text-[var(--brand-error)] ml-0.5">*</span>}
       </label>
       <div className="relative">
-        <input
-          ref={inputRef}
-          id={id}
-          type="text"
-          value={displayValue}
-          onChange={handleInputChange}
-          onClick={handleInputClick}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          autoComplete="off"
-          aria-invalid={!!error}
+        <div
           className={cn(
-            "w-full h-12 px-4 pr-10 rounded-md border bg-transparent text-base md:text-sm shadow-xs transition-[color,box-shadow] outline-none",
-            "placeholder:text-muted-foreground",
-            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-            "aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
-            "border-input"
+            "flex items-center h-10 w-full rounded-md border border-[var(--input)] bg-[var(--background)] px-3 pr-10 text-sm",
+            "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[var(--ring)] has-[:focus-visible]:ring-offset-2",
+            error && 'border-[var(--brand-error)] has-[:focus-visible]:ring-[var(--brand-error)]'
+          )}
+        >
+          {withFlags && !isOpen && selectedCountry && (
+            <span className={`fi fi-${toAlpha2(selectedCountry.code).toLowerCase()} mr-2 shrink-0 text-base`} />
+          )}
+          <input
+            ref={inputRef}
+            id={id}
+            type="text"
+            value={displayValue}
+            onChange={handleInputChange}
+            onClick={handleInputClick}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            autoComplete="off"
+            className="w-full bg-transparent py-2 outline-none placeholder:text-slate-400"
+          />
+        </div>
+        <ChevronDown
+          className={cn(
+            "absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none transition-transform",
+            isOpen && 'rotate-180'
           )}
         />
-        <ChevronDown
-          className={`absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none transition-transform ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-        />
-      </div>
       {isOpen && (
         <div
           ref={dropdownRef}
@@ -164,14 +178,18 @@ export function CountryCombobox({
               <div
                 key={country.code}
                 onClick={() => handleSelect(country)}
-                className={`px-4 py-2.5 cursor-pointer transition-colors ${
+                className={cn(
+                  'px-4 py-2.5 cursor-pointer transition-colors flex items-center',
                   index === highlightedIndex
-                    ? 'bg-brand-primary text-white'
-                    : value === country.name
+                    ? 'bg-[var(--brand-primary)] text-white'
+                    : value === country.code
                     ? 'bg-slate-100'
                     : 'hover:bg-slate-50'
-                }`}
+                )}
               >
+                {withFlags && (
+                  <span className={`fi fi-${toAlpha2(country.code).toLowerCase()} mr-2 shrink-0 text-base`} />
+                )}
                 {country.name}
               </div>
             ))
@@ -180,9 +198,10 @@ export function CountryCombobox({
           )}
         </div>
       )}
+      </div>
       {error && (
-        <div className="flex items-center gap-2 mt-1 text-brand-error text-sm">
-          <AlertCircle className="w-4 h-4" />
+        <div className="form-error-inline-tight">
+          <AlertCircle className="form-error-icon" />
           <span>{error}</span>
         </div>
       )}

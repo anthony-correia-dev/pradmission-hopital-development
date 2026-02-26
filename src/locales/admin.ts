@@ -1,10 +1,5 @@
-/**
- * Traductions pour la page Admin
- * @module locales/admin
- */
-
 export const adminTranslations = {
-  fr: {
+ fr: {
     title: 'Informations administratives',
     subtitle: 'Complétez vos informations personnelles',
     identity: 'Identité',
@@ -43,6 +38,7 @@ export const adminTranslations = {
     basicInsurance: 'Nom de l\'assurance de base',
     cardNumber: 'N° de carte d\'assurance de base',
     policyNumber: 'Assurance de base - N° de police',
+    complementaryInsuranceName: 'Nom de l\'assurance complémentaire',
     complementaryInsurance: 'N° de carte d\'assurance complémentaire',
     continue: 'Soumettre',
     submitting: 'Envoi en cours...',
@@ -53,8 +49,11 @@ export const adminTranslations = {
     invalidDate: 'Date invalide',
     invalidCardNumber: 'Le numéro de carte doit contenir exactement 20 chiffres',
     invalidAvsNumber: 'Le numéro AVS doit contenir exactement 13 chiffres',
+    maxLength: '250 caractères maximum',
     optional: 'Optionnel',
-    noResults: 'Aucun résultat'
+    noResults: 'Aucun résultat',
+    selectPlaceholder: '',
+    ocrInfoToast: 'Vos données personnelles ont été pré-remplies à partir de vos documents. Veuillez vérifier et compléter les informations.',
   },
   en: {
     title: 'Administrative Information',
@@ -95,6 +94,7 @@ export const adminTranslations = {
     basicInsurance: 'Basic insurance name',
     cardNumber: 'Basic insurance card number',
     policyNumber: 'Basic insurance - Policy number',
+    complementaryInsuranceName: 'Complementary insurance name',
     complementaryInsurance: 'Complementary insurance card number',
     continue: 'Submit',
     submitting: 'Submitting...',
@@ -105,9 +105,10 @@ export const adminTranslations = {
     invalidDate: 'Invalid date',
     invalidCardNumber: 'Card number must contain exactly 20 digits',
     invalidAvsNumber: 'AHV number must contain exactly 13 digits',
+    maxLength: '250 characters maximum',
     optional: 'Optional',
-    noResults: 'No results'
+    noResults: 'No results',
+    selectPlaceholder: '',
+    ocrInfoToast: 'Your personal data has been pre-filled from your documents. Please review and complete the information.',
   }
 } as const
-
-export type AdminTranslations = typeof adminTranslations.fr

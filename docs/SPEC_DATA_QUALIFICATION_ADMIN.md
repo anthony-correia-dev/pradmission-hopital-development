@@ -49,7 +49,8 @@ Les données suivantes sont extraites automatiquement et pré-remplies dans la p
 | `avsNumber` | `avsNumber` | Numéro AVS (13 chiffres) |
 | `kvgInsuranceName` | `basicInsurance` | Nom de l'assurance de base LAMal |
 | `kvgCardNumber` | `cardNumber` | Numéro de carte d'assurance |
-| `vvgCardNumber` | `complementaryInsurance` | Assurance complémentaire LCA |
+| `vvgCardNumber` | `complementaryInsurance` | N° carte assurance complémentaire LCA |
+| `kvgInsuranceName` *(si vvgCardNumber présent)* | `complementaryInsuranceName` | Nom de l'assurance complémentaire (même assureur par défaut) |
 
 ---
 
@@ -79,11 +80,15 @@ Formulaire complet de saisie des informations personnelles, de contact, professi
 
 ### Section 3 : Employeur
 
+> **Visibilité** : La section est **toujours affichée**, quel que soit le motif.  
+> - Si `reason === 'accident'` ET `hasEmployer === true` → champs **obligatoires** (*)  
+> - Sinon → champs **optionnels** *(Optionnel)*
+
 | Champ | Type | Obligatoire | Condition | Description |
 |-------|------|-------------|-----------|-------------|
-| `profession` | `string` | ⚠️ Conditionnel | Si `hasEmployer === true` | Profession |
-| `employerName` | `string` | ⚠️ Conditionnel | Si `hasEmployer === true` | Nom de l'employeur |
-| `employerAddress` | `string` | ⚠️ Conditionnel | Si `hasEmployer === true` | Adresse de l'employeur |
+| `profession` | `string` | ⚠️ Conditionnel | Requis si `reason === 'accident'` ET `hasEmployer === true`, sinon optionnel | Profession |
+| `employerName` | `string` | ⚠️ Conditionnel | Requis si `reason === 'accident'` ET `hasEmployer === true`, sinon optionnel | Nom de l'employeur |
+| `employerAddress` | `string` | ⚠️ Conditionnel | Requis si `reason === 'accident'` ET `hasEmployer === true`, sinon optionnel | Adresse de l'employeur |
 
 ### Section 4 : Médecins
 
@@ -158,7 +163,7 @@ Formulaire complet de saisie des informations personnelles, de contact, professi
 ├─────────────────────────────────────────────────────────────────┤
 │  1. Vérification/correction identité (pré-remplie OCR)          │
 │  2. Saisie coordonnées (pré-remplies OCR si carte assurance)    │
-│  3. Saisie employeur (si hasEmployer)                           │
+│  3. Saisie employeur (toujours affiché, requis si accident+employeur) │
 │  4. Sélection médecins (autocomplete)                           │
 │  5. Données accident (si reason === 'accident')                 │
 │  6. Données assurance (selon type sélectionné)                  │

@@ -26,6 +26,8 @@ Cette spécification décrit la refactorisation du formulaire `Admin.tsx` pour c
 | `basicInsurance` | 3 | `swiss\|international` (requis) / `auto && !accident` (optionnel) / `auto && accident` (requis) |
 | `cardNumber` | 3 | Même logique que `basicInsurance` |
 | `policyNumber` | 1 | `international` uniquement (requis) |
+| `complementaryInsuranceName` | 0 | **Champ manquant** — à ajouter |
+| `complementaryInsurance` | 1 | Toujours visible, optionnel (n° carte uniquement) |
 
 ### Exemple de duplication actuelle
 
@@ -83,6 +85,7 @@ export type FieldName =
   | 'basicInsurance'
   | 'cardNumber'
   | 'policyNumber'
+  | 'complementaryInsuranceName'
   | 'complementaryInsurance'
 
 export interface FieldConfig {
@@ -111,24 +114,36 @@ export const getFieldConfig = (
   const configs: Record<FieldName, FieldConfig> = {
     avsNumber: {
       required: insurance === 'swiss',
-      visible: true
+      visible: insurance === 'swiss' || insurance === 'international' || insurance === 'auto'
     },
     basicInsurance: {
       required: 
         insurance === 'swiss' || 
         insurance === 'international' ||
-        (insurance === 'auto' && reason === 'accident'),
-      visible: true
+        reason === 'accident',
+      visible: 
+        insurance === 'swiss' || 
+        insurance === 'international' || 
+        insurance === 'auto' ||
+        reason === 'accident'
     },
     cardNumber: {
       required: 
         insurance === 'swiss' ||
         (insurance === 'auto' && reason === 'accident'),
-      visible: insurance !== 'international'
+      visible: insurance !== 'international' && (
+        insurance === 'swiss' || 
+        insurance === 'auto' || 
+        reason === 'accident'
+      )
     },
     policyNumber: {
       required: insurance === 'international',
       visible: insurance === 'international'
+    },
+    complementaryInsuranceName: {
+      required: false,
+      visible: true
     },
     complementaryInsurance: {
       required: false,
@@ -358,15 +373,16 @@ export function Admin({ language, onNext, onBack }: AdminProps) {
 
 ## 📐 Règles métier centralisées
 
-### Tableau des règles par champ
+### Tableau des règles par champ — Section Assurance
 
-| Champ | Condition `required` | Condition `visible` |
-|-------|---------------------|---------------------|
-| `avsNumber` | `insurance === 'swiss'` | Toujours |
-| `basicInsurance` | `swiss \|\| international \|\| (auto && accident)` | Toujours |
-| `cardNumber` | `swiss \|\| (auto && accident)` | `insurance !== 'international'` |
-| `policyNumber` | `insurance === 'international'` | `insurance === 'international'` |
-| `complementaryInsurance` | Jamais | Toujours |
+| Champ | Label FR | Label EN | Type | Condition `required` | Condition `visible` |
+|-------|----------|----------|------|---------------------|---------------------|
+| `avsNumber` | Numéro AVS | AHV Number | 13 chiffres (mono) | `swiss` | `swiss \|\| international \|\| auto` |
+| `basicInsurance` | Nom de l'assurance de base | Basic insurance name | texte | `swiss \|\| international \|\| accident` | `swiss \|\| international \|\| auto \|\| accident` |
+| `cardNumber` | N° de carte d'assurance de base | Basic insurance card number | 20 chiffres (mono) | `swiss \|\| (auto && accident)` | `!international && (swiss \|\| auto \|\| accident)` |
+| `policyNumber` | Assurance de base - N° de police | Basic insurance - Policy number | texte | `international` | `international` |
+| `complementaryInsuranceName` | Nom de l'assurance complémentaire | Complementary insurance name | texte | Jamais | Toujours |
+| `complementaryInsurance` | N° de carte d'assurance complémentaire | Complementary insurance card number | 20 chiffres (mono) | Jamais | Toujours |
 
 ### Tableau des règles employeur
 
@@ -428,10 +444,12 @@ const methods = useForm({
 
 | Fichier | Action | Description |
 |---------|--------|-------------|
-| `src/lib/fieldConfig.ts` | **Créer** | Configuration centralisée des champs |
-| `src/schemas/adminSchema.ts` | **Modifier** | Utiliser `superRefine` avec `getFieldConfig` |
-| `src/components/Admin.tsx` | **Modifier** | Supprimer duplication, utiliser `useFieldConfig` |
-| `src/App.tsx` | **Modifier** | Recréer le schéma quand le contexte change |
+| `src/types/form.ts` | **Modifier** | Ajouter `complementaryInsuranceName` au type `WizardFormData` |
+| `src/locales/admin.ts` | **Modifier** | Ajouter traductions `complementaryInsuranceName` (FR + EN) |
+| `src/schemas/admin.ts` | **Modifier** | Ajouter `complementaryInsuranceName` (optional), corriger `cardNumber` (exclure `international`), corriger `basicInsurance` (requis pour tout `accident`) |
+| `src/components/admin/InsuranceSection.tsx` | **Modifier** | Ajouter champ `complementaryInsuranceName`, conditionner `showCardNumber` |
+| `src/routes/admin.tsx` | **Modifier** | Corriger `showCardNumber` (exclure `international`), ajouter `complementaryInsuranceName` au `safeParse` |
+| `src/hooks/useApi.ts` | **Vérifier** | Mapper `complementaryInsuranceName` vers l'API si nécessaire |
 
 ---
 
@@ -577,3 +595,4 @@ describe('getFieldConfig', () => {
 | Date | Version | Description |
 |------|---------|-------------|
 | 2026-01-14 | 1.0 | Spécification initiale |
+| 2026-02-25 | 1.1 | Ajout champ `complementaryInsuranceName`, correction visibilité `cardNumber` (masqué pour `international`), correction `basicInsurance` requis pour tout accident, `avsNumber` visible pour `swiss/international/auto` |

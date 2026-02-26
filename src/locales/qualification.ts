@@ -8,55 +8,60 @@ export const qualificationTranslations = {
     // Header
     title: 'Identification',
     subtitle: 'Aidez-nous à mieux comprendre votre situation',
-    
+
     // Reason section
     reasonLabel: 'Raison de la venue',
     illness: 'Maladie',
     accident: 'Accident',
-    
+
     // Employer section
     hasEmployerLabel: 'J\'ai un employeur',
     yes: 'Oui',
     no: 'Non',
-    
+
     // Insurance section
     insuranceLabel: 'Type d\'assurance',
     swiss: 'Assurance LAMal',
     international: 'Autre assurance',
     auto: 'Autopayeur',
-    
+
     // Documents section
     documentsLabel: 'Documents requis',
     identityCard: 'Carte d\'identité ou passport',
     insuranceCard: 'Carte d\'assurance maladie (base)',
     uploadText: 'Glisser-déposer ou cliquer',
-    
+
     // Consents section
     consentsLabel: 'Consentements',
     consentNLPDPrefix: 'J\'accepte la ',
     consentNLPDLink: 'Politique de confidentialité',
-    privacyPolicyUrl: 'https://www.la-tour.ch/fr/informations-generales/politique-de-confidentialite',
+    privacyPolicyUrl: 'https://www.la-tour.ch/fr/informations-generales/politique-de-confidentialite-patients',
     consentMarketing: 'J\'aimerais être informé des services ou offres complémentaires de l\'Hôpital de La Tour en lien avec mon parcours de soins et mes besoins.',
-    
+
     // Buttons
     continue: 'Continuer',
     back: 'Retour',
-    
+
     // Validation errors
     reasonRequired: 'Veuillez sélectionner une raison',
     insuranceRequired: 'Veuillez sélectionner un type d\'assurance',
     identityCardRequired: 'La carte d\'identité est obligatoire',
     insuranceCardRequired: 'La carte d\'assurance est obligatoire',
-    consentNLPDRequired: 'Le consentement nLPD est obligatoire',
-    
+    consentNLPDRequired: 'Le consentement est obligatoire',
+
     // Misc
     optional: 'Optionnel',
-    
+
+    // OCR processing
+    processingDocument: 'Analyse du document...',
+    ocrRunning: 'Analyse de vos documents en cours...',
+
     // File errors
+    ocrFailed: 'La lecture automatique a échoué. Veuillez remplir les champs manuellement.',
     fileTooLarge: 'Le fichier est trop volumineux. Taille maximale: 10 MB',
     invalidFileFormat: 'Format de fichier non valide. Formats acceptés: PDF, JPG, JPEG, PNG, HEIC, HEIF, WEBP, TIF, TIFF',
     fileTooLargeAndInvalidFormat: 'Le fichier est trop volumineux et le format n\'est pas valide. Taille maximale: 10 MB. Formats acceptés: PDF, JPG, JPEG, PNG, HEIC, HEIF, WEBP, TIF, TIFF',
-    
+
     // Insurance help dialog
     insuranceHelp: 'En savoir plus',
     insuranceHelpTitle: 'Choix du type d\'assurance',
@@ -73,55 +78,60 @@ export const qualificationTranslations = {
     // Header
     title: 'Identification',
     subtitle: 'Help us better understand your situation',
-    
+
     // Reason section
     reasonLabel: 'Reason for visit',
     illness: 'Illness',
     accident: 'Accident',
-    
+
     // Employer section
     hasEmployerLabel: 'I have an employer',
     yes: 'Yes',
     no: 'No',
-    
+
     // Insurance section
     insuranceLabel: 'Insurance type',
     swiss: 'LAMal insurance',
     international: 'Other insurance',
     auto: 'Self-payer',
-    
+
     // Documents section
     documentsLabel: 'Required documents',
     identityCard: 'ID card or passport',
     insuranceCard: 'Insurance card (Basic)',
     uploadText: 'Drag & drop or click',
-    
+
     // Consents section
     consentsLabel: 'Consents',
     consentNLPDPrefix: 'I accept the ',
     consentNLPDLink: 'Privacy policy',
-    privacyPolicyUrl: 'https://www.la-tour.ch/en/general-information/privacy-policy',
+    privacyPolicyUrl: 'https://www.la-tour.ch/en/patient-privacy-policy',
     consentMarketing: 'I would like to be informed about any additional services or offerings at Hôpital de La Tour that relate to my care pathway and needs.',
-    
+
     // Buttons
     continue: 'Continue',
     back: 'Back',
-    
+
     // Validation errors
     reasonRequired: 'Please select a reason',
     insuranceRequired: 'Please select an insurance type',
     identityCardRequired: 'Identity card is required',
     insuranceCardRequired: 'Insurance card is required',
-    consentNLPDRequired: 'Data protection consent is required',
-    
+    consentNLPDRequired: 'The consent is required',
+
     // Misc
     optional: 'Optional',
-    
+
+    // OCR processing
+    processingDocument: 'Analyzing document...',
+    ocrRunning: 'Analyzing your documents...',
+
     // File errors
+    ocrFailed: 'Automatic reading failed. Please fill in the fields manually.',
     fileTooLarge: 'File is too large. Maximum size: 10 MB',
     invalidFileFormat: 'Invalid file format. Accepted formats: PDF, JPG, JPEG, PNG, HEIC, HEIF, WEBP, TIF, TIFF',
     fileTooLargeAndInvalidFormat: 'File is too large and format is invalid. Maximum size: 10 MB. Accepted formats: PDF, JPG, JPEG, PNG, HEIC, HEIF, WEBP, TIF, TIFF',
-    
+
     // Insurance help dialog
     insuranceHelp: 'Learn more',
     insuranceHelpTitle: 'Insurance type selection',
@@ -135,6 +145,3 @@ export const qualificationTranslations = {
     insuranceHelpAutoDesc: 'Select this option if you plan to pay for your visit in full yourself, without going through insurance. A deposit may be requested upon admission.'
   }
 } as const
-
-export type QualificationTranslations = typeof qualificationTranslations.fr
-export type SupportedLanguage = keyof typeof qualificationTranslations

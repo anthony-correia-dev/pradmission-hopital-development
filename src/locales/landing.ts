@@ -1,29 +1,20 @@
-/**
- * Traductions pour la page Landing
- * @module locales/landing
- */
-
 export const landingTranslations = {
   fr: {
-    welcome: 'Accélérez votre prise en charge.',
-    subtitle: 'Notre admission en ligne permet de préparer votre venue à l\'Hôpital de La Tour.',
-    description: 'Vos données sont traitées de façon confidentielle.',
-    selectLanguage: 'Choisissez votre langue',
-    start: 'Démarrer l\'admission',
-    secure: 'Vos données sont protégées',
-    fast: 'Rapide et simple',
-    minutes: 'Seulement 5 minutes'
+    chooseLanguage: 'Choisissez votre langue',
+    title: 'Accélérez votre prise en charge.',
+    subtitle: "Notre admission en ligne vous permet de préparer votre venue à l'Hôpital de La Tour.",
+    confidentiality: 'Vos données sont traitées de façon confidentielle.',
+    button: "Démarrer l'admission",
+    badgeProtected: 'Vos données sont protégées',
+    badgeTime: 'Seulement 5 minutes',
   },
   en: {
-    welcome: 'Speed up your care.',
+    chooseLanguage: 'Choose your language',
+    title: 'Speed up your care.',
     subtitle: 'Our online admission allows you to prepare your visit to La Tour Hospital.',
-    description: 'Your data is treated confidentially.',
-    selectLanguage: 'Choose your language',
-    start: 'Start online admission',
-    secure: 'Your data is protected',
-    fast: 'Quick and simple',
-    minutes: 'Only 5 minutes'
-  }
+    confidentiality: 'Your data is treated confidentially.',
+    button: 'Start online admission',
+    badgeProtected: 'Your data is protected',
+    badgeTime: 'Only 5 minutes',
+  },
 } as const
-
-export type LandingTranslations = typeof landingTranslations.fr

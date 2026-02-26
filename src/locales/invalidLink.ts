@@ -1,8 +1,3 @@
-/**
- * Traductions pour la page InvalidLink
- * @module locales/invalidLink
- */
-
 export const invalidLinkTranslations = {
   fr: {
     title: 'Lien invalide',
@@ -23,5 +18,3 @@ export const invalidLinkTranslations = {
     selectLanguage: 'Choose your language'
   }
 } as const
-
-export type InvalidLinkTranslations = typeof invalidLinkTranslations.fr

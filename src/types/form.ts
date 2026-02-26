@@ -1,0 +1,46 @@
+export type Language = 'fr' | 'en'
+
+export type WizardStep = 'landing' | 'security' | 'otp' | 'qualification' | 'loading' | 'admin' | 'success'
+
+export const DEFAULT_FORM_DATA = {
+  language: 'fr' as Language,
+  preadmissionId: '',
+  reason: 'illness' as 'illness' | 'accident' | undefined,
+  insurance: 'swiss' as 'swiss' | 'international' | 'auto' | undefined,
+  hasEmployer: false,
+  consentNLPD: false,
+  consentMarketing: false,
+  identityCard: null as File | null,
+  insuranceCard: null as File | null,
+  identityCardBase64: '',
+  identityCardMimeType: '',
+  insuranceCardBase64: '',
+  insuranceCardMimeType: '',
+  firstName: '',
+  lastName: '',
+  birthDatePersonal: '',
+  gender: '',
+  nationality: '',
+  avsNumber: '',
+  street: '',
+  npa: '',
+  city: '',
+  country: '',
+  email: '',
+  profession: '',
+  employerName: '',
+  employerAddress: '',
+  referringDoctor: '',
+  generalPractitioner: '',
+  accidentDate: '',
+  accidentInsurance: '',
+  claimNumber: '',
+  basicInsurance: '',
+  cardNumber: '',
+  policyNumber: '',
+  complementaryInsuranceName: '',
+  complementaryInsurance: '',
+  ocrTimedOut: false,
+}
+
+export type WizardFormData = typeof DEFAULT_FORM_DATA
