@@ -30,6 +30,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+       '/_test': {
+        target: apiTarget,
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   test: {
