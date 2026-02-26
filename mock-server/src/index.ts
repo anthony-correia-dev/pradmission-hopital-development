@@ -4,12 +4,28 @@ import { cors } from 'hono/cors'
 import { serve } from '@hono/node-server'
 import { csrf } from './routes/csrf.js'
 import { serverLogics } from './routes/server-logics.js'
-import { getOcrScenario } from './helpers.js'
+import { getOcrScenario, setRuntimeOcrScenario } from './helpers.js'
+import type { OcrScenario } from './helpers.js'
 
 const app = new Hono()
 
 app.use('*', logger())
 app.use('*', cors({ origin: '*' }))
+
+// ---------- Test-only endpoints ----------
+app.post('/_test/scenario', async (c) => {
+  const body = await c.req.json<{ ocrScenario?: string }>()
+  const scenario = (body.ocrScenario?.toUpperCase() ?? 'SUCCESS') as OcrScenario
+  setRuntimeOcrScenario(scenario === 'SUCCESS' ? null : scenario)
+  console.log(`[test] OCR scenario set to: ${scenario}`)
+  return c.json({ success: true, scenario })
+})
+
+app.post('/_test/reset', (c) => {
+  setRuntimeOcrScenario(null)
+  console.log('[test] OCR scenario reset to default')
+  return c.json({ success: true })
+})
 
 // Mount routes
 app.route('/_layout', csrf)
@@ -26,7 +42,7 @@ app.post('/_api/cloudflow/v1.0/trigger/:triggerId', async (c) => {
   return c.json({ status: 'success', data: payload })
 })
 
-const port = 3001
+const port = Number(process.env.MOCK_PORT) || 3001
 const scenario = getOcrScenario()
 
 // Collect active MOCK_* overrides

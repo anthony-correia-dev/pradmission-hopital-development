@@ -65,12 +65,37 @@ function generateInsurance(): Record<string, string> {
   }
 }
 
+/** Fixed identity data for deterministic E2E tests */
+function getFixedIdentity(): Record<string, string> {
+  return {
+    last_name: 'DUPONT',
+    first_names: 'Jean Pierre',
+    gender: 'male',
+    nationality: 'CHE',
+  }
+}
+
+/** Fixed insurance data for deterministic E2E tests */
+function getFixedInsurance(): Record<string, string> {
+  return {
+    rue: 'Rue de Lausanne 42',
+    ville: 'Genève',
+    zip: '1202',
+    country: 'CH',
+    avs: '7561234567890',
+    kvg_carte_no: '80756012345678901234',
+    kvg_insurance: 'CSS',
+    vvg_carte_no: '80756012345678901234',
+  }
+}
+
 /**
  * Generate OCR identity data per scenario.
- * Called fresh each request so values are randomized.
+ * Called fresh each request so values are randomized (or fixed for E2E).
  */
 export function getIdentityOcr(scenario: OcrScenario): Record<string, string> {
   if (scenario === 'ERROR') return {}
+  if (scenario === 'FIXED') return getFixedIdentity()
   if (scenario === 'PARTIAL') {
     const id = generateIdentity()
     return { last_name: id.last_name, first_names: '', gender: '', nationality: '' }
@@ -80,10 +105,11 @@ export function getIdentityOcr(scenario: OcrScenario): Record<string, string> {
 
 /**
  * Generate OCR insurance data per scenario.
- * Called fresh each request so values are randomized.
+ * Called fresh each request so values are randomized (or fixed for E2E).
  */
 export function getInsuranceOcr(scenario: OcrScenario): Record<string, string> {
   if (scenario === 'ERROR') return {}
+  if (scenario === 'FIXED') return getFixedInsurance()
   if (scenario === 'NOT_COVERED') {
     const ins = generateInsurance()
     return { ...ins, kvg_carte_no: 'not_covered', kvg_insurance: '', vvg_carte_no: '' }

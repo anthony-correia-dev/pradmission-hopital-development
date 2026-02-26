@@ -1,21 +1,23 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Hono } from 'hono'
 import { wrapResponse, getOcrScenario, delay, shouldFail } from '../helpers.js'
 import { getIdentityOcr, getInsuranceOcr } from '../data.js'
 
-// Load doctor CSV once at startup
+// Load doctor CSV once at startup (graceful if missing)
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const csvPath = resolve(__dirname, '../../../src/assets/documents/list_med.csv')
-const doctorList: { id: string; name: string }[] = readFileSync(csvPath, 'utf-8')
-  .split('\n')
-  .slice(1)
-  .map((line) => {
-    const [name, id] = line.split(';').map((s) => s.trim())
-    return name && id ? { id, name } : null
-  })
-  .filter((d): d is { id: string; name: string } => d !== null)
+const doctorList: { id: string; name: string }[] = existsSync(csvPath)
+  ? readFileSync(csvPath, 'utf-8')
+      .split('\n')
+      .slice(1)
+      .map((line) => {
+        const [name, id] = line.split(';').map((s) => s.trim())
+        return name && id ? { id, name } : null
+      })
+      .filter((d): d is { id: string; name: string } => d !== null)
+  : []
 
 const serverLogics = new Hono()
 
