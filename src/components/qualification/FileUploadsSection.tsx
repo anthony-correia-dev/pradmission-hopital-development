@@ -27,7 +27,6 @@ export function FileUploadsSection({
 }: FileUploadsSectionProps) {
   const { setValue, watch } = useFormContext<WizardFormData>()
   const { t } = useTranslation('qualification')
-  const { t: tLoading } = useTranslation('loading')
   const api = useApi()
   const insurance = watch('insurance')
   const identityCard = watch('identityCard')
@@ -105,17 +104,6 @@ export function FileUploadsSection({
         if (d.lastName || d.firstName) sessionStorage.setItem('ocr_prefilled', 'true')
       } else {
         const d = result.data as MappedInsuranceData
-        // Check not_covered
-        if (d.kvgCardNumber === 'not_covered' && insurance === 'swiss') {
-          setValue('insuranceCard', null)
-          setValue('insuranceCardBase64', '')
-          setValue('insuranceCardMimeType', '')
-          setErrors((prev) => ({
-            ...prev,
-            insuranceCard: tLoading('notCovered'),
-          }))
-          return
-        }
         if (d.street) setValue('street', d.street)
         if (d.city) setValue('city', d.city)
         if (d.zipCode) setValue('npa', d.zipCode)

@@ -6,11 +6,19 @@ export function wrapResponse(payload: unknown) {
   return { success: true, data: JSON.stringify(payload) }
 }
 
-export type OcrScenario = 'SUCCESS' | 'TIMEOUT' | 'NOT_COVERED' | 'PARTIAL' | 'ERROR'
+export type OcrScenario = 'SUCCESS' | 'TIMEOUT' | 'NOT_COVERED' | 'PARTIAL' | 'ERROR' | 'FIXED'
+
+/** Runtime override set by /_test/scenario endpoint (takes precedence over env var) */
+let runtimeScenario: OcrScenario | null = null
+
+export function setRuntimeOcrScenario(scenario: OcrScenario | null) {
+  runtimeScenario = scenario
+}
 
 export function getOcrScenario(): OcrScenario {
+  if (runtimeScenario) return runtimeScenario
   const env = process.env.OCR_SCENARIO?.toUpperCase()
-  if (env === 'TIMEOUT' || env === 'NOT_COVERED' || env === 'PARTIAL' || env === 'ERROR') {
+  if (env === 'TIMEOUT' || env === 'NOT_COVERED' || env === 'PARTIAL' || env === 'ERROR' || env === 'FIXED') {
     return env
   }
   return 'SUCCESS'

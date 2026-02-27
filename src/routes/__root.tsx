@@ -148,6 +148,13 @@ function RootComponent() {
   const initialLayout = linkState === 'valid' ? (LAYOUT_MODES[currentPath] ?? 'entry-centered') : 'entry-centered'
   const [displayedLayoutMode, setDisplayedLayoutMode] = useState<LayoutMode>(initialLayout)
 
+  // Sync layout mode when link validation completes (no exit animation to wait for)
+  useEffect(() => {
+    if (linkState === 'valid') {
+      setDisplayedLayoutMode(LAYOUT_MODES[currentPath] ?? 'entry-centered')
+    }
+  }, [linkState]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Sync i18next language with form language
   useEffect(() => {
     if (i18n.language !== language) {

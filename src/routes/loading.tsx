@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { useFormContext } from 'react-hook-form'
 import { LoadingScreen } from '@/components'
 import { TIMINGS } from '@/constants/ui'
+import type { WizardFormData } from '@/types/form'
 
 function isOcrPending() {
   return (
@@ -12,6 +14,7 @@ function isOcrPending() {
 
 function LoadingPage() {
   const navigate = useNavigate()
+  const { watch } = useFormContext<WizardFormData>()
 
   useEffect(() => {
     let cancelled = false
@@ -29,6 +32,15 @@ function LoadingPage() {
 
       // If OCR is done or we've waited long enough, navigate
       if (!isOcrPending() || elapsed >= TIMINGS.OCR_TIMEOUT_MS) {
+        // Check if insurance OCR returned not_covered
+        const cardNumber = watch('cardNumber')
+        const insurance = watch('insurance')
+        if (cardNumber === 'not_covered' && insurance === 'swiss') {
+          sessionStorage.setItem('not_covered_redirect', 'true')
+          void navigate({ to: '/qualification' })
+          return
+        }
+
         void navigate({ to: '/admin' })
         return
       }
